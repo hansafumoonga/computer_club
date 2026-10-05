@@ -685,6 +685,35 @@ SP.firePatch = function (ctx, x, y, t, life) {
   ctx.restore();
 };
 
+/* ============ SLICE & POP extras ============ */
+const BALLOON_COLORS = [['#ff8fa8', '#e0304e'], ['#ffd070', '#e8921a'], ['#fff07a', '#e8c400'], ['#8ff0a4', '#2f9e55'], ['#8adcff', '#2a8ad0'], ['#c8a8ff', '#7a4ad0'], ['#ff9ae0', '#c83aa0']];
+SP.BALLOON_COLORS = BALLOON_COLORS;
+/* balloon: centre anchor, r = size */
+SP.balloon = function (ctx, idx, x, y, r, t) {
+  const col = BALLOON_COLORS[idx % BALLOON_COLORS.length];
+  ctx.save(); ctx.translate(x, y);
+  ctx.beginPath(); ctx.moveTo(0, r * 1.12); for (let i = 1; i <= 6; i++) ctx.lineTo(Math.sin(t * 2.2 + i) * 4, r * 1.12 + i * r * 0.2); ctx.lineWidth = 2.2; ctx.strokeStyle = OUT; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, -r * 1.15); ctx.bezierCurveTo(r * 1.15, -r * 1.1, r * 1.05, r * 0.7, 0, r * 1.1); ctx.bezierCurveTo(-r * 1.05, r * 0.7, -r * 1.15, -r * 1.1, 0, -r * 1.15); ctx.closePath();
+  fs(ctx, puff(ctx, 0, -r * 0.1, r * 1.1, col[0], col[1]));
+  ctx.beginPath(); ctx.moveTo(-5, r * 1.1); ctx.lineTo(5, r * 1.1); ctx.lineTo(0, r * 1.22); ctx.closePath(); fs(ctx, col[1]);
+  shine(ctx, -r * 0.45, -r * 0.6, r * 0.16, r * 0.3, -0.4);
+  ctx.restore();
+};
+/* bug: a friendly beetle seen from above, centre anchor */
+SP.bug = function (ctx, idx, x, y, r, t) {
+  const col = BALLOON_COLORS[idx % BALLOON_COLORS.length];
+  ctx.save(); ctx.translate(x, y);
+  ctx.lineCap = 'round'; ctx.strokeStyle = OUT; ctx.lineWidth = 3.5;
+  [-1, 1].forEach(function (d) { for (let i = 0; i < 3; i++) { const w = Math.sin(t * 9 + i * 2 + d) * 4; ctx.beginPath(); ctx.moveTo(d * r * 0.55, -r * 0.3 + i * r * 0.5); ctx.lineTo(d * (r * 1.12 + w), -r * 0.5 + i * r * 0.55); ctx.stroke(); } });
+  ctx.beginPath(); ctx.moveTo(-r * 0.2, -r * 1.1); ctx.quadraticCurveTo(-r * 0.5, -r * 1.5, -r * 0.8, -r * 1.4); ctx.moveTo(r * 0.2, -r * 1.1); ctx.quadraticCurveTo(r * 0.5, -r * 1.5, r * 0.8, -r * 1.4); ctx.stroke();
+  circ(ctx, 0, -r * 0.95, r * 0.42, '#2c2f3e');
+  circ(ctx, -r * 0.18, -r * 1.0, r * 0.13, '#fff'); circ(ctx, r * 0.18, -r * 1.0, r * 0.13, '#fff'); circ(ctx, -r * 0.16, -r * 1.0, r * 0.06, OUT); circ(ctx, r * 0.2, -r * 1.0, r * 0.06, OUT);
+  ctx.beginPath(); ctx.ellipse(0, r * 0.12, r * 0.88, r * 1.02, 0, 0, TAU); fs(ctx, puff(ctx, 0, 0, r * 1.1, col[0], col[1]));
+  ctx.beginPath(); ctx.moveTo(0, -r * 0.9); ctx.lineTo(0, r * 1.1); ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(26,27,63,.6)'; ctx.stroke();
+  ctx.fillStyle = 'rgba(26,27,63,.55)'; [[-0.45, -0.35], [0.45, -0.3], [-0.5, 0.5], [0.5, 0.55]].forEach(function (p) { ctx.beginPath(); ctx.arc(p[0] * r, p[1] * r, r * 0.13, 0, TAU); ctx.fill(); });
+  shine(ctx, -r * 0.4, -r * 0.35, r * 0.14, r * 0.3, -0.3);
+  ctx.restore();
+};
 /* ============ PATTERN POP pad ============ */
 SP.pad = function (ctx, x, y, w, h, color, lit, label, keyLabel, t) {
   ctx.save(); ctx.translate(x, y);

@@ -127,10 +127,10 @@
 <section class="mode" id="mode-fruit" hidden>
   <div class="topbar">
     <button class="btn" data-action="menu">🏠</button>
-    <h2>🍉 Fruit Slice</h2>
+    <h2>🍉 Slice &amp; Pop</h2>
     <span></span>
   </div>
-  <div class="stage with-kbd" id="stage-fruit"><canvas width="800" height="450"></canvas><div class="overlay-root"></div></div>
+  <div class="stage with-kbd" id="stage-fruit"><canvas width="800" height="450"></canvas><div class="overlay-root"></div><button class="btn ico stage-btn" id="fruit-levels" aria-label="choose level">🔢</button></div>
   <div class="kbd" id="fruit-kbd" aria-hidden="true"></div>
 </section>
 
@@ -142,9 +142,9 @@
     <span></span>
   </div>
   <div class="words-wrap" id="stage-words">
+    <div class="wh-levels" id="wh-levels"></div>
     <div class="words-left">
-      <span class="dots" id="wh-dots"></span>
-      <div id="wh-grid" class="wh-grid"></div>
+      <div class="wh-board" id="wh-board"><div id="wh-grid" class="wh-grid"></div><svg id="wh-svg" class="wh-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
       <div class="row"><button class="btn ico" id="wh-hint" aria-label="hint">💡</button><button class="btn ico" id="wh-new" aria-label="new puzzle">🔀</button></div>
     </div>
     <ul id="wh-list" class="wh-list"></ul>

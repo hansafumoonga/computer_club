@@ -4,7 +4,7 @@
 const app = CC.app;
 
 const MODES = {
-  fruit:    { icon: '🍉', name: 'Fruit Slice',   desc: 'Press the letter on each fruit!', color: '#ff6b86' },
+  fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', color: '#ff6b86' },
   words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Computer words crossword',        color: '#22c6c6' },
   jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', color: '#ffd23f' },
   blaster:  { icon: '🚀', name: 'Star Blaster',  desc: 'Pop the friendly space rocks',    color: '#6bcb77' },

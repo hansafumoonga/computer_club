@@ -195,7 +195,7 @@ UI.show = function (stage, opts) {
   el.querySelector('.o-title').textContent = opts.title || '';
   if (opts.text) el.querySelector('.o-text').textContent = opts.text;
   const bx = el.querySelector('.o-btns');
-  const ov = { el: el, keys: {}, at: performance.now(), stage: stage };
+  const ov = { el: el, keys: {}, at: performance.now(), stage: stage, onKey: opts.onKey };
   (opts.buttons || []).forEach(function (b) {
     const btn = document.createElement('button');
     btn.className = 'btn big' + (b.primary ? ' primary' : '');
@@ -228,6 +228,7 @@ UI.handleKey = function (e) {
   const ov = UI.active; if (!ov) return false;
   if (CC.MAKEY_KEYS.indexOf(e.code) >= 0 || e.code === 'Enter') e.preventDefault();
   if (e.repeat || performance.now() - ov.at < 450) return true;
+  if (ov.onKey && ov.onKey(e.code)) return true;       // extra keys that do not close the screen (e.g. choosing a level)
   const fn = ov.keys[e.code];
   if (fn) UI.fire(ov, fn);
   return true;

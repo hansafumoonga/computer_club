@@ -6,6 +6,16 @@ HOW TO USE
   (index.html + the css and js folders; the old jump-game/shoot-game/memory-game files and files.zip are not used).
   No server, no install, no network calls, nothing is saved anywhere.
 
+WORD HUNT + SLICE & POP (version 8)
+  - Word Hunt now has 10 levels you can pick from (numbers along the top). Easy short words first (MOUSE, FILE, SAVE), then everyday
+    computing words, then longer technical words (PASSWORD, ALGORITHM, TOUCHSCREEN). Grids grow from 6x6 to 12x12, then diagonals and
+    backwards words arrive, and in levels 9-10 some words are MYSTERIES (only a picture and the number of letters show). The word list is
+    always on the right. Found words get a coloured highlight that matches their chip. Edit WORD_LIST (tier 1-5) and LEVELS in js/words.js.
+  - Fruit Slice is now SLICE & POP: 10 levels you choose from. Level 1 is super slow (34 seconds to fall) with only the letters F J D K;
+    each level is faster with more letters (home row, top row, bottom row, all letters, then numbers). The things to hit change too:
+    fruit, balloons, bugs, and a mix. Fun extras: streaks (🔥), and golden ones that pop everything on screen. Still no lives and no
+    game over. Edit SLICE_LEVELS (theme, letters, fall seconds, spawn gap, max on screen, goal) and GOLDEN_CHANCE in js/fruit.js.
+
 LOOK UPGRADE (version 6)
   - The soldier has a different costume for every stage scenery (parka, diving mask, desert shades, space bubble helmet, hard hat, cape...),
     rank stripes and a medal as the stages go on, a run cycle with a swinging arm, recoil when he fires, a glow and ring when he picks up a
