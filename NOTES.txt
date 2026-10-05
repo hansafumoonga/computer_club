@@ -6,6 +6,14 @@ HOW TO USE
   (index.html + the css and js folders; the old jump-game/shoot-game/memory-game files and files.zip are not used).
   No server, no install, no network calls, nothing is saved anywhere.
 
+LOOK UPGRADE (version 6)
+  - The soldier has a different costume for every stage scenery (parka, diving mask, desert shades, space bubble helmet, hard hat, cape...),
+    rank stripes and a medal as the stages go on, a run cycle with a swinging arm, recoil when he fires, a glow and ring when he picks up a
+    weapon, a staggered pose when hurt and a victory hop when a stage is won. Costumes are the COSTUMES list in js/sprites.js.
+  - Every weapon has its own big, detailed gun, its own muzzle flash, a glowing bullet trail, and weapon-coloured sparks on impact.
+    Normal / rapid / spread guns eject shell casings. Damaged giant robots, tanks and helicopters smoke. Slow motion when a boss falls.
+  - Weather: northern lights over the snow stages, rain in the swamp.
+
 COMMANDO RUN UPGRADE (version 5)
   - Stages are about 20% longer (8,400 to 18,000 pixels).
   - New big enemies: a GIANT ROBOT that slams the ground (and sends a wave) if you get near, a TANK that lobs bombs that leave fire patches,

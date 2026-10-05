@@ -68,12 +68,14 @@ const SUMMON = { lion: ['walker', 'charger'], octopus: ['flyer', 'hopper'], scor
 const ENEMY_PAL = [['#b5f59a', '#4fb85f'], ['#9ae8f0', '#2f9fc4'], ['#f5d08a', '#c4893a'], ['#d8f0ff', '#7ab0d8'], ['#ff9a7a', '#c23a2a'], ['#a8f08a', '#2f9e55'], ['#d0a8ff', '#7a4ad0'], ['#a8b8ff', '#4a58b8'],
   ['#e8f4ff', '#8ab8e8'], ['#ffa8e8', '#c04aa0'], ['#c8e070', '#6a8a2a'], ['#e8c8a0', '#a07a4a'], ['#c8ccd8', '#6a7088'], ['#c8e8ff', '#5a90d0'], ['#ff9ac8', '#a02a6a']];
 const MOVE_MIN = { barrage: 1, beam: 1, lunge: 2, bombs: 2 };   // the nastier boss moves only appear from this stage number on (0 = stage 1)
+const TRAIL_LEN = { normal: 4, rapid: 6, spread: 4, big: 8, homing: 10 };   // length of the glowing trail behind each shot
+const SPARK = { normal: ['#ffe06a', '#ffffff'], rapid: ['#ffb066', '#ffffff'], spread: ['#8ff0a4', '#ffffff'], big: ['#d68bff', '#ffffff', '#ffe0ff'], laser: ['#22e0e0', '#e8ffff'], homing: ['#ff8fc0', '#ffffff'], fire: ['#ff8a3a', '#ffd23f'] };
 const AIRBORNE = { flyer: 1, bomber: 1, gunship: 1 };
 /* ======================================================================= */
 
 const SP = CC.sprites, GROUND = 370, W = 800;
 let hero, cam, L, li, lv, enemies, bullets, orbs, waves, caps, lives, invincible, fireCd, wantFire, weapon, jumpBuf, hurtT, aimUp, stepT, dropT, coyote, lastSafe;
-let fires = [], boss, bossAnnounce, cpX = 0, cpSaved = {}, rescue = null, shake = 0, flashT = 0, dustT = 0, hint = null, shotsFired = 0, wasGrounded = true;
+let casings = [], recoilT = 0, pickT = 0, slowT = 0, fires = [], boss, bossAnnounce, cpX = 0, cpSaved = {}, rescue = null, shake = 0, flashT = 0, dustT = 0, hint = null, shotsFired = 0, wasGrounded = true;
 
 /* ---------------- stage builder (same stage every time you play it) ---------------- */
 function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -193,7 +195,7 @@ function reset(g, level, fromCp) {
   enemies = L.enemies; if (cpX) enemies = enemies.filter(function (e) { return e.x > cpX + 350; });
   caps = L.caps; if (cpX) caps = caps.filter(function (c) { return c.x > cpX + 100; });
   L.flags.forEach(function (f) { f.on = cpX >= f.x; });
-  bullets = []; orbs = []; waves = []; fires = []; boss = null; bossAnnounce = 0; rescue = null; shake = 0; flashT = 0; dustT = 0; hint = null; shotsFired = 0; wasGrounded = true;
+  bullets = []; orbs = []; waves = []; fires = []; casings = []; recoilT = 0; pickT = 0; slowT = 0; boss = null; bossAnnounce = 0; rescue = null; shake = 0; flashT = 0; dustT = 0; hint = null; shotsFired = 0; wasGrounded = true;
   lives = COMMANDO_LIVES; invincible = 1.5; fireCd = 0; wantFire = false; weapon = 'normal'; jumpBuf = 0; hurtT = 0; aimUp = false; stepT = 0; dropT = 0; coyote = 0; lastSafe = sx;
 }
 function heroBox() { const h = hero.duck ? 34 : 60; return CC.shrink(hero.x - 15, hero.y - h, 30, h, COMMANDO_HITBOX_PAD); }
@@ -227,9 +229,10 @@ function fire() {
   const w = WEAPONS[weapon], m = muzzle(), base = aimUp ? -Math.PI / 2 : (hero.facing > 0 ? 0 : Math.PI);
   (w.fan || [0]).forEach(function (da) {
     const a = base + da;
-    bullets.push({ x: m.x, y: m.y, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, kind: weapon, a: a, dmg: w.dmg, pierce: w.pierce, hit: [], life: w.life, homing: !!w.homing, t: 0 });
+    bullets.push({ x: m.x, y: m.y, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed, kind: weapon, a: a, dmg: w.dmg, pierce: w.pierce, hit: [], life: w.life, homing: !!w.homing, t: 0, tr: [] });
   });
-  flashT = 0.07; shotsFired++;
+  flashT = 0.08; recoilT = 0.12; shotsFired++;
+  if (weapon === 'normal' || weapon === 'rapid' || weapon === 'spread') casings.push({ x: hero.x + hero.facing * 14, y: m.y + 2, vx: -hero.facing * CC.rand(50, 120), vy: -CC.rand(130, 220), r: 0, vr: CC.rand(-12, 12), life: 1.3 });   // empty shell flies out
   CC.sfx.shoot(weapon === 'laser' || weapon === 'homing' || weapon === 'fire' ? 'spread' : weapon);
 }
 function dropPickup(e) { caps.push({ x: e.x, y: GROUND - 48, base: GROUND - 48, kind: ['rapid', 'spread', 'big', 'laser', 'fire', 'homing'][Math.floor(Math.random() * Math.min(6, 2 + li))], t: 0, vx: 0 }); }
@@ -342,6 +345,8 @@ function startRescue(g) {
 }
 /* ---------------- main update ---------------- */
 function update(g, dt) {
+  if (slowT > 0) { slowT -= dt; dt *= 0.35; }      // slow motion when a boss falls
+  if (recoilT > 0) recoilT -= dt; if (pickT > 0) pickT -= dt;
   if (invincible > 0) invincible -= dt;
   if (hurtT > 0) hurtT -= dt;
   if (dropT > 0) dropT -= dt;
@@ -390,6 +395,7 @@ function update(g, dt) {
   // bullets
   for (const b of bullets) {
     b.t += dt; b.life -= dt;
+    if (b.tr) { b.tr.push({ x: b.x, y: b.y }); if (b.tr.length > (TRAIL_LEN[b.kind] || 0)) b.tr.shift(); }
     if (b.homing) {
       let best = null, bd = 420;
       for (const e of enemies) { if (!e.act && e.type !== 'boss') continue; const bb = boxOf(e), dx = bb.x + bb.w / 2 - b.x, dy = bb.y + bb.h / 2 - b.y, dist = Math.hypot(dx, dy); if (dist < bd) { bd = dist; best = [dx, dy]; } }
@@ -397,6 +403,7 @@ function update(g, dt) {
     }
     b.x += b.vx * dt; b.y += b.vy * dt;
   }
+  for (let i = casings.length - 1; i >= 0; i--) { const k = casings[i]; k.life -= dt; k.vy += 900 * dt; k.x += k.vx * dt; k.y += k.vy * dt; k.r += k.vr * dt; if (k.y > hero.y - 1 && k.vy > 0) { k.y = hero.y - 1; k.vy *= -0.35; k.vx *= 0.6; k.vr *= 0.5; } if (k.life <= 0) casings.splice(i, 1); }
   // pickups (touch or shoot)
   for (let i = caps.length - 1; i >= 0; i--) {
     const c = caps[i]; c.t += dt; c.y = c.base + Math.sin(c.t * 2.5) * 7;
@@ -405,7 +412,7 @@ function update(g, dt) {
     for (let j = bullets.length - 1; j >= 0 && !got && c.kind !== 'heart'; j--) if (CC.overlap(cb, { x: bullets[j].x - 7, y: bullets[j].y - 7, w: 14, h: 14 })) { got = true; if (bullets[j].pierce <= 1) bullets.splice(j, 1); }
     if (got) {
       if (c.kind === 'heart') { lives = Math.min(COMMANDO_LIVES + 2, lives + 1); }
-      else weapon = c.kind;
+      else { weapon = c.kind; pickT = 0.45; }
       CC.sfx.pickup(); g.particles.burst(c.x, c.y, [SP.WEAPON_COLORS[c.kind] || '#ff6b86', '#ffffff'], 16, { speed: 170, size: 5, grav: 0 });
       caps.splice(i, 1);
     }
@@ -421,6 +428,7 @@ function update(g, dt) {
       e.t += dt; if (e.hit > 0) e.hit -= dt;
       enemyAI(g, e, dt);
       if (enemies[i] !== e) continue;
+      if ((e.type === 'mech' || e.type === 'tank' || e.type === 'gunship') && e.hp < e.maxHp * 0.5) { e.smokeT = (e.smokeT || 0) - dt; if (e.smokeT <= 0) { const bb = boxOf(e); g.particles.burst(bb.x + bb.w * Math.random(), bb.y + 8, ['rgba(60,60,70,.65)', 'rgba(120,120,130,.5)'], 2, { speed: 30, up: 60, size: 8, grav: -50, life: 0.9 }); e.smokeT = 0.14; } }   // damaged machines smoke
     }
     // player bullets
     const eb = shr(boxOf(e), e.type === 'flyer' || e.type === 'bomber' ? 4 : 3);
@@ -431,10 +439,10 @@ function update(g, dt) {
       const vert = Math.abs(b.vy) > Math.abs(b.vx), r = b.kind === 'big' ? 11 : 7;
       const bb = b.kind === 'laser' ? (vert ? { x: b.x - 5, y: b.y - 30, w: 10, h: 60 } : { x: b.x - 30, y: b.y - 5, w: 60, h: 10 }) : { x: b.x - r, y: b.y - r, w: r * 2, h: r * 2 };
       if (CC.overlap(eb, bb)) {
-        b.hit.push(e); e.hp -= b.dmg; e.hit = 0.12; b.pierce--; if (b.pierce <= 0) bullets.splice(j, 1);
+        b.hit.push(e); e.hp -= b.dmg; e.hit = 0.12; b.pierce--; hitFx(g, b, e); if (b.pierce <= 0) bullets.splice(j, 1);
         if (b.kind === 'fire') g.particles.burst(b.x, b.y, ['#ff8a3a', '#ffd23f'], 4, { speed: 80, size: 4, grav: -60 });
         if (e.hp <= 0) {
-          if (e.type === 'boss') { e.state = 'dying'; e.dying = 1.6; e.hp = 0; orbs = []; waves = []; CC.sfx.pop(); }
+          if (e.type === 'boss') { e.state = 'dying'; e.dying = 1.6; e.hp = 0; orbs = []; waves = []; CC.sfx.pop(); slowT = 0.9; }
           else { defeat(g, e); enemies.splice(i, 1); }
           break;
         } else CC.sfx.clink();
@@ -466,6 +474,11 @@ function update(g, dt) {
   if (boss && boss.beam && boss.beam.on && boss.state === 'act') { const band = { x: cam, y: boss.beam.y - 12, w: Math.max(0, boss.x - 60 - cam), h: 24 }; if (CC.overlap(hb, band)) { hurtHero(g, 'beam'); if (g.state !== 'play') return; } }
   for (let i = fires.length - 1; i >= 0; i--) { const f = fires[i]; f.t -= dt; if (CC.overlap(hb, { x: f.x - 24, y: GROUND - 22, w: 48, h: 22 })) { hurtHero(g, 'fire'); if (g.state !== 'play') return; } if (f.t <= 0) fires.splice(i, 1); }
   bullets = bullets.filter(function (b) { return b.life > 0 && b.x > cam - 60 && b.x < cam + W + 60 && b.y > -60 && b.y < GROUND + 60; });
+}
+function hitFx(g, b, e) {                       // sparks that match the weapon, and a little knockback
+  const cols = SPARK[b.kind] || SPARK.normal;
+  g.particles.burst(b.x, b.y, cols, b.kind === 'big' ? 14 : b.kind === 'laser' ? 6 : 8, { speed: b.kind === 'big' ? 230 : 160, size: b.kind === 'big' ? 6 : 4, life: 0.45, grav: b.kind === 'fire' ? -80 : 220 });
+  if (e.type === 'walker' || e.type === 'charger' || e.type === 'hopper' || e.type === 'armoured') e.x += Math.sign(b.vx || 1) * 5;
 }
 function enemyAI(g, e, dt) {
   const d = e.d, dx = hero.x - e.x, toward = dx < 0 ? -1 : 1, onScreen = e.x > cam + 20 && e.x < cam + W - 20;
@@ -601,10 +614,13 @@ function draw(g) {
   if (hero.grounded) { c.fillStyle = 'rgba(0,0,0,.2)'; c.beginPath(); c.ellipse(hero.x, hero.y + 3, 22, 5, 0, 0, 6.283); c.fill(); }
   if (rescue) { const bx = hero.x, by = hero.y - 34, rr2 = 46 + Math.sin(g.t * 8) * 2; c.fillStyle = 'rgba(160,220,255,.28)'; c.beginPath(); c.arc(bx, by, rr2, 0, 6.283); c.fill(); c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 3; c.stroke(); c.fillStyle = 'rgba(255,255,255,.7)'; c.beginPath(); c.ellipse(bx - 16, by - 22, 8, 4, -0.6, 0, 6.283); c.fill(); }
   c.globalAlpha = rescue ? 0.95 : invincible > 0 ? 0.6 + 0.2 * Math.sin(g.t * 8) : 1;
-  SP.hero(c, hero.x, hero.y, { t: g.t, facing: hero.facing, aimUp: aimUp, duck: hero.duck, weapon: weapon, moving: hero.moving, air: !hero.grounded, hurt: hurtT > 0 });
+  SP.hero(c, hero.x, hero.y, { t: g.t, facing: hero.facing, aimUp: aimUp, duck: hero.duck, weapon: weapon, moving: hero.moving, air: !hero.grounded, hurt: hurtT > 0, costume: lv.theme, rank: Math.floor(li / 4), recoil: Math.max(0, recoilT) / 0.12, glow: Math.max(0, pickT) / 0.45, win: g.state === 'done' });
+  if (pickT > 0) { const u = 1 - pickT / 0.45; c.beginPath(); c.arc(hero.x, hero.y - 40, 20 + u * 70, 0, 6.283); c.lineWidth = 4 * (1 - u); c.strokeStyle = SP.WEAPON_COLORS[weapon] || '#fff'; c.stroke(); }
   c.globalAlpha = 1;
+  for (const b of bullets) { if (b.tr && b.tr.length) { const col = SP.WEAPON_COLORS[b.kind] || '#fff'; for (let i = 0; i < b.tr.length; i++) { c.globalAlpha = (i + 1) / (b.tr.length + 1) * 0.5; c.fillStyle = col; c.beginPath(); c.arc(b.tr[i].x, b.tr[i].y, (b.kind === 'big' ? 9 : 4.5) * (i + 1) / b.tr.length, 0, 6.283); c.fill(); } c.globalAlpha = 1; } }
   for (const b of bullets) SP.bullet(c, b.x, b.y, b.kind, b.a, b.t);
-  if (flashT > 0) { const m = muzzle(), col = SP.WEAPON_COLORS[weapon] || '#ffe06a'; c.globalAlpha = flashT / 0.07; c.fillStyle = col; c.beginPath(); c.arc(m.x, m.y, 14, 0, 6.283); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(m.x, m.y, 7, 0, 6.283); c.fill(); c.globalAlpha = 1; }
+  for (const k of casings) { c.save(); c.translate(k.x, k.y); c.rotate(k.r); c.fillStyle = '#ffd23f'; c.strokeStyle = '#1a1b3f'; c.lineWidth = 1.2; c.fillRect(-3, -1.6, 6, 3.2); c.strokeRect(-3, -1.6, 6, 3.2); c.restore(); }
+  if (flashT > 0) { const mz = muzzle(); SP.muzzleFlash(c, mz.x, mz.y, weapon, aimUp ? -Math.PI / 2 : (hero.facing > 0 ? 0 : Math.PI), flashT / 0.08); }
   g.particles.draw(c);
   if (hint && !rescue) drawHint(c, hero.x, hero.y - (hero.duck ? 60 : 96), g.t);
   c.restore();

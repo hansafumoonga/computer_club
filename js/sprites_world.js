@@ -110,6 +110,9 @@ function deco(c, kind, x, gy, s, th, t) {
 SP.world = function (c, W, Hh, gy, cam, ti, t) {
   const th = SP.THEMES[ti % SP.THEMES.length];
   c.drawImage(cached('sky' + ti, W, Hh, function (k) { const g = k.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, th.top); g.addColorStop(1, th.bot); k.fillStyle = g; k.fillRect(0, 0, W, Hh); }), 0, 0);
+  if (ti % 15 === 3 || ti % 15 === 13) {      // gentle northern lights
+    for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(0, 30 + i * 22); for (let x = 0; x <= W; x += 20) c.lineTo(x, 30 + i * 22 + Math.sin(x / 90 + t * 0.4 + i * 2) * 14); c.lineTo(W, 74 + i * 22); for (let x = W; x >= 0; x -= 20) c.lineTo(x, 74 + i * 22 + Math.sin(x / 70 + t * 0.3 + i) * 10); c.closePath(); c.fillStyle = ['rgba(120,255,200,.16)', 'rgba(170,140,255,.14)', 'rgba(120,200,255,.12)'][i]; c.fill(); }
+  }
   if (th.stars) { for (let i = 0; i < 40; i++) { c.globalAlpha = 0.4 + 0.3 * Math.sin(t * 0.8 + i); c.fillStyle = '#fff'; c.fillRect((i * 137 + 40) % W, (i * 71 + 20) % (gy * 0.6), 2, 2); } c.globalAlpha = 1; }
   if (th.orb) { const o = th.orb, gr = c.createRadialGradient(o[1], o[2], 4, o[1], o[2], o[3] * 2.4); gr.addColorStop(0, o[0]); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.beginPath(); c.arc(o[1], o[2], o[3] * 2.4, 0, TAU); c.fill(); circ(c, o[1], o[2], o[3] * 0.9, o[0]); }
   if (th.cloud) { c.fillStyle = 'rgba(255,255,255,.55)'; for (let i = 0; i < 5; i++) { const cx = (((i * 300 - cam * 0.08 - t * 4) % (W + 300)) + W + 300) % (W + 300) - 150, cy = 50 + (i % 3) * 40; c.beginPath(); c.ellipse(cx, cy, 52, 15, 0, 0, TAU); c.ellipse(cx + 28, cy - 8, 32, 14, 0, 0, TAU); c.fill(); } }
@@ -154,6 +157,7 @@ SP.worldFront = function (c, W, Hh, gy, cam, ti, t) {
     else { c.fillStyle = '#e8e8ff'; c.fillRect(x, y, 2, 2); }
   }
   c.globalAlpha = 1;
+  if (ti % 15 === 10) { c.strokeStyle = 'rgba(210,230,255,.45)'; c.lineWidth = 1.5; c.beginPath(); for (let i = 0; i < 46; i++) { const rx = ((hash(i * 3.1) * (W + 80) + t * 120 - cam * 0.3) % (W + 80) + W + 80) % (W + 80) - 40, ry = ((hash(i * 5.7) * Hh + t * 520) % Hh); c.moveTo(rx, ry); c.lineTo(rx - 5, ry + 16); } c.stroke(); }
   c.fillStyle = 'rgba(8,8,30,.38)';
   for (let i = Math.floor(cam * 1.25 / 140) - 1; i < Math.floor(cam * 1.25 / 140) + Math.ceil(W / 140) + 2; i++) {
     const x = i * 140 + hash(i * 2.1) * 60 - cam * 1.25, h = 14 + hash(i * 3.7) * 26;
