@@ -1,0 +1,122 @@
+COMPUTER CLUB & KEYBOARD SKILLS SUITE - teacher notes (version 2)
+=================================================================
+
+HOW TO USE
+  Open index.html (double-click), or upload this whole folder to GitHub Pages as-is
+  (index.html + the css and js folders; the old jump-game/shoot-game/memory-game files and files.zip are not used).
+  No server, no install, no network calls, nothing is saved anywhere.
+
+COMMANDO RUN UPGRADE (version 5)
+  - Stages are about 20% longer (8,400 to 18,000 pixels).
+  - New big enemies: a GIANT ROBOT that slams the ground (and sends a wave) if you get near, a TANK that lobs bombs that leave fire patches,
+    a bomber HELICOPTER that hovers over you dropping bombs, and a CHARGING BEAST that crouches then rushes you (jump over it!).
+  - Old enemies are more aggressive: walkers lunge, flyers swoop down at you, hoppers hop faster, gunners fire bursts. They also look nastier
+    (horns, spikes, bat wings) and walkers change colour with the scenery. Every stage's half-way mini-boss is now an armoured guard, a giant
+    robot or a tank in turn.
+  - Bosses are bigger (x1.2), glow, and fight in 3 PHASES (the health bar shows the two marks). At 2/3 health they add new attacks, at 1/3 they
+    get angry (red aura, embers, faster). New attacks: summon helpers, lunge at you, lobbed bombs that leave fire, a fast barrage of shots,
+    and a LASER ACROSS CHEST HEIGHT - press Down to DUCK under it (or jump). Dragon breathes fire, UFO shines a beam, etc.
+  - The nastier boss moves only appear from later stages (MOVE_MIN in js/commando.js), so stages 1 and 2 stay friendly.
+  - When the boss arrives a friendly invisible wall keeps you in the left part of the arena.
+  - Boss hit points: BOSS_HP_BASE / BOSS_HP_PER_STAGE. Boss moves per creature: BOSS_DEF.
+
+MUSIC (version 4)
+  Every game has its own synthesized background tune (js/music.js, no audio files): menu (bouncy), Jump Over (bright running chiptune,
+  speeds up each level), Star Blaster (space arpeggios in a different key per level + a faster boss tune), Commando Run (heavy action riffs,
+  a different key every stage + a darker, faster boss tune when the big creature arrives), Pattern Pop (quiet and playful so the pad tones
+  stand out), Fruit Slice (relaxed marimba), Word Hunt (calm thinking music). The Piano has no background music - the child is the music.
+  A music button in every top bar turns it on/off. Music gets quieter automatically while a menu / level-complete screen is showing.
+  To change a tune edit TRACKS in js/music.js (bpm = speed, key, vol = loudness, and the chord / bass / drum / melody patterns).
+
+WHAT CHANGED IN VERSION 3
+  - New landing page: keycap logo, a mini keyboard for Session 1 and a Makey Makey board (pads + fruit) for Session 2.
+  - Commando Run is longer (stages are 7,000 to 15,000 pixels long) and busier from the first stage: packs of enemies rushing in, a half-way
+    mini-boss (an extra-big armoured guard) in every stage, long chasms crossed on stepping platforms, 3 checkpoint flags, weather and
+    richer scenery, screen shake, muzzle flash and dust.
+  - Fall off a platform or into a pit: you lose one heart and a friendly bubble floats you back to the last safe ground, still in the stage.
+  - The bosses and enemies now look fierce (angry eyes, fangs, horns, spikes) - still cartoon, never gory. The lion was redone first.
+  - Keyboard / Makey Makey learning: little key-caps along the bottom of Commando Run, Jump Over and Star Blaster light up in the same colours
+    as the piano notes whenever a key or pad is pressed. In the first 3 stages of Commando Run, key pictures pop up above the soldier
+    (-> to start, up arrow before a pit, Space when an enemy is near). Change KEY_HINT_STAGES in js/commando.js (0 = off).
+
+WHAT CHANGED IN VERSION 2
+  - Commando Run: 15 stages, a scrolling world you run through (enemies wait for you - you go and find them), floating platforms to jump
+    and stand on (press Down on a platform to drop through), pits to jump (a friendly rescue costs one heart), checkpoint flags,
+    hearts to find, a cartoon soldier with a rifle, 7 weapons, 7 enemy types and a different big boss at the end of every stage.
+  - Word Hunt is now a WORD SEARCH (6 rounds, getting bigger and trickier).
+  - Jump Over!: 12 levels, 12 different scenery themes, new obstacles (rolling ball, hanging swing, tall wall, gaps in the ground),
+    patterns that combine them, and stars to collect. Levels take about 35-60 seconds each.
+  - Star Blaster: 12 levels, 5 kinds of falling things (new: zig-zagger, splitter), laser pickup, 3 big bosses (levels 4, 8, 12).
+  - Much less text: pictures, big round buttons, keys shown as little key-caps.
+
+KEYS
+  Session 1: normal keyboard. Session 2 (Makey Makey): only the 5 keys Left / Up / Down / Right / Space.
+  Commando Run: Left/Right run, Up jump (hold Up while standing still to aim UP), Down duck (or drop through a platform), Space shoot (hold to keep firing).
+
+THE 7 COMMANDO WEAPONS (pick up the glowing capsules; you keep a weapon until you lose a heart)
+  normal (yellow ball)  rapid (orange streaks, twin barrels)  spread (green 3-way)  big (purple, passes through 3 enemies)
+  laser (cyan beam, passes through everything)  homing (pink stars that curve toward enemies)  fire (flames, short range).
+  The soldier's rifle and the bullet look different for every weapon. New weapons unlock as the stages go on.
+
+FILES
+  index.html        the page (hub + every game's screen, shown/hidden)
+  css/style.css     look and feel
+  js/core.js        shared sound synth, drums, particles, game loop, the Level Complete / Try Again / intro screens
+  js/sprites.js     characters, enemies, obstacles, bullets, fruit (hero, ship, walker, hopper, gunner, bomber ...)
+  js/sprites_world.js  the 15 stage backgrounds, ground / pits / platforms, and the 12 big boss creatures
+  js/piano.js  jump.js  blaster.js  commando.js  pattern.js  fruit.js  words.js   one file per game
+  js/main.js        session/mode picker + keyboard routing
+
+WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SETTINGS")
+  Commando Run  js/commando.js
+    COMMANDO_LIVES, COMMANDO_INVINCIBLE_SECONDS, COMMANDO_HITBOX_PAD (bigger = more forgiving), RUN_SPEED, JUMP_POWER, GRAVITY,
+    ORB_SPEED, TURRET_WARNING_SECONDS, DROP_CHANCE, BOSS_HP_BASE / BOSS_HP_PER_STAGE (boss toughness),
+    WEAPONS (fire rate, damage, how many enemies a shot passes through),
+    COMMANDO_LEVELS: one line per stage - len (length), d (0 gentle ... 1 hardest: more and tougher enemies, faster shots),
+    theme (scenery), boss and pal (which creature and colours).
+    BOSS_DEF: how each boss fights (moves: orbs, fan, rain, wave).
+    Every stage is built the same way each time (so replays and checkpoints work); change len/d to make it longer/easier.
+  Jump Over!    js/jump.js
+    JUMP_LIVES, JUMP_INVINCIBLE_SECONDS, JUMP_HITBOX_PAD, JUMP_STOMP_SLACK (landing on a bush bounces), JUMP_GRAVITY / JUMP_POWER,
+    JUMP_LEVELS: speed, count (how many obstacle groups), gap (seconds between), theme.
+    PATTERNS: which obstacle groups exist, from which level (min) and how common (w).
+  Star Blaster  js/blaster.js
+    BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, BLASTER_WEAPON_SECONDS, FIRE_DELAY,
+    ENEMIES (size/speed/hits), BLASTER_LEVELS: count, gap, types, speedMul, rockHp, boss (hit points).
+  Pattern Pop!  js/pattern.js   PATTERN_START_LENGTH, PATTERN_LIT_SECONDS, PATTERN_GAP_SECONDS, PATTERN_GRACE_RETRIES.
+  Fruit Slice   js/fruit.js     FRUIT_FALL_SECONDS (BIGGER = SLOWER), FRUIT_LETTERS, FRUIT_SPAWN_SECONDS, FRUIT_MAX_ON_SCREEN.
+                                (an endless practice game - it never ends, by design)
+  Word Hunt     js/words.js     WORD_LIST (word + picture), ROUNDS (grid size, how many words, which directions).
+  Piano         js/piano.js     SONGS, BEATS.
+
+USING YOUR OWN PICTURES LATER
+  All drawing is in js/sprites.js and js/sprites_world.js - one function per thing, each taking (ctx, x, y, ...state):
+    SP.runner, SP.bush / rockFriend / stump / bee / ball / swing / wall / coin   (Jump Over)
+    SP.ship, SP.rockBig / comet / jelly / zig / splitter / megaBoss              (Star Blaster)
+    SP.hero (the soldier), SP.walker / hopper / gunner / flyer / bomber / turret / armoured, SP.bossDraw (12 bosses),
+    SP.capsule, SP.bullet, SP.platform, SP.ground, SP.pit, SP.world (backgrounds), SP.flag     (Commando Run)
+    SP.fruit, SP.pad, SP.heart.
+  To swap one, replace its body with ctx.drawImage(...). The game files never draw shapes themselves. (Image loading is not built in.)
+
+HOW IT WAS TESTED  (automated: headless Chrome driven over DevTools, opened from file://; games also run faster-than-real-time by test bots)
+  - Commando Run: all 15 stages were played start to finish by a test bot in "can't be hurt" mode: every stage (all 12 boss creatures,
+    pits, platforms, checkpoints, every pickup type) reached Level Complete, so nothing blocks progress. With normal hearts a simple bot
+    cleared stages 1-8 and lost to some of the harder ones - the difficulty rises steadily. A bug found and fixed: a bomber hovering
+    beside the hero could not be hit when aiming up; bombers now centre over the hero.
+  - Jump Over!: a perfect-play bot cleared all 12 levels (34-61 s each) with no hearts lost; ducking, pits, rolling balls, swings and
+    walls all worked. Earlier checks: key-mashing, doing nothing -> gentle "Nice try", one key restarts.
+  - Star Blaster: a simple bot cleared levels 1-7, 11 and failed some of 8, 9, 10 and 12 (including 2 of the 3 bosses) - so it is a real challenge.
+  - Word Hunt: dragged across a hidden word with the mouse -> word found and ticked, finished the round -> "Round done" -> next round.
+  - Fruit Slice, Pattern Pop, Piano (including a real, non-silent recording and no microphone prompt) re-checked after the changes.
+  - Layout: stage stays 16:9 with no gap and no scrolling at 700x900, 1280x800, 1920x1080 (and the smaller sizes checked before).
+  - Searched for localStorage, cookies, fetch, XMLHttpRequest, http(s):// and external links: none (only css/style.css is linked).
+
+WHAT I COULD NOT CHECK / SIMPLIFIED
+  - I could not listen to the sound (no speakers in the test setup) - sounds are triggered and the recording has audio, but please
+    give the volume a listen. Only tested in Chrome, with simulated key presses; not on a real Makey Makey.
+  - "Challenging" is a judgement call: I tested with bots, not children. If it is too hard or too easy, change the numbers above
+    (COMMANDO_LEVELS d / len, COMMANDO_LIVES, BOSS_HP_*, JUMP_LEVELS speed, BLASTER_LEVELS gap/speedMul).
+  - A level picker (small numbered circles) is on every level's start screen, so you can jump to any stage; to lock levels you would
+    need to remove that (and nothing is saved between visits - by design, no storage is used).
+  - Functions starting with an underscore (e.g. CC.modes.commando._sim) are test hooks only.
+  - I overwrote your old index.html (the previous piano page) at the start of version 1; it was not in files.zip so it could not be restored.
