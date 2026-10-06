@@ -199,3 +199,18 @@
 .sk-home{gap:16px}
 .sk-bar{justify-content:space-between}
 .sk-bar .btn.ico{font-size:1.35rem;padding:.2em .6em;min-width:2.6em}
+
+/* certificate */
+.sk-cert-wrap{width:min(100%,960px);display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 16px}
+.sk-cert-bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.sk-cert{width:min(100%,calc((100vh - 250px) * 1.414));min-width:min(100%,520px);background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.45);overflow:hidden;line-height:0}
+.sk-cert svg{width:100%;height:auto;display:block}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  html,body{height:auto;overflow:visible}
+  #mode-skills{height:auto;padding:0;display:block}
+  .sk-cert-wrap{width:297mm;gap:0;padding:0}
+  .sk-cert{width:297mm;height:210mm;box-shadow:none;border-radius:0}
+  .sk-cert svg{width:297mm;height:210mm}
+  .sk-cert-bar,.rep-note,.topbar{display:none !important}
+}

@@ -1,4 +1,4 @@
-/* skills.js - Computer Skills Adventure: the reusable engine.
+/* skills.js - Click & Type Quest: the reusable engine.
    One "activity" per task type (move / pick / drag / connect / dbl / right / type ...), all sharing the same
    teaching loop: say -> demonstrate -> highlight -> wait -> detect -> gentle feedback -> celebrate -> next.
    Content lives in skills_levels.js. Progress is kept in memory for this visit (no storage, no network). */
@@ -194,7 +194,7 @@ function finishLevel() {
   const last = lv.id >= LEVELS.length;
   CC.ui.show(E.stage, { emoji: '🏆', stars: stars, title: 'You completed Level ' + lv.id + '!', text: 'New badge: ' + lv.badge + ' 🏆',
     buttons: [
-      last ? { icon: '📋', label: 'Report', primary: true, keys: ['Enter', 'Space'], fn: showReport } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
+      last ? { icon: '🎓', label: 'Certificate', primary: true, keys: ['Enter', 'Space'], fn: showCertificate } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
       { icon: '🔁', label: '', fn: function () { startLevel(lv.id); } }, { icon: '🗺️', label: '', fn: showHome }] });
 }
 
@@ -717,7 +717,7 @@ function showHome() {
   if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { }
   const r = $root(); r.innerHTML = ''; applyTheme();
   const home = el('div', 'sk-home');
-  const hello = el('div', 'sk-hello', '<div class="sk-buddy big">🐶</div><div class="sk-bubble">Hi! I am Buddy! 👋<br><b>Computer Skills Adventure</b></div>');
+  const hello = el('div', 'sk-hello', '<div class="sk-buddy big">🐶</div><div class="sk-bubble">Hi! I am Buddy! 👋<br><b>' + DATA.NAME.replace('&', '&amp;') + '</b></div>');
   home.appendChild(hello);
   const bar = el('div', 'sk-setup');
   const yrs = el('div', 'sk-years', '<span>I am in Year</span>');
@@ -741,7 +741,10 @@ function showHome() {
   opts.appendChild(toggleBtn('Slow', 'slow', '🐢')); opts.appendChild(toggleBtn('Click to place', 'clickPlace', '♿'));
   const rep = el('button', 'btn', '📋 Teacher report'); rep.type = 'button'; rep.addEventListener('click', function () { rep.blur(); showReport(); });
   const un = el('button', 'btn', S.unlockAll ? '🔒 Lock levels' : '🔓 Unlock all'); un.type = 'button'; un.addEventListener('click', function () { un.blur(); S.unlockAll = !S.unlockAll; showHome(); });
-  opts.appendChild(rep); opts.appendChild(un);
+  const all = LEVELS.every(function (lv) { return S.done[lv.id]; });
+  const cert = el('button', 'btn' + (all ? ' primary' : ''), '🎓 Certificate'); cert.type = 'button'; cert.disabled = !all; cert.title = all ? 'Print my certificate' : 'Finish all 10 levels to unlock';
+  cert.addEventListener('click', function () { cert.blur(); showCertificate(); });
+  opts.appendChild(cert); opts.appendChild(rep); opts.appendChild(un);
   home.appendChild(opts);
   const go = el('button', 'btn big primary sk-go', '<span class="bi">▶</span><span class="bl">Play</span>'); go.type = 'button';
   go.addEventListener('click', function () { go.blur(); CC.audio.init(); setSfxGain(); startLevel(nextLevel()); });
@@ -808,7 +811,7 @@ function starsFor(id) {
   const a = s.ok / n; return a >= 0.9 ? 5 : a >= 0.75 ? 4 : a >= 0.6 ? 3 : a >= 0.4 ? 2 : 1;
 }
 function reportText() {
-  const lines = ['Computer Skills Adventure - learner report', 'Learner: ' + (S.name || '(no name)'), 'Year: ' + S.year, 'Date: ' + new Date().toLocaleDateString(), ''];
+  const lines = ['Click & Type Quest - learner report', 'Learner: ' + (S.name || '(no name)'), 'Year: ' + S.year, 'Date: ' + new Date().toLocaleDateString(), ''];
   lines.push('Levels completed: ' + Object.keys(S.done).length + ' of ' + LEVELS.length, '');
   SKILLS.forEach(function (k) { const n = starsFor(k.id), st = S.stats[k.id]; lines.push(k.name + ': ' + (n ? '*'.repeat(n) + '-'.repeat(5 - n) : 'not tried yet') + (n ? '  (' + st.ok + ' right, ' + st.bad + ' tries to fix)' : '')); });
   lines.push('', 'Recommended practice: ' + (recommend().join(', ') || 'none - great work!'));
@@ -840,6 +843,79 @@ function showReport() {
   const bk = el('button', 'btn primary', '🗺️ Back'); bk.type = 'button'; bk.addEventListener('click', function () { bk.blur(); showHome(); });
   [dl, pr, bk].forEach(function (x) { row.appendChild(x); }); w.appendChild(row);
   w.appendChild(el('p', 'rep-note', 'This report is kept only while this page is open. Download it to keep it.'));
+  r.appendChild(w);
+}
+
+/* ---------- certificate (unlocked when all 10 levels are done): A4 landscape, printable, downloadable as a picture ---------- */
+const KEYC = [['#ff5c72', '#d8334e'], ['#ff9f45', '#e07a1a'], ['#ffd23f', '#e0a800'], ['#6bcb77', '#3fa84f'], ['#22c6c6', '#139a9a']];
+function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function starPath(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
+function certSkills() {
+  const a = ['Moving the mouse', 'Clicking', 'Drag and drop', 'Connecting', 'Double-click', 'Typing letters', 'Typing words'];
+  if (S.year >= 2) a.push('Big and small letters');
+  if (S.year >= 3) a.push('Right-click', 'CAPS LOCK', 'Space, Backspace and Enter'); else a.push('Using ENTER');
+  return a;
+}
+function certSvg(name) {
+  const W = 1123, H = 794, n = (name || '').trim(), dt = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  const total = LEVELS.reduce(function (t, lv) { return t + (S.stars[lv.id] || 0); }, 0), max = LEVELS.length * 3;
+  const serif = "Georgia,'Times New Roman',serif", sans = "'Trebuchet MS','Segoe UI',Arial,sans-serif", hand = "'Segoe Script','Brush Script MT','Lucida Handwriting',cursive";
+  const mid = W / 2;
+  let g = '<rect width="' + W + '" height="' + H + '" fill="#fffaf0"/>';
+  KEYC.forEach(function (c, i) { const o = 12 + i * 7; g += '<rect x="' + o + '" y="' + o + '" width="' + (W - 2 * o) + '" height="' + (H - 2 * o) + '" rx="' + (16 - i * 2) + '" fill="none" stroke="' + c[0] + '" stroke-width="7"/>'; });
+  g += '<rect x="58" y="58" width="' + (W - 116) + '" height="' + (H - 116) + '" rx="6" fill="none" stroke="#15163a" stroke-width="2"/>';
+  /* the Computer Club keycap logo */
+  const ks = 46, gap = 8, wgap = 28; let x = (W - (12 * ks + 10 * gap + wgap)) / 2, ci = 0;
+  'COMPUTER CLUB'.split('').forEach(function (ch) {
+    if (ch === ' ') { x += wgap - gap; return; }
+    const c = KEYC[ci++ % 5];
+    g += '<rect x="' + x + '" y="89" width="' + ks + '" height="' + ks + '" rx="10" fill="' + c[1] + '"/><rect x="' + x + '" y="84" width="' + ks + '" height="' + ks + '" rx="10" fill="' + c[0] + '"/>' +
+      '<text x="' + (x + ks / 2) + '" y="117" font-family="' + sans + '" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">' + ch + '</text>';
+    x += ks + gap;
+  });
+  g += '<text x="' + mid + '" y="222" font-family="' + serif + '" font-size="56" font-weight="bold" fill="#15163a" text-anchor="middle">Certificate of Achievement</text>';
+  g += '<text x="' + mid + '" y="266" font-family="' + serif + '" font-size="25" font-style="italic" fill="#555" text-anchor="middle">proudly presented to</text>';
+  const fsz = n.length <= 14 ? 62 : n.length <= 20 ? 50 : 40;
+  g += '<text x="' + mid + '" y="340" font-family="' + hand + '" font-size="' + fsz + '" fill="#d8334e" text-anchor="middle">' + esc(n) + '</text>';
+  g += '<line x1="250" y1="356" x2="873" y2="356" stroke="#e0a800" stroke-width="3"/>';
+  g += '<text x="' + mid + '" y="398" font-family="' + sans + '" font-size="23" fill="#333" text-anchor="middle">for completing all ' + LEVELS.length + ' levels of</text>';
+  g += '<text x="' + mid + '" y="448" font-family="' + sans + '" font-size="42" font-weight="bold" fill="#e07a1a" text-anchor="middle">' + esc(DATA.NAME) + '</text>';
+  g += '<text x="' + mid + '" y="482" font-family="' + sans + '" font-size="21" fill="#333" text-anchor="middle">Mouse and keyboard skills · Year ' + S.year + '</text>';
+  const sk = certSkills(), half = Math.ceil(sk.length / 2);
+  [sk.slice(0, half), sk.slice(half)].forEach(function (row, i) { g += '<text x="' + mid + '" y="' + (530 + i * 28) + '" font-family="' + sans + '" font-size="18" fill="#555" text-anchor="middle">' + esc(row.join('  •  ')) + '</text>'; });
+  g += '<polygon points="' + starPath(mid - 112, 593, 12, 5) + '" fill="#ffc92e" stroke="#e0a800"/><text x="' + (mid - 92) + '" y="599" font-family="' + sans + '" font-size="19" font-weight="bold" fill="#15163a">Stars collected: ' + total + ' / ' + max + '</text>';
+  /* rosette */
+  g += '<polygon points="536,690 516,752 541,740 555,757 561,694" fill="#ff5c72"/><polygon points="586,690 606,752 581,740 567,757 561,694" fill="#3b82f6"/>';
+  g += '<circle cx="561" cy="668" r="46" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="668" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPath(561, 668, 24, 10) + '" fill="#e07a1a"/>';
+  /* date + signature */
+  g += '<text x="240" y="702" font-family="' + sans + '" font-size="20" fill="#15163a" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="710" x2="360" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="240" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
+  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="883" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher, Computer Club</text>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
+}
+function showCertificate() {
+  clearTimers(); CC.ui.close(); S.view = 'cert'; S.act = null; S.locked = true;
+  const r = $root(); r.innerHTML = ''; applyTheme();
+  const w = el('div', 'sk-cert-wrap');
+  const top = el('div', 'sk-cert-bar');
+  const nm = el('input', 'sk-name'); nm.type = 'text'; nm.maxLength = 28; nm.placeholder = '✏️ Name on the certificate'; nm.value = S.name; nm.setAttribute('aria-label', 'Name on the certificate');
+  top.appendChild(nm);
+  const paper = el('div', 'sk-cert'); paper.innerHTML = certSvg(S.name);
+  nm.addEventListener('input', function () { S.name = nm.value; paper.innerHTML = certSvg(S.name); });
+  const row = el('div', 'row sk-cert-bar');
+  const dl = el('button', 'btn primary', '⬇ Download picture'); dl.type = 'button';
+  dl.addEventListener('click', function () {
+    dl.blur(); const img = new Image();
+    img.onload = function () {
+      const c = document.createElement('canvas'); c.width = 2246; c.height = 1588; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(function (b) { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'certificate' + (S.name ? '-' + S.name.replace(/[^\w-]+/g, '-') : '') + '.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); }, 'image/png');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(certSvg(S.name));
+  });
+  const pr = el('button', 'btn', '🖨 Print'); pr.type = 'button'; pr.addEventListener('click', function () { pr.blur(); window.print(); });
+  const bk = el('button', 'btn', '🗺️ Back'); bk.type = 'button'; bk.addEventListener('click', function () { bk.blur(); showHome(); });
+  [dl, pr, bk].forEach(function (x) { row.appendChild(x); });
+  w.appendChild(top); w.appendChild(paper); w.appendChild(row);
+  w.appendChild(el('p', 'rep-note', 'Tip: print on A4, landscape. Leave the name empty to write it by hand.'));
   r.appendChild(w);
 }
 

@@ -153,3 +153,5 @@ COMPUTER SKILLS ADVENTURE (Session 1, first card)
   - Teacher report (home screen): stars per skill, recommended practice, Download (.txt) or Print. Progress is kept only while the page is open
     (no storage, no network) - download the report before closing.
   - Drag and drop alternatives: click a piece then click its spot, or Tab to a piece, press Enter, Tab to its spot, press Enter.
+
+  - CERTIFICATE: after all 10 levels are done, a graduation screen button (and a button on the home screen) opens an A4 landscape certificate with the Computer Club keycap logo, the learner name (type it, or leave blank to write by hand), year, stars, date and a teacher line. Print it (landscape) or Download picture (PNG). The game name is one value: CC.SKILLS.NAME in js/skills_levels.js (plus the title in index.html and the card name in js/main.js).

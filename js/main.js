@@ -4,7 +4,7 @@
 const app = CC.app;
 
 const MODES = {
-  skills:   { icon: '🖱️', name: 'Skills Adventure', desc: 'Learn the mouse and keyboard', color: '#ff7ac8' },
+  skills:   { icon: '🖱️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', color: '#ff7ac8' },
   fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', color: '#ff6b86' },
   words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Computer words crossword',        color: '#22c6c6' },
   jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', color: '#ffd23f' },

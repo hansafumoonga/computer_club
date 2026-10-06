@@ -1,4 +1,4 @@
-/* skills_levels.js - ALL the content of "Computer Skills Adventure" lives here as plain data.
+/* skills_levels.js - ALL the content of "Click & Type Quest" lives here as plain data.
    The engine (skills.js) never mentions a specific level, so a teacher/developer can add a level
    by adding one object to LEVELS - no engine changes needed.
 
@@ -215,5 +215,5 @@ const LEVELS = [
   ] }
 ];
 
-CC.SKILLS = { LEVELS: LEVELS, WORLD: WORLD, ART: ART };
+CC.SKILLS = { NAME: 'Click & Type Quest', LEVELS: LEVELS, WORLD: WORLD, ART: ART };
 })();
