@@ -121,7 +121,7 @@ function beginTask(i, noDemo) {
   if (S.act && S.act.destroy) S.act.destroy();
   S.ti = i; S.t = S.tasks[i]; S.fails = 0; S.finished = false; S.locked = false; S.ptr = null; S.idleDemo = false;
   E.items.innerHTML = ''; E.svg.innerHTML = ''; E.typeBox.innerHTML = ''; E.typeBox.hidden = true;
-  E.stage.classList.toggle('typing', !!S.level.kb);
+  E.stage.classList.toggle('typing', !!S.level.kb); E.stage.parentNode.classList.toggle('typing', !!S.level.kb);
   E.kb.hidden = !S.level.kb; E.caps.hidden = !S.level.kb;
   E.stage.dataset.type = S.t.type;
   const needsMouse = ['move', 'pick', 'drag', 'connect', 'dbl', 'right'].indexOf(S.t.type) >= 0;
@@ -318,16 +318,19 @@ ACT.drag = function (t) {
     zn.setAttribute('aria-label', 'drop spot ' + kind(p));
     E.items.appendChild(zn); zNode.push(zn);
   });
-  /* trays: pieces wait down both sides, scaled to a friendly size */
+  /* trays: loose pieces wait in two clear lanes at the sides (x < 25 and x > 75); the build area is the middle.
+     Rows are spaced so pieces never touch each other, and they start below the mouse picture in the top-right corner. */
   const side = [[], []];
   pieces.forEach(function (p, i) { side[i % 2].push(p); });
-  const trayScale = function (p) { const sz = size(p); return clamp(13 / Math.max(sz.w, sz.h), 0.3, 1); };
   side.forEach(function (arr, s) {
+    if (arr.length) { const tray = el('div', 'sk-tray'); tray.style.left = U(s === 0 ? 1.5 : 75.5); tray.style.top = U(13); tray.style.width = U(23); tray.style.height = U(41.5); E.items.insertBefore(tray, E.items.firstChild); }
+    const cols = arr.length > 3 ? 2 : 1, rows = Math.ceil(arr.length / cols), cell = rows >= 4 ? 9 : 11;
     arr.forEach(function (p, i) {
-      const sz = size(p), rows = Math.max(arr.length, 1), col = i >= 5 ? 1 : 0;
-      const x = s === 0 ? 9 + col * 11 : 91 - col * 11, y = 8 + (i % 5) * (40 / Math.max(Math.min(arr.length, 5) - 1, 1)) + (arr.length === 1 ? 14 : 0);
+      const sz = size(p), c = i % cols, r = Math.floor(i / cols);
+      const x = cols === 1 ? (s === 0 ? 13 : 87) : (s === 0 ? 7.5 + c * 11 : 81.5 + c * 11);
+      const y = rows === 1 ? 33 : 19.5 + r * (28 / (rows - 1));
       const b = mkItem({ id: p.id, x: x, y: y, w: sz.w, h: sz.h, svg: p.svg, e: p.e }, { free: true, cls: 'piece' });
-      b._p = p; b._kind = kind(p); b._home = { x: x, y: y }; b._sc = trayScale(p); b.style.setProperty('--sc', b._sc); b.style.zIndex = 10 + (p.z || 0);
+      b._p = p; b._kind = kind(p); b._home = { x: x, y: y }; b._sc = clamp(cell / Math.max(sz.w, sz.h), 0.2, 1); b.style.setProperty('--sc', b._sc); b.style.zIndex = 10 + (p.z || 0);
       b.setAttribute('role', 'button'); b.tabIndex = 0; b.setAttribute('aria-label', 'piece ' + kind(p));
       E.items.appendChild(b); pNode[p.id] = b;
     });
@@ -352,7 +355,7 @@ ACT.drag = function (t) {
     clearSel(); sel = pn; pn.classList.add('sel');
     zNode.forEach(function (z) { z.classList.toggle('hl', !z._filled && z._kind === pn._kind); });
   }
-  function sendHome(pn) { pn.classList.add('back'); pn.classList.remove('held'); pn.style.setProperty('--sc', pn._sc); place(pn, pn._home.x, pn._home.y); }
+  function sendHome(pn) { pn.style.zIndex = 10 + (pn._p.z || 0); pn.classList.add('back'); pn.classList.remove('held'); pn.style.setProperty('--sc', pn._sc); place(pn, pn._home.x, pn._home.y); }
   function hl(on) {
     Object.keys(pNode).forEach(function (id) { pNode[id].classList.remove('hl'); });
     zNode.forEach(function (z) { z.classList.remove('hl'); });
@@ -382,7 +385,7 @@ ACT.drag = function (t) {
       if (n && n.classList.contains('zone') && sel) { tryPlaceByClick(n); return; }
       if (!n || !n.classList.contains('piece') || n._placed) { if (sel) clearSel(); return; }
       const p = toU(e); drag = { n: n, sx: p.x, sy: p.y, moved: false };
-      n.classList.add('held'); n.classList.remove('back'); n.style.setProperty('--sc', 1); setMouse('hold'); sfx('pickup');
+      n.classList.add('held'); n.classList.remove('back'); n.style.setProperty('--sc', 1); n.style.zIndex = 100; setMouse('hold'); sfx('pickup');
       try { E.stage.setPointerCapture(e.pointerId); } catch (err) { }
       zNode.forEach(function (z) { z.classList.toggle('hl', !z._filled && z._kind === n._kind); });
     },
@@ -750,7 +753,7 @@ function nextLevel() { for (let i = 1; i <= LEVELS.length; i++) { if (!S.done[i]
 function renderPlay() {
   S.view = 'play';
   const lv = S.level, r = $root(); r.innerHTML = ''; applyTheme();
-  const wrap = el('div', 'sk-play');
+  const wrap = el('div', 'sk-play' + (lv.kb ? ' typing' : ''));
   const bar = el('div', 'sk-bar');
   const map = el('button', 'btn ico', '🗺️'); map.type = 'button'; map.setAttribute('aria-label', 'level map'); map.addEventListener('click', function () { map.blur(); showHome(); });
   const chip = el('div', 'sk-chip', '<b>' + lv.id + '</b> ' + lv.title);
@@ -779,7 +782,7 @@ function renderPlay() {
   wrap.appendChild(E.stage);
   E.caps = el('div', 'sk-caps', '<i></i> CAPS LOCK <b>OFF</b>'); E.caps.hidden = true;
   E.kb = el('div', 'sk-kb'); E.kb.hidden = true; buildKeyboard();
-  wrap.appendChild(E.caps); wrap.appendChild(E.kb);
+  E.stage.appendChild(E.caps); wrap.appendChild(E.kb);
   r.appendChild(wrap);
   CC.watchStage(E.stage);
   updateCapsUi();
@@ -851,6 +854,6 @@ CC.modes.skills = {
     else if (S.view === 'play' && (e.code === 'Space') && e.target && e.target.tagName === 'BUTTON') e.preventDefault();
   },
   onKeyUp: function (e) { if (e.getModifierState) { const c = e.getModifierState('CapsLock'); if (c !== S.caps) setCaps(c, true); } if (S.view === 'play' && S.act && (S.act.char || S.act.enter) && (e.key === ' ' || e.key === 'Enter')) e.preventDefault(); },
-  _S: S, _go: function (id) { startLevel(id); }
+  _S: S, _go: function (id) { startLevel(id); }, _task: function (i) { CC.ui.close(); beginTask(i, true); }
 };
 })();

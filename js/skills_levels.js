@@ -37,8 +37,8 @@ const WORLD = {
   playground: { name: 'Playground',     icon: '🛝', deco: [['🌳', 8, 44, 12], ['🌳', 93, 43, 13], ['🛝', 80, 47, 8], ['🌼', 24, 51, 4], ['🌼', 60, 52, 4], ['☁️', 20, 8, 9], ['☁️', 75, 6, 7]] },
   classroom:  { name: 'Classroom',      icon: '🏫', deco: [['📚', 8, 49, 6], ['🎨', 92, 49, 6], ['🔔', 50, 6, 5], ['✏️', 22, 51, 4], ['📏', 78, 51, 4]] },
   animalpark: { name: 'Animal Park',    icon: '🦁', deco: [['🌴', 6, 42, 13], ['🌳', 94, 40, 14], ['🌿', 30, 52, 5], ['🌿', 70, 52, 5], ['☀️', 88, 7, 8]] },
-  building:   { name: 'Building Site',  icon: '🏗️', deco: [['🏗️', 90, 20, 14], ['🚧', 8, 51, 5], ['🚧', 92, 51, 5], ['☁️', 22, 7, 8]] },
-  road:       { name: 'Road World',     icon: '🚗', deco: [['🌳', 7, 30, 9], ['🌳', 93, 28, 9], ['🚦', 90, 40, 7], ['☁️', 30, 7, 8], ['☁️', 72, 9, 6]] },
+  building:   { name: 'Building Site',  icon: '🏗️', deco: [['🏗️', 30, 8, 8], ['☁️', 64, 6, 7]] },
+  road:       { name: 'Road World',     icon: '🚗', deco: [['☁️', 32, 7, 8], ['☁️', 70, 9, 6], ['☀️', 50, 6, 5]] },
   village:    { name: 'Village',        icon: '🏘️', deco: [['🌷', 8, 51, 5], ['🌻', 92, 51, 5], ['🌳', 50, 51, 6], ['☁️', 40, 6, 7], ['☁️', 62, 9, 6]] },
   magic:      { name: 'Magic Island',   icon: '🏝️', deco: [['🌴', 7, 40, 12], ['🌴', 93, 41, 12], ['🐚', 24, 52, 4], ['🐚', 74, 52, 4], ['⭐', 12, 8, 4], ['✨', 86, 10, 4]] },
   space:      { name: 'Space',          icon: '🚀', deco: [['🪐', 88, 12, 11], ['🌙', 10, 10, 8], ['⭐', 30, 8, 3], ['⭐', 60, 12, 3], ['⭐', 78, 30, 3], ['⭐', 20, 30, 3]] },
@@ -102,19 +102,18 @@ const LEVELS = [
     { type: 'drag', say: 'Drag the ball into the box ⚽➡️📦', win: 'Goal! You dragged it! ⚽', demo: true, drop: 'box',
       pieces: [{ id: 'ball', e: '⚽', s: 10, x: 20, y: 28 }], zones: [{ id: 'box', for: 'ball', e: '📦', x: 76, y: 32, s: 22 }] },
     { type: 'drag', say: 'Drag the roof to the house 🏠', win: 'Amazing! You built a house! 🏠⭐⭐⭐', demo: true, drop: 'house', scene: 'House',
-      base: [{ e: '', x: 50, y: 50, w: 80, h: 1.2, cls: 'ground' }],
       pieces: [
         { id: 'roof', svg: ART.roof, w: 38, h: 13, z: 3 }, { id: 'walls', svg: ART.walls, w: 30, h: 18, z: 1 }, { id: 'door', svg: ART.door, w: 6, h: 10, z: 2 },
         { id: 'win1', kind: 'window', svg: ART.window, w: 6, h: 6, z: 2 },
         { id: 'win2', kind: 'window', svg: ART.window, w: 6, h: 6, z: 2, min: 2 }, { id: 'chim', svg: ART.chimney, w: 4, h: 8, z: 0, min: 2 },
         { id: 'sun', e: '☀️', s: 11, z: 1, min: 3 }, { id: 'tree', e: '🌳', s: 14, z: 1, min: 3 }],
       zones: [
-        { for: 'roof', x: 50, y: 22.5 }, { for: 'walls', x: 50, y: 38 }, { for: 'door', x: 50, y: 42 }, { for: 'win1', x: 40.5, y: 35 }, { for: 'win2', x: 59.5, y: 35, min: 2 },
-        { for: 'chim', x: 60, y: 19.5, min: 2 }, { for: 'sun', x: 84, y: 12, min: 3 }, { for: 'tree', x: 84, y: 40, min: 3 }] },
+        { for: 'roof', x: 44, y: 22.5 }, { for: 'walls', x: 44, y: 38 }, { for: 'door', x: 44, y: 42 }, { for: 'win1', x: 34.5, y: 35 }, { for: 'win2', x: 53.5, y: 35, min: 2 },
+        { for: 'chim', x: 54, y: 19.5, min: 2 }, { for: 'sun', x: 68, y: 10, min: 3 }, { for: 'tree', x: 69, y: 40, min: 3 }] },
     { type: 'drag', say: 'Plant the garden 🌻 Drag each flower to the soil', win: 'Beautiful garden! 🌻🌷🌹', min: 2, drop: 'garden', scene: 'Garden',
-      base: [{ e: '', x: 50, y: 48, w: 70, h: 6, cls: 'soil' }],
+      base: [{ e: '', x: 50, y: 48, w: 46, h: 6, cls: 'soil' }],
       pieces: [{ id: 'f1', kind: 'flower', e: '🌻', s: 9 }, { id: 'f2', kind: 'flower', e: '🌷', s: 9 }, { id: 'f3', kind: 'flower', e: '🌹', s: 9 }, { id: 'tr', e: '🌳', s: 13 }, { id: 'sun', e: '☀️', s: 11 }, { id: 'can', e: '🚿', s: 9 }],
-      zones: [{ for: 'f1', x: 36, y: 46 }, { for: 'f2', x: 50, y: 46 }, { for: 'f3', x: 64, y: 46 }, { for: 'tr', x: 80, y: 38 }, { for: 'sun', x: 50, y: 10 }, { for: 'can', x: 24, y: 40 }] }
+      zones: [{ for: 'f1', x: 36, y: 46 }, { for: 'f2', x: 50, y: 46 }, { for: 'f3', x: 64, y: 46 }, { for: 'tr', x: 66, y: 33 }, { for: 'sun', x: 50, y: 10 }, { for: 'can', x: 34, y: 37 }] }
   ] },
 
 /* ================= 5 · BUILD A CAR ================= */
@@ -122,20 +121,20 @@ const LEVELS = [
   intro: 'More building! Hold, drag and let go in the right spot. 🚗',
   tasks: [
     { type: 'drag', say: 'Build a car! 🚗 Drag the wheels to the car', win: 'Vroom vroom! You built a car! 🚗⭐⭐⭐', drop: 'car', scene: 'Car',
-      base: [{ e: '', x: 50, y: 52, w: 100, h: 5, cls: 'road' }],
+      base: [{ e: '', x: 50, y: 53, w: 52, h: 5, cls: 'road' }],
       pieces: [{ id: 'body', svg: ART.carBody, w: 40, h: 12, z: 1 }, { id: 'w1', kind: 'wheel', svg: ART.wheel, w: 9, h: 9, z: 3 }, { id: 'w2', kind: 'wheel', svg: ART.wheel, w: 9, h: 9, z: 3 },
         { id: 'top', svg: ART.carTop, w: 22, h: 9, z: 0 }, { id: 'c1', kind: 'win', svg: ART.carWin, w: 8, h: 6, z: 2, min: 2 }, { id: 'light', svg: ART.light, w: 3, h: 3, z: 2, min: 2 }],
       zones: [{ for: 'body', x: 50, y: 44 }, { for: 'w1', x: 38, y: 50 }, { for: 'w2', x: 62, y: 50 }, { for: 'top', x: 50, y: 34.5 }, { for: 'c1', x: 50, y: 36.5, min: 2 }, { for: 'light', x: 68, y: 43, min: 2 }] },
     { type: 'drag', say: 'Build the farm 🚜 Drag the animals to the farm', win: 'What a lovely farm! 🐄🐔🚜', min: 2, drop: 'farm', scene: 'Farm',
-      base: [{ e: '', x: 50, y: 50, w: 100, h: 14, cls: 'grass' }],
+      base: [{ e: '', x: 50, y: 50, w: 52, h: 14, cls: 'grass' }],
       pieces: [{ id: 'cow', e: '🐄', s: 11 }, { id: 'hen', e: '🐔', s: 9 }, { id: 'trac', e: '🚜', s: 12 }, { id: 'tree', e: '🌳', s: 13 }, { id: 'fence', e: '🚧', s: 9 }, { id: 'corn', e: '🌽', s: 9 }],
-      zones: [{ for: 'cow', x: 32, y: 42 }, { for: 'hen', x: 48, y: 46 }, { for: 'trac', x: 66, y: 42 }, { for: 'tree', x: 86, y: 34 }, { for: 'fence', x: 14, y: 46 }, { for: 'corn', x: 80, y: 49 }] },
+      zones: [{ for: 'cow', x: 40, y: 41 }, { for: 'hen', x: 50, y: 47 }, { for: 'trac', x: 62, y: 41 }, { for: 'tree', x: 70, y: 27 }, { for: 'fence', x: 31, y: 46 }, { for: 'corn', x: 71, y: 49 }] },
     { type: 'drag', say: 'Build a lion 🦁 Put the pieces in the right place', win: 'ROAR! You built a lion! 🦁⭐⭐⭐', min: 3, drop: 'lion', scene: 'Lion',
       pieces: [{ id: 'body', svg: ART.lBody, w: 30, h: 14, z: 1 }, { id: 'head', svg: ART.lHead, w: 20, h: 20, z: 3 }, { id: 'leg1', kind: 'leg', svg: ART.lLeg, w: 4, h: 8, z: 0 }, { id: 'leg2', kind: 'leg', svg: ART.lLeg, w: 4, h: 8, z: 0 },
         { id: 'tail', svg: ART.lTail, w: 4, h: 14, z: 0 }, { id: 'ear1', kind: 'ear', svg: ART.lEar, w: 4, h: 4, z: 4 }, { id: 'ear2', kind: 'ear', svg: ART.lEar, w: 4, h: 4, z: 4 },
         { id: 'eye1', kind: 'eye', svg: ART.lEye, w: 3, h: 3, z: 5 }, { id: 'eye2', kind: 'eye', svg: ART.lEye, w: 3, h: 3, z: 5 }],
-      zones: [{ for: 'body', x: 46, y: 36 }, { for: 'head', x: 66, y: 28 }, { for: 'leg1', x: 36, y: 45 }, { for: 'leg2', x: 54, y: 45 }, { for: 'tail', x: 29, y: 34 },
-        { for: 'ear1', x: 59.5, y: 20.5 }, { for: 'ear2', x: 72.5, y: 20.5 }, { for: 'eye1', x: 62.5, y: 27 }, { for: 'eye2', x: 69.5, y: 27 }] }
+      zones: [{ for: 'body', x: 43, y: 36 }, { for: 'head', x: 63, y: 28 }, { for: 'leg1', x: 33, y: 45 }, { for: 'leg2', x: 51, y: 45 }, { for: 'tail', x: 27.5, y: 33 },
+        { for: 'ear1', x: 56.5, y: 20.5 }, { for: 'ear2', x: 69.5, y: 20.5 }, { for: 'eye1', x: 59.5, y: 27 }, { for: 'eye2', x: 66.5, y: 27 }] }
   ] },
 
 /* ================= 6 · CONNECT THE PIECES ================= */
