@@ -138,3 +138,18 @@ WHAT I COULD NOT CHECK / SIMPLIFIED
     need to remove that (and nothing is saved between visits - by design, no storage is used).
   - Functions starting with an underscore (e.g. CC.modes.commando._sim) are test hooks only.
   - I overwrote your old index.html (the previous piano page) at the start of version 1; it was not in files.zip so it could not be restored.
+
+
+COMPUTER SKILLS ADVENTURE (Session 1, first card)
+  - 10 levels teaching the mouse (move, click, choose, drag and drop, connect, double-click, right-click) and the keyboard
+    (find letters, small/BIG letters, CAPS LOCK, words, SPACE, BACKSPACE, ENTER). Pick Year 1, 2 or 3 on the first screen: higher years
+    get smaller targets and extra tasks (double-click timing, right-click, CAPS LOCK, SPACE, BACKSPACE, sentences).
+  - All content is in js/skills_levels.js. To add a level, add one object to LEVELS (title, world, intro, tasks[]). Each task is
+    {type: move|pick|drag|connect|dbl|right|type|capsstate|enter, say, win, min (first year), ...}. No engine changes needed.
+  - Buddy shows a short instruction, a cursor demonstrates it, the target glows, then the child tries. Mistakes get gentle hints; after 3 misses
+    Buddy says "Let's try together!", makes things bigger/slower, removes extras and shows the demo again.
+  - Buttons on every level: map, show-me-again, restart this part, pause, sound. Home screen: Voice (reads Buddy aloud with voices already
+    on the computer - never the internet), High contrast, Slow animations, Click-to-place (drag alternative), Unlock all levels.
+  - Teacher report (home screen): stars per skill, recommended practice, Download (.txt) or Print. Progress is kept only while the page is open
+    (no storage, no network) - download the report before closing.
+  - Drag and drop alternatives: click a piece then click its spot, or Tab to a piece, press Enter, Tab to its spot, press Enter.

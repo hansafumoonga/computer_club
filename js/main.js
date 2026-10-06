@@ -4,6 +4,7 @@
 const app = CC.app;
 
 const MODES = {
+  skills:   { icon: '🖱️', name: 'Skills Adventure', desc: 'Learn the mouse and keyboard', color: '#ff7ac8' },
   fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', color: '#ff6b86' },
   words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Computer words crossword',        color: '#22c6c6' },
   jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', color: '#ffd23f' },
@@ -13,12 +14,12 @@ const MODES = {
   pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy',          color: '#22c6c6' }
 };
 const SESSIONS = {
-  '1': { title: 'Session 1 · Year 1, 2 & 3', modes: ['fruit', 'words', 'jump', 'blaster'] },
+  '1': { title: 'Session 1 · Year 1, 2 & 3', modes: ['skills', 'fruit', 'words', 'jump', 'blaster'] },
   '2': { title: 'Session 2 · Year 4, 5 & 6', modes: ['piano', 'jump', 'blaster', 'commando', 'pattern'] }
 };
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
-const MUSIC = { fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null };
+const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null };
 
 function showOnly(el) {
   document.querySelectorAll('.screen, .mode').forEach(function (s) { s.hidden = true; });
