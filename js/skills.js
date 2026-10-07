@@ -958,6 +958,18 @@ function certSvg(name) {
   const sk = certSkills(), half = Math.ceil(sk.length / 2);
   [sk.slice(0, half), sk.slice(half)].forEach(function (row, i) { g += '<text x="' + mid + '" y="' + (530 + i * 28) + '" font-family="' + sans + '" font-size="18" fill="#555" text-anchor="middle">' + esc(row.join('  •  ')) + '</text>'; });
   g += '<polygon points="' + starPath(mid - 112, 593, 12, 5) + '" fill="#ffc92e" stroke="#e0a800"/><text x="' + (mid - 92) + '" y="599" font-family="' + sans + '" font-size="19" font-weight="bold" fill="#15163a">Stars collected: ' + total + ' / ' + max + '</text>';
+  /* decoration: a computer on the left, a mouse and a keyboard on the right (certificate only) */
+  g += '<defs><linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fdcff"/><stop offset="1" stop-color="#2f7be8"/></linearGradient><clipPath id="mclip"><rect x="930" y="288" width="58" height="86" rx="29"/></clipPath></defs>';
+  g += '<rect x="82" y="290" width="152" height="106" rx="12" fill="#2a2f66" stroke="#15163a" stroke-width="3"/><rect x="92" y="300" width="132" height="82" rx="6" fill="url(#scr)"/>' +
+    '<polygon points="' + starPath(158, 338, 22, 9) + '" fill="#ffd23f" stroke="#e0a800" stroke-width="1.5"/><polygon points="' + starPath(112, 318, 6, 2.5) + '" fill="#fff"/><polygon points="' + starPath(204, 362, 5, 2) + '" fill="#fff"/>' +
+    '<rect x="104" y="368" width="56" height="5" rx="2.5" fill="#fff" opacity=".85"/><polygon points="92,300 150,300 112,382 92,382" fill="#fff" opacity=".14"/><circle cx="224" cy="389" r="2.6" fill="#6bcb77"/>' +
+    '<rect x="147" y="396" width="22" height="16" fill="#3a3f7a" stroke="#15163a" stroke-width="2"/><rect x="120" y="410" width="76" height="11" rx="5.5" fill="#2a2f66" stroke="#15163a" stroke-width="2.5"/>';
+  g += '<path d="M958 288 C958 258 1006 262 1006 232" fill="none" stroke="#15163a" stroke-width="3" stroke-linecap="round"/><g clip-path="url(#mclip)"><rect x="930" y="288" width="58" height="86" fill="#fff"/><rect x="930" y="288" width="29" height="36" fill="#ffd23f"/><rect x="959" y="288" width="29" height="36" fill="#ff5c72"/></g>' +
+    '<rect x="930" y="288" width="58" height="86" rx="29" fill="none" stroke="#15163a" stroke-width="3"/><path d="M959 288V324M930 324H988" stroke="#15163a" stroke-width="2.5"/><rect x="954.5" y="298" width="9" height="15" rx="4.5" fill="#15163a"/>';
+  g += '<rect x="862" y="398" width="192" height="62" rx="9" fill="#eceeff" stroke="#15163a" stroke-width="3"/>';
+  [[10, 0, 405], [9, 7, 418], [8, 14, 431]].forEach(function (r, ri) { for (let i = 0; i < r[0]; i++) { const c = KEYC[(i + ri) % 5]; g += '<rect x="' + (870 + r[1] + i * 17.6) + '" y="' + r[2] + '" width="14" height="10.5" rx="2.6" fill="' + c[0] + '" stroke="' + c[1] + '" stroke-width="1"/>'; } });
+  g += '<rect x="900" y="444" width="112" height="10" rx="3" fill="#c9f0ff" stroke="#139a9a" stroke-width="1.2"/>';
+  g += '<polygon points="' + starPath(1010, 300, 8, 3.2) + '" fill="#ffd23f"/><polygon points="' + starPath(884, 318, 6, 2.4) + '" fill="#ff9f45"/><polygon points="' + starPath(238, 440, 6, 2.4) + '" fill="#6bcb77"/><polygon points="' + starPath(78, 440, 7, 2.8) + '" fill="#ff5c72"/>';
   /* rosette */
   g += '<polygon points="536,690 516,752 541,740 555,757 561,694" fill="#ff5c72"/><polygon points="586,690 606,752 581,740 567,757 561,694" fill="#3b82f6"/>';
   g += '<circle cx="561" cy="668" r="46" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="668" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPath(561, 668, 24, 10) + '" fill="#e07a1a"/>';
