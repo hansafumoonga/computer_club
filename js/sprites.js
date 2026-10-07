@@ -383,7 +383,8 @@ SP.hero = function (ctx, x, y, s) {
   [-1, 1].forEach(function (d) {                              // boots + legs (legs bend when crouching)
     const lift = s.air ? (d < 0 ? 9 : 4) : Math.max(0, -d * run) * 5, ox = s.air ? d * 5 : d * run * 7;
     rr(ctx, d * 8 - 7 + ox, -22 * k - 2 + bob, 14, 18 * k + 2, 5); fs(ctx, c.pants);
-    rr(ctx, d * 8 - 9 + ox, -9 - lift, 20, 9, 4); fs(ctx, '#4a3420');
+    rr(ctx, d * 8 - 6 + ox, -17 * k + bob, 12, 7, 3); fs(ctx, 'rgba(0,0,0,.3)'); ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(d * 8 - 4 + ox, -16 * k + bob, 8, 1.8);
+    rr(ctx, d * 8 - 9 + ox, -9 - lift, 20, 9, 4); fs(ctx, '#4a3420'); ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(d * 8 - 6 + ox, -8 - lift, 14, 1.6);
   });
   ctx.save(); ctx.translate(-rc * 3, -12 + bob); ctx.rotate(lean); ctx.scale(1, k);
   if (c.acc === 'cape') { ctx.beginPath(); ctx.moveTo(-8, -40); ctx.quadraticCurveTo(-36 - Math.abs(run) * 6, -22 + Math.sin(s.t * 9) * 5, -40 + Math.sin(s.t * 7) * 4, 8); ctx.lineTo(-10, -2); ctx.closePath(); fs(ctx, '#c8326a'); }
@@ -391,7 +392,10 @@ SP.hero = function (ctx, x, y, s) {
   ctx.beginPath(); ctx.moveTo(-10, -50); ctx.quadraticCurveTo(-26 - sl - Math.abs(run) * 4, -50 + Math.sin(s.t * 12) * 5, -34 - sl, -44 + Math.sin(s.t * 12 + 1) * 6); ctx.lineTo(-24 - sl * 0.6, -42); ctx.closePath(); fs(ctx, c.scarf);
   // back arm swings as he runs
   const sw = s.moving && !s.air ? run * 7 : 0; ctx.beginPath(); ctx.moveTo(-8, -32); ctx.quadraticCurveTo(-16, -20, -10 + sw, -10); ctx.lineWidth = 10; ctx.strokeStyle = OUT; ctx.lineCap = 'round'; ctx.stroke(); ctx.lineWidth = 6; ctx.strokeStyle = c.vest[0]; ctx.stroke(); circ(ctx, -10 + sw, -9, 4.5, '#fff0d0');
+  rr(ctx, -26, -41, 15, 29, 6); fs(ctx, c.vest2); rr(ctx, -24, -37, 7, 11, 2); fs(ctx, 'rgba(255,255,255,.2)'); circ(ctx, -19, -15, 3, '#ffd23f'); ctx.beginPath(); ctx.moveTo(-18, -41); ctx.lineTo(-18, -52); ctx.lineWidth = 2.5; ctx.strokeStyle = OUT; ctx.stroke(); circ(ctx, -18, -53, 2.4, '#ff4d5a');   // backpack + aerial
   rr(ctx, -15, -38, 30, 36, 11); fs(ctx, puff(ctx, 0, -20, 22, c.vest[0], c.vest[1]));
+  ctx.beginPath(); ctx.arc(0, -20, 17.5, -1.05, 0.95); ctx.lineWidth = 2.2; ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.stroke();   // light catching the chest
+  ctx.beginPath(); ctx.moveTo(-11, -37); ctx.lineTo(9, -6); ctx.moveTo(11, -37); ctx.lineTo(-9, -6); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.stroke();   // cross straps
   rr(ctx, -11, -34, 22, 22, 7); fs(ctx, c.vest2); rr(ctx, -8, -20, 7, 8, 2); fs(ctx, 'rgba(0,0,0,.28)'); rr(ctx, 2, -20, 7, 8, 2); fs(ctx, 'rgba(0,0,0,.28)');
   circ(ctx, -4, -30, 3, 'rgba(0,0,0,.2)'); circ(ctx, 6, -27, 3, 'rgba(0,0,0,.2)');
   rr(ctx, -15, -10, 30, 7, 2); fs(ctx, '#a07a3a'); rr(ctx, -3, -10, 7, 7, 2); fs(ctx, '#ffd23f');
@@ -405,7 +409,7 @@ SP.hero = function (ctx, x, y, s) {
   if (c.acc === 'parka') { for (let i = 0; i < 9; i++) { const a = 0.3 + i * 0.7; circ(ctx, 2 + Math.cos(a) * 17, -50 + Math.sin(a) * 17, 5.5, '#ffffff'); } }
   eyes(ctx, 7, -49, 5, 4.2, 0.7, s.hurt); s.win ? smile(ctx, 8, -43, 5, 5) : smile(ctx, 8, -42, 3.5, 3);
   ctx.beginPath(); ctx.arc(2, -54, 19, Math.PI * 1.02, Math.PI * 1.98); ctx.closePath(); fs(ctx, puff(ctx, 2, -64, 19, c.helm[0], c.helm[1]));
-  rr(ctx, -18, -56, 42, 7, 3); fs(ctx, c.helm[1]);
+  rr(ctx, -18, -56, 42, 7, 3); fs(ctx, c.helm[1]); shine(ctx, -5, -69, 9, 3.4, -0.45); circ(ctx, -12, -50, 2.6, '#ffd23f');
   ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 2.2 : 5; ctx.lineTo(4 + Math.cos(a) * r, -63 + Math.sin(a) * r); } ctx.closePath(); ctx.fillStyle = '#ffd23f'; ctx.fill();
   if (c.acc === 'mask') { circ(ctx, 7, -48, 8.5, 'rgba(150,230,255,.55)'); ctx.beginPath(); ctx.arc(7, -48, 8.5, 0, TAU); ctx.lineWidth = 3; ctx.strokeStyle = '#1f6a88'; ctx.stroke(); ctx.beginPath(); ctx.moveTo(-1, -50); ctx.lineTo(-14, -50); ctx.moveTo(-8, -58); ctx.lineTo(-14, -78); ctx.lineTo(-8, -80); ctx.lineWidth = 3; ctx.strokeStyle = '#1f6a88'; ctx.stroke(); }
   if (c.acc === 'shades') { rr(ctx, 0, -54, 18, 8, 3); fs(ctx, '#1a1a2a'); ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(3, -52, 5, 2); }

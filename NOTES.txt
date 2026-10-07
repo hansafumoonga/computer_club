@@ -154,4 +154,17 @@ COMPUTER SKILLS ADVENTURE (Session 1, first card)
     (no storage, no network) - download the report before closing.
   - Drag and drop alternatives: click a piece then click its spot, or Tab to a piece, press Enter, Tab to its spot, press Enter.
 
-  - CERTIFICATE: after all 10 levels are done, a graduation screen button (and a button on the home screen) opens an A4 landscape certificate with the Computer Club keycap logo, the learner name (type it, or leave blank to write by hand), year, stars, date and a teacher line. Print it (landscape) or Download picture (PNG). The game name is one value: CC.SKILLS.NAME in js/skills_levels.js (plus the title in index.html and the card name in js/main.js).
+  - CERTIFICATE: after all 10 levels are done, a graduation screen button (and a button on the home screen) opens an A4 landscape certificate with the Tech Explorers keycap logo, the learner name (type it, or leave blank to write by hand), year, stars, date and a teacher line. Print it (landscape) or Download picture (PNG). The game name is one value: CC.SKILLS.NAME in js/skills_levels.js (plus the title in index.html and the card name in js/main.js).
+
+UPDATE: TECH EXPLORERS (new name), COMMANDO, PIANO, VOICE
+  - The club/app name is one value: CC.APP_NAME in js/core.js. The big keycap logo on the landing page is set in js/main.js (row('logo1','TECH') and row('logo2','EXPLORERS')),
+    the page title is in index.html. The certificate reads CC.APP_NAME automatically.
+  - Piano: Christmas songs are marked with a green outline: Jingle Bells, Silent Night, Merry Christmas (We Wish You a Merry Christmas). Songs are written with real notes
+    (e.g. 'G4'). In Learn mode the five pads act like game buttons: the glowing pad is the one to press and it plays the REAL note of the tune, sliding up or down when the
+    tune goes beyond C-G. So any carol can be learned on the five Makey Makey keys. To add a song, add an entry to SONGS in js/piano.js.
+  - Commando Run: the last stage ends with the Inferno Dragon King (fire breath, beating wings, much more aggressive: see 'aggr' in COMMANDO_LEVELS), stage 14 has an Alien Queen
+    (acid spit) and the first dragon (stage 5) now breathes fire too. Bosses arrive with a WARNING alarm and a proper entrance (they fly or stomp in and land with a shake).
+    The screen no longer shakes while a stage-complete screen is showing. The scenery has parallax mountains, haze, clouds, a sun with light rays, and richer ground.
+  - Click & Type Quest (Tech Explorers > Session 1): Buddy now talks (a calm voice that already exists on the computer - never the internet). Each demonstration is narrated
+    step by step ("press and hold the left button... now drag it...") and the cursor, piece and voice move together. Turn the voice on/off with the 🗣️ button.
+    If a computer has no English voice installed, the demonstrations still run, with the words shown on screen.

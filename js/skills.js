@@ -24,7 +24,7 @@ const DEFAULT_SKILL = { move: 'move', pick: 'click', drag: 'drag', connect: 'con
 /* ---------- state (lives for the whole visit) ---------- */
 const S = {
   year: 2, name: '', view: 'home',
-  opt: { sound: true, voice: false, contrast: false, slow: false, clickPlace: false },
+  opt: { sound: true, voice: true, contrast: false, slow: false, clickPlace: false },
   done: {}, stars: {}, unlockAll: false,
   stats: {}, seen: {}, badges: {},
   level: null, tasks: [], ti: 0, t: null, act: null,
@@ -47,17 +47,40 @@ function sfx(n) { if (S.opt.sound && CC.sfx[n]) CC.sfx[n](); }
 function skillOf(t) { return t.skill || DEFAULT_SKILL[t.type]; }
 function rec(skill, ok) { const s = S.stats[skill]; if (s) { if (ok) s.ok++; else s.bad++; } }
 
-/* ---------- optional spoken help: only uses voices that live on this computer (no network) ---------- */
-function speak(text) {
-  if (!S.opt.voice || !window.speechSynthesis) return;
-  try {
-    const vs = speechSynthesis.getVoices().filter(function (v) { return v.localService && /^en/i.test(v.lang); });
-    if (!vs.length) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/[^\w\s.,!?'-]/g, ' ').replace(/\s+/g, ' ').trim());
-    u.voice = vs[0]; u.rate = 0.85; u.pitch = 1.15; speechSynthesis.speak(u);
-  } catch (err) { /* voice is only a bonus */ }
+/* ---------- Buddy's voice: a calm, slow voice that lives on this computer (never the internet). Every spoken line returns a
+   promise that finishes when the voice finishes, so the cursor demonstrations can wait for it and stay in step. ---------- */
+let voicePick = null, speakTok = 0;
+function bestVoice() {
+  if (!window.speechSynthesis) return null;
+  const vs = speechSynthesis.getVoices().filter(function (v) { return v.localService && /^en/i.test(v.lang); });
+  if (!vs.length) return null;
+  if (voicePick && vs.indexOf(voicePick) >= 0) return voicePick;
+  const prefs = [/aria|jenny|natural|neural/i, /zira|samantha|karen|moira|susan|hazel|libby|sonia|serena|tessa|fiona/i, /female/i];
+  for (let i = 0; i < prefs.length; i++) { const f = vs.filter(function (v) { return prefs[i].test(v.name); })[0]; if (f) return (voicePick = f); }
+  return (voicePick = vs[0]);
 }
+if (window.speechSynthesis) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function () { voicePick = null; }; } catch (e) { } }
+function spoken(t) {
+  return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u2B50\uFE0F]/gu, ' ').replace(/\u232b/g, ' backspace ').replace(/\u23ce/g, ' enter ').replace(/\u2423/g, ' space ')
+    .replace(/CAPS LOCK/g, 'Caps Lock').replace(/BACKSPACE/g, 'Backspace').replace(/ENTER/g, 'Enter').replace(/SPACE/g, 'Space').replace(/SHIFT/g, 'Shift').replace(/\s+/g, ' ').trim();
+}
+function voiceP(text) {
+  const clean = spoken(text), est = Math.max(650, Math.min(4200, clean.length * 52)) * speedMul(), my = ++speakTok;
+  return new Promise(function (resolve) {
+    const v = S.opt.voice ? bestVoice() : null;
+    if (!v || !clean) { setTimeout(resolve, est); return; }
+    let done = false; S.talking = true; if (E.buddy) E.buddy.classList.add('talk');
+    const fin = function () { if (!done) { done = true; if (my === speakTok) { S.talking = false; if (E.buddy) E.buddy.classList.remove('talk'); } resolve(); } };
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = 0.88 / (S.opt.slow ? 1.25 : 1); u.pitch = 1.02; u.volume = 1;
+      u.onend = fin; u.onerror = fin; speechSynthesis.speak(u);
+      setTimeout(fin, clean.length * 115 + 2200);
+    } catch (err) { setTimeout(fin, est); }
+  });
+}
+function voice(text) { voiceP(text); }
+function stopVoice() { speakTok++; S.talking = false; if (E.buddy) E.buddy.classList.remove('talk'); if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } }
 
 /* ---------- Buddy: the friendly guide. Always a short line, never "wrong". ---------- */
 const MOODS = { hi: '🐶', think: '🤔', cheer: '🥳', watch: '👀', calm: '🐶' };
@@ -66,9 +89,8 @@ function say(text, mood, sub) {
   if (!E.say) return;
   E.say.textContent = text;
   E.buddy.textContent = MOODS[mood || 'calm'];
-  E.buddy.className = 'sk-buddy m-' + (mood || 'calm');
+  E.buddy.className = 'sk-buddy m-' + (mood || 'calm') + (S.talking ? ' talk' : '');
   E.sub.textContent = sub || '';
-  speak(text + (sub ? '. ' + sub : ''));
 }
 const PRAISE = ['Great job!', 'Excellent! ⭐', 'Perfect!', 'Well done!', 'Super! 🌟', 'Brilliant!'];
 const NICE_TRY = ['Almost! Try again.', "You're close!", 'Nearly there! Try again.', 'Good try! Have another go.'];
@@ -86,16 +108,37 @@ function confetti(n) {
 
 /* ---------- the animated cursor + mouse diagram used for demonstrations ---------- */
 const CURSOR_SVG = '<svg viewBox="0 0 24 30" aria-hidden="true"><path d="M2 2 L2 24 L8 18.5 L12.2 28 L16 26.4 L11.8 17 L20 17 Z" fill="#fff" stroke="#15163a" stroke-width="2" stroke-linejoin="round"/></svg><b class="ring"></b>';
-function curSet(x, y, ms) { E.cursor.style.transitionDuration = (ms || 0) + 'ms'; E.cursor.style.left = U(x); E.cursor.style.top = U(y); }
+function curSet(x, y) { S.cur = { x: x, y: y }; E.cursor.style.transition = 'none'; E.cursor.style.left = U(x); E.cursor.style.top = U(y); }
 function wait(ms) { const tok = S.demoTok; return new Promise(function (r) { setTimeout(function () { r(tok === S.demoTok); }, ms * speedMul()); }); }
+function ease(u) { return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; }
+function tween(ms, fn) {        // runs fn(eased 0..1) every frame; resolves false if the demo was cancelled
+  const tok = S.demoTok; ms *= speedMul();
+  return new Promise(function (res) {
+    const t0 = performance.now();
+    (function f(now) {
+      if (tok !== S.demoTok) { res(false); return; }
+      const u = Math.min(1, (now - t0) / ms); fn(ease(u));
+      if (u >= 1) { res(true); return; }
+      let fired = false;       // normally the next screen frame; a timer takes over if the browser pauses frames (background window) so a demo can never freeze
+      const tid = setTimeout(function () { if (!fired) { fired = true; f(performance.now()); } }, 90);
+      requestAnimationFrame(function (t) { if (fired) return; fired = true; clearTimeout(tid); f(t); });
+    })(t0);
+  });
+}
 function setMouse(btn) { if (E.mouse) E.mouse.dataset.btn = btn || 'none'; }
-async function curMove(x, y, ms) { curSet(x, y, ms * speedMul()); return wait(ms + 60); }
+function curMove(x, y, ms) { const a = S.cur || { x: x, y: y }; return tween(ms, function (e) { curSet(a.x + (x - a.x) * e, a.y + (y - a.y) * e); }); }
 async function curClick(kind) {   /* kind: left | right */
   setMouse(kind || 'left'); E.cursor.classList.add('click'); sfx('clink');
-  const ok = await wait(260); E.cursor.classList.remove('click'); setMouse('none'); return ok;
+  const ok = await wait(300); E.cursor.classList.remove('click'); setMouse('none'); return ok;
 }
 function curHide() { E.cursor.hidden = true; E.cursor.classList.remove('click', 'down'); setMouse('none'); }
-function curShow(x, y) { E.cursor.hidden = false; E.cursor.classList.remove('click', 'down'); curSet(x, y, 0); }
+function curShow(x, y) { E.cursor.hidden = false; E.cursor.classList.remove('click', 'down'); curSet(x, y); }
+/* one narrated step: Buddy says the line while the action happens; continues when BOTH are finished */
+async function step(line, action) {
+  const tok = S.demoTok; if (E.sub) E.sub.textContent = line;
+  const r = await Promise.all([voiceP(line), action ? action() : Promise.resolve(true)]);
+  return tok === S.demoTok && r[1] !== false;
+}
 
 /* ---------- level flow ---------- */
 const ACT = {};
@@ -120,7 +163,7 @@ function beginTask(i, noDemo) {
   clearTimers(); S.demoTok++; curHide();
   if (S.act && S.act.destroy) S.act.destroy();
   S.ti = i; S.t = S.tasks[i]; S.fails = 0; S.finished = false; S.locked = false; S.ptr = null; S.idleDemo = false;
-  E.items.innerHTML = ''; E.svg.innerHTML = ''; E.typeBox.innerHTML = ''; E.typeBox.hidden = true;
+  E.popN = 0; E.items.innerHTML = ''; E.svg.innerHTML = ''; E.typeBox.innerHTML = ''; E.typeBox.hidden = true;
   E.stage.classList.toggle('typing', !!S.level.kb); E.stage.parentNode.classList.toggle('typing', !!S.level.kb);
   E.kb.hidden = !S.level.kb; E.caps.hidden = !S.level.kb;
   E.stage.dataset.type = S.t.type;
@@ -132,19 +175,19 @@ function beginTask(i, noDemo) {
   const seenKey = skillOf(S.t) + ':' + S.t.type;
   const demoWanted = !noDemo && S.act.demo && (S.t.demo || !S.seen[seenKey]);
   S.seen[seenKey] = true;
-  if (demoWanted) runDemo(); else ready();
+  if (demoWanted) runDemo(); else { ready(); voice(S.t.say); }
 }
 async function runDemo() {
-  S.locked = true; const tok = ++S.demoTok;
+  S.locked = true; const tok = ++S.demoTok; S.demoOn = true;
   say(S.t.say, 'watch', '👀 Watch me!');
-  await wait(450);
+  await voiceP(S.t.say);
   if (tok !== S.demoTok) return;
   try { await S.act.demo(); } catch (err) { /* a cancelled demo just ends */ }
   if (tok !== S.demoTok) return;
-  curHide(); if (S.act.resetDemo) S.act.resetDemo();
+  S.demoOn = false; curHide(); if (S.act.resetDemo) S.act.resetDemo();
   ready();
 }
-function skipDemo() { S.demoTok++; curHide(); if (S.act.resetDemo) S.act.resetDemo(); ready(); }
+function skipDemo() { S.demoTok++; S.demoOn = false; stopVoice(); curHide(); if (S.act.resetDemo) S.act.resetDemo(); ready(); }
 function ready() {
   S.locked = false;
   say(S.t.say, 'calm', S.t.type === 'type' || S.t.type === 'enter' || S.t.type === 'capsstate' ? '' : '👆 Your turn!');
@@ -156,7 +199,7 @@ function armIdle() {
   S.idleTimer = setTimeout(function () {
     if (S.paused || S.locked || S.finished || CC.ui.active) { armIdle(); return; }
     if (S.act.hl) S.act.hl(true);
-    say(S.t.say, 'think', 'Need help? Watch Buddy! 👀');
+    say(S.t.say, 'think', 'Need help? Watch Buddy! 👀'); voice('Need some help? Watch me.');
     if (!S.idleDemo && S.act.demo) { S.idleDemo = true; later(function () { if (!S.finished && !S.paused) runDemo(); }, 900); }
     else armIdle();
   }, 14000 * speedMul());
@@ -167,30 +210,30 @@ function touch() { if (S.act && !S.finished) armIdle(); }
 function good(msg) {
   if (S.finished) return; S.finished = true; S.locked = true; clearTimeout(S.idleTimer);
   rec(skillOf(S.t), true); sfx('good'); confetti(14);
-  say(msg || S.t.win || pick(PRAISE), 'cheer', '');
+  const words = msg || S.t.win || pick(PRAISE), tok = S.demoTok; say(words, 'cheer', '');
   markDot(S.ti);
-  later(function () { if (S.ti + 1 >= S.tasks.length) finishLevel(); else beginTask(S.ti + 1); }, 1700 * speedMul());
+  Promise.all([voiceP(words), new Promise(function (r) { later(r, 1200 * speedMul()); })]).then(function () { if (tok !== S.demoTok || !S.finished) return; if (S.ti + 1 >= S.tasks.length) finishLevel(); else beginTask(S.ti + 1); });
 }
 function oops(msg, noCount) {
   if (S.finished) return;
   if (!noCount) { S.fails++; S.mistakes++; rec(skillOf(S.t), false); }
-  sfx('softMiss'); say(msg || pick(NICE_TRY), 'think', ''); armIdle();
+  const hint = msg || pick(NICE_TRY); sfx('softMiss'); say(hint, 'think', ''); voice(hint); armIdle();
   if (S.fails >= 3) helpTogether();
 }
 /* adaptive help: bigger, slower, fewer things, then show the demo again */
 function helpTogether() {
   S.fails = 0; S.adaptK = Math.min(1.3, S.adaptK + 0.15); S.slowA = true;
   S.locked = true; S.demoTok++;
-  say("Let's try together! Watch the mouse. 👀", 'watch', '');
+  say("Let's try together! Watch the mouse. 👀", 'watch', ''); const tk = S.demoTok;
   S.hintLevel = (S.hintLevel || 0) + 1;
-  later(function () { if (!S.finished) { S.simplified = true; S.tasks[S.ti].demo = true; beginTask(S.ti, false); } }, 1500 * speedMul());
+  voiceP("Let's try together. Watch me.").then(function () { if (tk === S.demoTok && !S.finished) { S.simplified = true; S.tasks[S.ti].demo = true; beginTask(S.ti, false); } });
 }
 
 function finishLevel() {
   clearTimers(); S.locked = true;
   const lv = S.level, m = S.mistakes, stars = m <= 1 ? 3 : m <= 4 ? 2 : 1;
   S.done[lv.id] = true; S.stars[lv.id] = Math.max(S.stars[lv.id] || 0, stars); S.badges[lv.id] = lv.badge;
-  confetti(40); sfx('levelComplete'); say('You did it! 🎉', 'cheer', '');
+  confetti(40); sfx('levelComplete'); say('You did it! 🎉', 'cheer', ''); voice('You did it! You finished level ' + S.level.id + '. You earned the ' + S.level.badge + ' badge.');
   const last = lv.id >= LEVELS.length;
   CC.ui.show(E.stage, { emoji: '🏆', stars: stars, title: 'You completed Level ' + lv.id + '!', text: 'New badge: ' + lv.badge + ' 🏆',
     buttons: [
@@ -199,13 +242,13 @@ function finishLevel() {
 }
 
 /* ---------- toolbar actions ---------- */
-function repeatHelp() { if (!S.act || S.finished || CC.ui.active) return; S.idleDemo = true; if (S.act.demo) runDemo(); else { say(S.t.say, 'calm', ''); if (S.act.hl) S.act.hl(true); speak(S.t.say); } }
+function repeatHelp() { if (!S.act || S.finished || CC.ui.active) return; S.idleDemo = true; if (S.act.demo) runDemo(); else { say(S.t.say, 'calm', ''); if (S.act.hl) S.act.hl(true); voice(S.t.say); } }
 function restartTask() { if (!S.level || CC.ui.active) return; S.paused = false; beginTask(S.ti, true); }
 function togglePause() {
   if (!S.level || S.view !== 'play') return;
   if (S.paused) { S.paused = false; CC.ui.close(); return; }
   if (CC.ui.active) return;
-  S.paused = true;
+  S.paused = true; stopVoice();
   CC.ui.show(E.stage, { emoji: '⏸️', title: 'Paused', buttons: [{ icon: '▶', label: 'Play', primary: true, keys: ['Enter', 'Space'], fn: function () { S.paused = false; } },
     { icon: '🗺️', label: '', fn: function () { S.paused = false; showHome(); } }] });
 }
@@ -228,6 +271,7 @@ function mkItem(def, o) {
   if (def.shadow) b.classList.add('shadow');
   if (def.id != null) b.dataset.id = def.id;
   b._def = def; b._x = x; b._y = y; b._w = w; b._h = h;
+  b.style.animationDelay = ((E.popN = (E.popN || 0) + 1) * 45) + 'ms';
   return b;
 }
 function place(b, x, y) { b._x = x; b._y = y; b.style.left = U(x); b.style.top = U(y); }
@@ -252,10 +296,10 @@ ACT.move = function (t) {
     hl: function (on) { b.classList.toggle('hl', on); },
     move: function (e) { S.ptr = toU(e); touch(); },
     async demo() {
-      const from = { x: def.x > 50 ? 14 : 86, y: def.y > 30 ? 12 : 44 };
-      curShow(from.x, from.y); await wait(350);
-      await curMove(def.x + (mv ? 4 : 0), def.y, 1300);
-      await wait(500);
+      const from = { x: def.x > 50 ? 14 : 86, y: def.y > 30 ? 12 : 44 }, nm = def.n || 'target';
+      curShow(from.x, from.y); await wait(300);
+      if (!(await step('Watch the arrow. It glides to the ' + nm + '.', function () { return curMove(def.x + (mv ? 4 : 0), def.y, 1900); }))) return;
+      await wait(250); await step('Now you try. Move your mouse to the ' + nm + '.');
     },
     simplify: function () { }
   };
@@ -296,8 +340,9 @@ ACT.pick = function (t) {
     async demo() {
       const id = targets[0], b = nodes[id]; if (!b) return;
       curShow(b._x > 50 ? 12 : 88, 46); await wait(300);
-      await curMove(b._x, b._y, 1200); setMouse('left'); await curClick('left'); b.classList.add('wig');
-      await wait(500); b.classList.remove('wig');
+      if (!(await step('Watch the arrow. It moves to the ' + nameOf(id) + '.', function () { return curMove(b._x, b._y, 1800); }))) return;
+      if (!(await step('Press the left mouse button. Click!', function () { return curClick('left').then(function (ok) { b.classList.add('wig'); return ok; }); }))) return;
+      await wait(350); b.classList.remove('wig'); await step('Now you try!');
     }
   };
 };
@@ -413,13 +458,14 @@ ACT.drag = function (t) {
     cancel: function () { if (drag) { sendHome(drag.n); drag = null; setMouse('none'); } },
     async demo() {
       const pn = pNode[pieces[0].id], zn = freeZoneFor(pn); if (!pn || !zn) return;
-      curShow(pn._home.x + 14, pn._home.y + 10); await wait(300);
-      await curMove(pn._home.x, pn._home.y, 1000);
-      E.cursor.classList.add('down'); setMouse('hold'); say(t.say, 'watch', '✋ Hold the button…'); pn.classList.add('held'); pn.style.setProperty('--sc', 1); sfx('pickup'); await wait(500);
-      curSet(zn._x, zn._y, 1600 * speedMul()); pn.style.transitionDuration = (1600 * speedMul()) + 'ms'; place(pn, zn._x, zn._y); say(t.say, 'watch', '➡️ Drag it over…');
-      await wait(1700); say(t.say, 'watch', '👐 …and let go!'); E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); await wait(700);
+      const hx = pn._home.x, hy = pn._home.y, spot = t.drop || 'spot';
+      pn.classList.remove('back'); curShow(hx + 16, hy + 12); await wait(300);
+      if (!(await step('First, move the arrow onto the piece.', function () { return curMove(hx, hy, 1500); }))) return;
+      if (!(await step('Now press and hold the left button.', function () { E.cursor.classList.add('down'); setMouse('hold'); sfx('pickup'); pn.classList.add('demo'); pn.style.zIndex = 100; return tween(450, function (e) { pn.style.setProperty('--sc', pn._sc + (1 - pn._sc) * e); }); }))) return;
+      if (!(await step('Keep holding, and drag it to the ' + spot + '.', function () { return tween(2300, function (e) { const x = hx + (zn._x - hx) * e, y = hy + (zn._y - hy) * e; curSet(x, y); place(pn, x, y); }); }))) return;
+      await step('Now let go. Well done!', function () { E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); return wait(500); });
     },
-    resetDemo: function () { const pn = pNode[pieces[0].id]; if (pn && !pn._placed) { pn.style.transitionDuration = ''; pn.classList.remove('held'); sendHome(pn); } curHide(); },
+    resetDemo: function () { const pn = pNode[pieces[0].id]; if (pn && !pn._placed) { pn.classList.remove('demo', 'held'); pn.style.zIndex = 10 + (pn._p.z || 0); sendHome(pn); } curHide(); },
     destroy: function () { }
   };
 };
@@ -492,10 +538,12 @@ ACT.connect = function (t) {
     cancel: function () { if (from) { if (line && line.parentNode) E.svg.removeChild(line); line = null; from = null; setMouse('none'); } },
     async demo() {
       const id = Object.keys(nodes.L)[0], a = nodes.L[id], b = nodes.R[t.pairs[id]];
-      curShow(a._x - 12, a._y + 12); await wait(300); await curMove(a._x, a._y, 900);
-      E.cursor.classList.add('down'); setMouse('hold'); sfx('pickup'); const l = mkLine(a, 0); await wait(300);
-      const steps = 24; for (let i = 1; i <= steps; i++) { const x = a._x + (b._x - a._x) * i / steps, y = a._y + (b._y - a._y) * i / steps; curSet(x, y, 70); l.setAttribute('x2', x); l.setAttribute('y2', y); if (!(await wait(60))) { if (l.parentNode) E.svg.removeChild(l); return; } }
-      E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); await wait(600); if (l.parentNode) E.svg.removeChild(l);
+      curShow(a._x - 14, a._y + 12); await wait(300);
+      if (!(await step('Move the arrow onto the ' + (a._name || 'picture') + '.', function () { return curMove(a._x, a._y, 1400); }))) return;
+      const l = mkLine(a, 0);
+      if (!(await step('Press and hold the left button.', function () { E.cursor.classList.add('down'); setMouse('hold'); sfx('pickup'); return wait(500); }))) return;
+      if (!(await step('Keep holding, and drag a line to its partner, the ' + (b._name || 'match') + '.', function () { return tween(2100, function (e) { const x = a._x + (b._x - a._x) * e, y = a._y + (b._y - a._y) * e; curSet(x, y); l.setAttribute('x2', x); l.setAttribute('y2', y); }); }))) return;
+      await step('Let go. They are joined!', function () { E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); return wait(600); });
     },
     resetDemo: function () { E.svg.innerHTML = ''; }
   };
@@ -520,9 +568,11 @@ ACT.dbl = function (t) {
     },
     contextmenu: function () { oops('That was the RIGHT button. Use the LEFT one: click, click!', true); },
     async demo() {
-      curShow(b._x > 50 ? 14 : 86, 46); await wait(300); await curMove(b._x, b._y, 1100);
-      say(t.say, 'watch', '👆 Click…'); await curClick('left'); wiggle(b); await wait(150);
-      say(t.say, 'watch', '👆 …click! Fast!'); await curClick('left'); open(true); await wait(800); close();
+      curShow(b._x > 50 ? 14 : 86, 46); await wait(300);
+      if (!(await step('Move the arrow to the treasure box.', function () { return curMove(b._x, b._y, 1600); }))) return;
+      if (!(await step('Click once with the left button.', function () { return curClick('left').then(function (ok) { wiggle(b); return ok; }); }))) return;
+      if (!(await step('Now click again, quickly. Click, click!', function () { return curClick('left').then(function (ok) { open(true); return ok; }); }))) return;
+      await wait(700); close(); await step('Now you try!');
     },
     resetDemo: close
   };
@@ -554,9 +604,11 @@ ACT.right = function (t) {
       if (e.button === 0) { oops('Your mouse has TWO buttons. Try the RIGHT one! 👉', false); setMouse('right'); later(function () { setMouse('none'); }, 900); }
     },
     async demo() {
-      say(t.say, 'watch', '🖱️ The mouse has a LEFT and a RIGHT button');
-      curShow(b._x > 50 ? 14 : 86, 46); await wait(900); await curMove(b._x, b._y, 1100);
-      say(t.say, 'watch', '👉 Press the RIGHT button…'); await curClick('right'); openMenu(b._x + 4, b._y + 2); await wait(1400); closeMenu(); setMouse('none');
+      curShow(b._x > 50 ? 14 : 86, 46);
+      if (!(await step('Your mouse has two buttons. A left button, and a right button.', function () { setMouse('left'); return wait(1100).then(function () { setMouse('right'); return wait(1000); }).then(function (ok) { setMouse('none'); return ok; }); }))) return;
+      if (!(await step('Move the arrow to the treasure box.', function () { return curMove(b._x, b._y, 1500); }))) return;
+      if (!(await step('Now press the right button.', function () { return curClick('right').then(function (ok) { openMenu(b._x + 4, b._y + 2); return ok; }); }))) return;
+      await step('A magic menu! Then pick one with the left button.', function () { return wait(1500); }); closeMenu();
     },
     resetDemo: closeMenu, destroy: closeMenu
   };
@@ -642,7 +694,17 @@ ACT.type = function (t) {
     char: char, back: back, enter: function () { kbFlash('Enter'); },
     hl: function (on) { showHint(); if (t.find && !kbKey(nextCode())) return; },
     caps: function () { },
-    demo: null
+    async demo() {
+      const code = nextCode(), lines = t.spaceDemo ? ['The space bar is the long key at the bottom.', 'It makes a gap between two words. Press it now.']
+        : t.prefill != null ? ['Oops. There is one extra letter.', 'The backspace key takes a letter away. Press it.']
+        : exact && target === target.toUpperCase() ? ['Big letters need Caps Lock, or the Shift key.', 'Look at the glowing key.']
+        : exact ? ['Small letters are easy. Caps Lock must be off.', 'Look at the glowing key, and find it on your keyboard.']
+        : ['Look at the glowing key on the screen.', 'Now find the same key on your keyboard, and press it.'];
+      kbHl(code);
+      if (!(await step(lines[0], function () { return wait(900); }))) return;
+      await step(lines[1], function () { kbFlash(code); return wait(500).then(function () { kbFlash(code); return wait(500); }); });
+    },
+    resetDemo: function () { showHint(); }
   };
 };
 
@@ -656,7 +718,12 @@ ACT.capsstate = function (t) {
   return {
     caps: function (v) { upd(); if (v !== t.want) { seenOpp = true; if (!startOpp) say(t.say, 'calm', ''); return; } if (seenOpp) good(t.win); },
     hl: function () { kbHl('CapsLock'); upd(); }, char: function (ch) { kbFlash(codeOf(ch)); oops('Find the CAPS LOCK key on the left, then press it. 💡', false); },
-    back: function () { }, enter: function () { }
+    back: function () { }, enter: function () { },
+    async demo() {
+      kbHl('CapsLock'); if (!(await step('This is the Caps Lock key. When its light is on, letters come out big.', function () { return wait(900); }))) return;
+      await step('Press it, and watch the light.', function () { kbFlash('CapsLock'); return wait(700); });
+    },
+    resetDemo: function () { kbHl('CapsLock'); }
   };
 };
 
@@ -666,7 +733,12 @@ ACT.enter = function (t) {
   return {
     hl: function () { kbHl('Enter'); },
     enter: function () { kbFlash('Enter'); good(t.win); },
-    char: function (ch) { kbFlash(codeOf(ch)); oops('Not that one! Press the big ENTER key ⏎', false); }, back: function () { }, caps: function () { }
+    char: function (ch) { kbFlash(codeOf(ch)); oops('Not that one! Press the big ENTER key ⏎', false); }, back: function () { }, caps: function () { },
+    async demo() {
+      kbHl('Enter'); if (!(await step('This is the Enter key. We press it to say we are ready.', function () { return wait(900); }))) return;
+      await step('Find it on your keyboard, and press it.', function () { kbFlash('Enter'); return wait(700); });
+    },
+    resetDemo: function () { kbHl('Enter'); }
   };
 };
 
@@ -681,6 +753,7 @@ function virtualPress(k) {
 }
 function physicalKey(e) {
   if (e.getModifierState) { const c = e.getModifierState('CapsLock'); if (e.code === 'CapsLock' || c !== S.caps) setCaps(c, true); }
+  if (S.view === 'play' && S.locked && S.demoOn && !S.finished && !CC.ui.active && !e.repeat && (S.act && (S.act.char || S.act.enter)) && e.code !== 'CapsLock') { skipDemo(); return true; }
   if (S.view !== 'play' || S.locked || S.paused || !S.act || CC.ui.active) return false;
   if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return false;
   if (e.ctrlKey || e.metaKey || e.altKey) return false;
@@ -766,7 +839,8 @@ function renderPlay() {
   const pau = el('button', 'btn ico', '⏸️'); pau.type = 'button'; pau.setAttribute('aria-label', 'pause'); pau.addEventListener('click', function () { pau.blur(); togglePause(); });
   const snd = el('button', 'btn ico', S.opt.sound ? '🔊' : '🔇'); snd.type = 'button'; snd.setAttribute('aria-label', 'sound on or off');
   snd.addEventListener('click', function () { snd.blur(); S.opt.sound = !S.opt.sound; snd.textContent = S.opt.sound ? '🔊' : '🔇'; setSfxGain(); });
-  [map, chip, E.dots, rep, res, pau, snd].forEach(function (x) { bar.appendChild(x); });
+  const vc = el('button', 'btn ico' + (S.opt.voice ? '' : ' off'), '🗣️'); vc.type = 'button'; vc.setAttribute('aria-label', 'voice on or off'); vc.title = 'Buddy voice on / off'; vc.addEventListener('click', function () { vc.blur(); S.opt.voice = !S.opt.voice; vc.classList.toggle('off', !S.opt.voice); if (!S.opt.voice) stopVoice(); else voice('Hello! I am Buddy.'); });
+  [map, chip, E.dots, rep, res, pau, vc, snd].forEach(function (x) { bar.appendChild(x); });
   wrap.appendChild(bar);
   const sayRow = el('div', 'sk-sayrow');
   E.buddy = el('div', 'sk-buddy', '🐶'); E.say = el('div', 'sk-say'); E.sub = el('div', 'sk-sub');
@@ -865,8 +939,8 @@ function certSvg(name) {
   KEYC.forEach(function (c, i) { const o = 12 + i * 7; g += '<rect x="' + o + '" y="' + o + '" width="' + (W - 2 * o) + '" height="' + (H - 2 * o) + '" rx="' + (16 - i * 2) + '" fill="none" stroke="' + c[0] + '" stroke-width="7"/>'; });
   g += '<rect x="58" y="58" width="' + (W - 116) + '" height="' + (H - 116) + '" rx="6" fill="none" stroke="#15163a" stroke-width="2"/>';
   /* the Computer Club keycap logo */
-  const ks = 46, gap = 8, wgap = 28; let x = (W - (12 * ks + 10 * gap + wgap)) / 2, ci = 0;
-  'COMPUTER CLUB'.split('').forEach(function (ch) {
+  const club = CC.APP_NAME.toUpperCase(), nk = club.replace(/ /g, '').length, ks = nk > 12 ? 42 : 46, gap = 8, wgap = 28; let x = (W - (nk * ks + (nk - 2) * gap + wgap)) / 2, ci = 0;
+  club.split('').forEach(function (ch) {
     if (ch === ' ') { x += wgap - gap; return; }
     const c = KEYC[ci++ % 5];
     g += '<rect x="' + x + '" y="89" width="' + ks + '" height="' + ks + '" rx="10" fill="' + c[1] + '"/><rect x="' + x + '" y="84" width="' + ks + '" height="' + ks + '" rx="10" fill="' + c[0] + '"/>' +
@@ -889,7 +963,7 @@ function certSvg(name) {
   g += '<circle cx="561" cy="668" r="46" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="668" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPath(561, 668, 24, 10) + '" fill="#e07a1a"/>';
   /* date + signature */
   g += '<text x="240" y="702" font-family="' + sans + '" font-size="20" fill="#15163a" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="710" x2="360" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="240" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
-  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="883" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher, Computer Club</text>';
+  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="883" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher, ' + esc(CC.APP_NAME) + '</text>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 function showCertificate() {
@@ -923,7 +997,7 @@ function showCertificate() {
 CC.modes.skills = {
   makey: false,
   enter: function () { applyTheme(); showHome(); },
-  exit: function () { clearTimers(); S.view = 'home'; S.act = null; if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } if (CC.audio.master) CC.audio.master.gain.value = 0.8; },
+  exit: function () { clearTimers(); stopVoice(); S.view = 'home'; S.act = null; if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } if (CC.audio.master) CC.audio.master.gain.value = 0.8; },
   onKeyDown: function (e) {
     if (S.view === 'home' && e.key === 'Enter' && !(e.target && /^(INPUT|BUTTON)$/.test(e.target.tagName))) { e.preventDefault(); CC.audio.init(); startLevel(nextLevel()); return; }
     if (physicalKey(e)) e.preventDefault();

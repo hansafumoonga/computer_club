@@ -5,6 +5,7 @@
 const CC = window.CC = { modes: {}, app: { session: null, mode: null }, held: {} };
 
 /* ---------- Makey Makey 5-key map (KeyboardEvent.code) ---------- */
+CC.APP_NAME = 'Tech Explorers';   // the club name: shown on the landing page, the certificate and the page title
 CC.MAKEY_KEYS = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight', 'Space'];
 CC.KEY_MAP = { ArrowLeft: 'C', ArrowUp: 'D', ArrowDown: 'E', ArrowRight: 'F', Space: 'G' };
 CC.KEY_LABEL = { ArrowLeft: '←', ArrowUp: '↑', ArrowDown: '↓', ArrowRight: '→', Space: 'Space' };
@@ -68,9 +69,10 @@ A.noise = function (o) {
 };
 
 /* piano-ish note (fundamental + octave shimmer) */
+CC.freqOf = function (n) { const semi = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }, oct = n.length > 1 ? +n.slice(1) : 4; return 440 * Math.pow(2, (12 * (oct + 1) + semi[n[0]] - 69) / 12); };
 A.pianoNote = function (note, o) {
   o = o || {};
-  const f = CC.NOTE_FREQS[note], dur = o.dur || 0.7, vol = o.vol == null ? 0.28 : o.vol;
+  const f = CC.NOTE_FREQS[note] || CC.freqOf(note), dur = o.dur || 0.7, vol = o.vol == null ? 0.28 : o.vol;
   A.tone(f, { type: 'triangle', dur: dur, vol: vol, delay: o.delay });
   A.tone(f * 2, { type: 'sine', dur: dur * 0.6, vol: vol * 0.35, delay: o.delay });
 };
@@ -214,10 +216,18 @@ UI.show = function (stage, opts) {
       lv.appendChild(b);
     }
   }
-  root.appendChild(el);
+  root.appendChild(el); UI.fit(el);
   UI.active = ov; if (CC.music) CC.music.duck(true);
   return ov;
 };
+/* if the picture, title and buttons are taller than the stage (small windows, phones), shrink them together until everything fits */
+UI.fit = function (el) {
+  el = el || (UI.active && UI.active.el); if (!el) return;
+  el.style.removeProperty('--u');
+  let u = parseFloat(getComputedStyle(el).getPropertyValue('--u')) || 8;
+  for (let i = 0; i < 5 && el.clientHeight > 0 && el.scrollHeight > el.clientHeight + 1; i++) { u *= Math.max(0.5, (el.clientHeight - 2) / el.scrollHeight); el.style.setProperty('--u', u.toFixed(2) + 'px'); }
+};
+window.addEventListener('resize', function () { UI.fit(); });
 UI.fire = function (ov, fn) { if (UI.active === ov) { UI.close(); } fn && fn(); };
 UI.close = function () {
   if (UI.active) { if (UI.active.el.parentNode) UI.active.el.parentNode.removeChild(UI.active.el); UI.active = null; if (CC.music) CC.music.duck(false); }

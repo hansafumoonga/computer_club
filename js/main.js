@@ -104,7 +104,7 @@ document.addEventListener('visibilitychange', function () {
       k.style.setProperty('--c', p[0]); k.style.setProperty('--c2', p[1]); k.style.setProperty('--i', (i * 0.25) + 's'); box.appendChild(k);
     });
   }
-  row('logo1', 'COMPUTER', 0); row('logo2', 'CLUB', 2);
+  row('logo1', 'TECH', 0); row('logo2', 'EXPLORERS', 2);
   const kb = $('mini-kb'), rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'], hi = 'ASDFJKL';
   rows.forEach(function (r) { const d = document.createElement('div'); d.className = 'r'; r.split('').forEach(function (ch, i) { const k = document.createElement('span'); k.className = 'k'; k.textContent = ch;
     if (hi.indexOf(ch) >= 0) { k.classList.add('h'); k.style.setProperty('--c', pal[hi.indexOf(ch) % 5][0]); k.style.setProperty('--i', (i * 0.2) + 's'); } d.appendChild(k); }); kb.appendChild(d); });

@@ -40,19 +40,22 @@ const COMMANDO_LEVELS = [
   { theme: 10, len: 15000, d: 0.79, boss: 'frog',     pal: 'frog' },
   { theme: 11, len: 15600, d: 0.84, boss: 'golem',    pal: 'golem' },
   { theme: 12, len: 16200, d: 0.89, boss: 'robot',    pal: 'robotGold' },
-  { theme: 13, len: 16800, d: 0.95, boss: 'dragon',   pal: 'dragonIce' },
-  { theme: 14, len: 18000, d: 1.00, boss: 'dragon',   pal: 'dragonKing' }
+  { theme: 13, len: 16800, d: 0.95, boss: 'alien',    pal: 'alien', aggr: 1.15 },
+  { theme: 14, len: 18000, d: 1.00, boss: 'dragon',   pal: 'dragonKing', aggr: 1.4 }
 ];
 /* How each big creature fights. Phase 1 uses moves; at 2/3 health it adds p2 moves; at 1/3 health it adds p3 moves and gets faster.
    Moves: orbs (aimed shots)  fan (3-5 way)  rain (falling orbs - shadows show where)  wave (ground wave - JUMP it)
           bombs (lobbed bombs that leave fire)  beam (a laser across chest height - DUCK under it or jump)
-          summon (calls helpers)  lunge (charges at you, then retreats)  barrage (a fast stream of shots) */
+          summon (calls helpers)  lunge (charges at you, then retreats)  barrage (a fast stream of shots)
+          breath (dragons and aliens spit a stream of fire or acid - keep moving!)
+   aggr (per stage, optional) = how fast the creature thinks and attacks: 1 = normal, 1.4 = very fierce (the last stage). */
 const BOSS_DEF = {
   lion:     { w: 210, h: 160, moves: ['wave', 'orbs'],         p2: ['lunge', 'summon'],  p3: ['barrage', 'bombs'] },
   octopus:  { w: 190, h: 215, moves: ['rain', 'fan'],          p2: ['summon', 'beam'],   p3: ['barrage'] },
   scorpion: { w: 220, h: 200, moves: ['fan', 'wave', 'orbs'],  p2: ['lunge', 'bombs'],   p3: ['beam', 'summon'] },
   yeti:     { w: 190, h: 215, moves: ['rain', 'orbs'],         p2: ['wave', 'bombs'],    p3: ['lunge', 'summon'] },
-  dragon:   { w: 250, h: 220, moves: ['fan', 'orbs', 'rain'],  p2: ['beam', 'bombs'],    p3: ['barrage', 'summon', 'lunge'] },
+  dragon:   { w: 270, h: 235, moves: ['fan', 'orbs', 'rain'],  p2: ['beam', 'bombs', 'breath'],    p3: ['barrage', 'summon', 'lunge', 'breath'], mouth: [-150, -176], fly: true },
+  alien:    { w: 235, h: 225, moves: ['fan', 'orbs', 'rain'],  p2: ['lunge', 'beam', 'summon'],   p3: ['barrage', 'breath', 'bombs'], mouth: [-112, -150] },
   gorilla:  { w: 200, h: 205, moves: ['wave', 'rain'],         p2: ['lunge', 'orbs'],    p3: ['summon', 'barrage'] },
   spider:   { w: 230, h: 150, moves: ['fan', 'rain'],          p2: ['summon', 'beam'],   p3: ['barrage', 'lunge'] },
   robot:    { w: 170, h: 230, moves: ['orbs', 'fan', 'rain'],  p2: ['beam', 'bombs'],    p3: ['barrage', 'summon', 'wave'] },
@@ -63,11 +66,11 @@ const BOSS_DEF = {
 };
 const BOSS_SCALE = 1.2;   // bosses are drawn and hit at this size
 Object.keys(BOSS_DEF).forEach(function (k) { BOSS_DEF[k].w *= BOSS_SCALE; BOSS_DEF[k].h *= BOSS_SCALE; });
-const SUMMON = { lion: ['walker', 'charger'], octopus: ['flyer', 'hopper'], scorpion: ['walker', 'hopper'], yeti: ['charger', 'walker'], dragon: ['flyer', 'walker'], gorilla: ['charger', 'hopper'],
+const SUMMON = { alien: ['flyer', 'charger'], lion: ['walker', 'charger'], octopus: ['flyer', 'hopper'], scorpion: ['walker', 'hopper'], yeti: ['charger', 'walker'], dragon: ['flyer', 'walker'], gorilla: ['charger', 'hopper'],
   spider: ['hopper', 'flyer'], robot: ['gunner', 'walker'], eagle: ['flyer', 'bomber'], ufo: ['flyer', 'gunner'], frog: ['hopper', 'walker'], golem: ['walker', 'charger'] };
 const ENEMY_PAL = [['#b5f59a', '#4fb85f'], ['#9ae8f0', '#2f9fc4'], ['#f5d08a', '#c4893a'], ['#d8f0ff', '#7ab0d8'], ['#ff9a7a', '#c23a2a'], ['#a8f08a', '#2f9e55'], ['#d0a8ff', '#7a4ad0'], ['#a8b8ff', '#4a58b8'],
   ['#e8f4ff', '#8ab8e8'], ['#ffa8e8', '#c04aa0'], ['#c8e070', '#6a8a2a'], ['#e8c8a0', '#a07a4a'], ['#c8ccd8', '#6a7088'], ['#c8e8ff', '#5a90d0'], ['#ff9ac8', '#a02a6a']];
-const MOVE_MIN = { barrage: 1, beam: 1, lunge: 2, bombs: 2 };   // the nastier boss moves only appear from this stage number on (0 = stage 1)
+const MOVE_MIN = { barrage: 1, beam: 1, lunge: 2, bombs: 2, breath: 3 };   // the nastier boss moves only appear from this stage number on (0 = stage 1)
 const TRAIL_LEN = { normal: 4, rapid: 6, spread: 4, big: 8, homing: 10 };   // length of the glowing trail behind each shot
 const SPARK = { normal: ['#ffe06a', '#ffffff'], rapid: ['#ffb066', '#ffffff'], spread: ['#8ff0a4', '#ffffff'], big: ['#d68bff', '#ffffff', '#ffe0ff'], laser: ['#22e0e0', '#e8ffff'], homing: ['#ff8fc0', '#ffffff'], fire: ['#ff8a3a', '#ffd23f'] };
 const AIRBORNE = { flyer: 1, bomber: 1, gunship: 1 };
@@ -75,7 +78,7 @@ const AIRBORNE = { flyer: 1, bomber: 1, gunship: 1 };
 
 const SP = CC.sprites, GROUND = 370, W = 800;
 let hero, cam, L, li, lv, enemies, bullets, orbs, waves, caps, lives, invincible, fireCd, wantFire, weapon, jumpBuf, hurtT, aimUp, stepT, dropT, coyote, lastSafe;
-let casings = [], recoilT = 0, pickT = 0, slowT = 0, fires = [], boss, bossAnnounce, cpX = 0, cpSaved = {}, rescue = null, shake = 0, flashT = 0, dustT = 0, hint = null, shotsFired = 0, wasGrounded = true;
+let warned = false, warnT = 0, landT = 0, casings = [], recoilT = 0, pickT = 0, slowT = 0, fires = [], boss, bossAnnounce, cpX = 0, cpSaved = {}, rescue = null, shake = 0, flashT = 0, dustT = 0, hint = null, shotsFired = 0, wasGrounded = true;
 
 /* ---------------- stage builder (same stage every time you play it) ---------------- */
 function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -195,7 +198,7 @@ function reset(g, level, fromCp) {
   enemies = L.enemies; if (cpX) enemies = enemies.filter(function (e) { return e.x > cpX + 350; });
   caps = L.caps; if (cpX) caps = caps.filter(function (c) { return c.x > cpX + 100; });
   L.flags.forEach(function (f) { f.on = cpX >= f.x; });
-  bullets = []; orbs = []; waves = []; fires = []; casings = []; recoilT = 0; pickT = 0; slowT = 0; boss = null; bossAnnounce = 0; rescue = null; shake = 0; flashT = 0; dustT = 0; hint = null; shotsFired = 0; wasGrounded = true;
+  bullets = []; orbs = []; waves = []; fires = []; casings = []; recoilT = 0; pickT = 0; slowT = 0; boss = null; bossAnnounce = 0; warned = false; warnT = 0; landT = 0; rescue = null; shake = 0; flashT = 0; dustT = 0; hint = null; shotsFired = 0; wasGrounded = true;
   lives = COMMANDO_LIVES; invincible = 1.5; fireCd = 0; wantFire = false; weapon = 'normal'; jumpBuf = 0; hurtT = 0; aimUp = false; stepT = 0; dropT = 0; coyote = 0; lastSafe = sx;
 }
 function heroBox() { const h = hero.duck ? 34 : 60; return CC.shrink(hero.x - 15, hero.y - h, 30, h, COMMANDO_HITBOX_PAD); }
@@ -260,8 +263,8 @@ function orb(x, y, tx, ty, speed, extra) {
 }
 function spawnBoss(g) {
   const D = BOSS_DEF[lv.boss];
-  boss = { type: 'boss', kind: lv.boss, x: L.len + 160, baseY: GROUND - (D.hover || 0), hp: BOSS_HP_BASE + li * BOSS_HP_PER_STAGE, maxHp: 0, t: 0, hit: 0, state: 'enter', phase: 1, beam: null, lp: '', holdT: 0, idle: 1.5, dir: -1, tele: 0, act: 0, charge: 0, move: '', q: 0, qT: 0, dying: 0 };
-  boss.maxHp = boss.hp; bossAnnounce = 2.2; CC.sfx.warn(); enemies.push(boss); CC.music.play('commandoBoss', { transpose: MUSIC_KEY[li] });
+  boss = { type: 'boss', kind: lv.boss, x: L.len + 220, baseY: GROUND - (D.hover || 0), et: 0, stepT: 0.2, hp: BOSS_HP_BASE + li * BOSS_HP_PER_STAGE, maxHp: 0, t: 0, hit: 0, state: 'enter', phase: 1, beam: null, lp: '', holdT: 0, idle: 1.5, dir: -1, tele: 0, act: 0, charge: 0, move: '', q: 0, qT: 0, dying: 0 };
+  boss.maxHp = boss.hp; bossAnnounce = Math.max(bossAnnounce, 1.4); invincible = Math.max(invincible, 2.2); enemies.push(boss); CC.music.play('commandoBoss', { transpose: MUSIC_KEY[li] });
 }
 function bossPhase(b) { const f = b.hp / b.maxHp; return f > 0.66 ? 1 : f > 0.33 ? 2 : 3; }
 function lobBomb(x0, y0, tx, ty, patch) {            // a bomb thrown in an arc that lands near (tx, ty)
@@ -278,8 +281,9 @@ function summon(g, b, n) {
   }
   CC.sfx.pickup();
 }
+function mouthOf(b) { const D = BOSS_DEF[b.kind]; return D.mouth ? { x: b.x + D.mouth[0] * BOSS_SCALE, y: b.baseY + D.mouth[1] * BOSS_SCALE } : { x: b.x - 60, y: b.baseY - 80 }; }
 function bossPerform(g, b) {
-  const d = lv.d, hx = hero.x, hy = hero.y - 30, bx = b.x - 60, by = b.baseY - 80, p = bossPhase(b);
+  const d = lv.d, hx = hero.x, hy = hero.y - 30, mo = mouthOf(b), bx = mo.x, by = mo.y, p = bossPhase(b);
   if (b.move === 'orbs') { b.q = 1 + (d > 0.4 ? 1 : 0) + (d > 0.8 ? 1 : 0) + (p > 1 ? 1 : 0); b.qT = 0; b.act = 0.4 * b.q + 0.3; }
   else if (b.move === 'fan') { const n = (d > 0.6 ? 5 : 3) + (p === 3 ? 2 : 0); for (let i = 0; i < n; i++) { const a = Math.atan2(hy - by, hx - bx) + (i - (n - 1) / 2) * 0.3; orbs.push({ x: bx, y: by, vx: Math.cos(a) * ORB_SPEED * 1.05, vy: Math.sin(a) * ORB_SPEED * 1.05, t: 0, bomb: false }); } CC.sfx.shoot('spread'); b.act = 0.5; }
   else if (b.move === 'rain') { b.q = 6 + Math.floor(d * 5) + p * 2; b.qT = 0; b.act = b.q * 0.2 + 0.4; }
@@ -288,42 +292,51 @@ function bossPerform(g, b) {
   else if (b.move === 'beam') { b.beam = { y: GROUND - 56, on: true }; b.act = 1.1; CC.sfx.shoot('big'); shake = Math.max(shake, 0.3); }
   else if (b.move === 'summon') { summon(g, b, 1 + p); b.act = 0.8; }
   else if (b.move === 'lunge') { b.lp = 'out'; b.act = 99; }
+  else if (b.move === 'breath') { b.q = 14 + p * 4; b.qT = 0; b.act = b.q * 0.07 + 0.5; b.aim = Math.atan2(hy - by, hx - bx); CC.sfx.shoot('big'); shake = Math.max(shake, 0.2); }
   else if (b.move === 'barrage') { b.q = 10 + p * 3; b.qT = 0; b.act = b.q * 0.09 + 0.4; b.aim = Math.atan2(hy - by, hx - bx); }
   else { summon(g, b, 2); b.act = 0.8; shake = 0.5; CC.sfx.bump(); g.particles.burst(b.x, b.baseY - 80, ['#ffd23f', '#ff6a2a', '#fff'], 24, { speed: 260, size: 7 }); }   // roar at a new phase
 }
 function bossUpdate(g, b, dt) {
-  const D = BOSS_DEF[b.kind], d = lv.d; b.t += dt; if (b.hit > 0) b.hit -= dt;
+  const D = BOSS_DEF[b.kind], d = lv.d, ag = lv.aggr || 1; b.t += dt; if (b.hit > 0) b.hit -= dt;
   const arenaMin = L.len - 330, arenaMax = L.len - 110;
   if (b.state === 'dying') {
     b.dying -= dt; if (Math.random() < dt * 14) g.particles.burst(b.x + CC.rand(-D.w * 0.4, D.w * 0.4), b.baseY - CC.rand(10, D.h), ['#ffd23f', '#ffffff', '#ff9aa8', '#b5f59a'], 6, { speed: 160, size: 6 });
     if (b.dying <= 0) {
       g.particles.burst(b.x, b.baseY - D.h / 2, ['#ffd23f', '#ffffff', '#ff9aa8', '#b5f59a', '#8affea'], 80, { speed: 340, size: 9, life: 1.2 }); CC.sfx.pop(); CC.sfx.levelComplete(); shake = 0.8;
-      enemies.splice(enemies.indexOf(b), 1); orbs = []; waves = []; fires = []; b.beam = null; g.stars = lives >= 4 ? 3 : lives >= 2 ? 2 : 1; g.complete();
+      shake = 0; enemies.splice(enemies.indexOf(b), 1); orbs = []; waves = []; fires = []; b.beam = null; g.stars = lives >= 4 ? 3 : lives >= 2 ? 2 : 1; g.complete();
     }
     return;
   }
-  if (b.state === 'enter') { b.x -= 150 * dt; if (b.x <= L.len - 200) { b.state = 'idle'; b.idle = 1.2; } return; }
+  if (b.state === 'enter') {                 // the big entrance: it flies in (dragons, eagles, saucers) or stomps in, then lands with a roar
+    b.et += dt; const dur = D.fly || D.hover ? 2.7 : 2.5, u = Math.min(1, b.et / dur), e = 1 - Math.pow(1 - u, 3), x0 = L.len + 220, tx = L.len - 200, ty = GROUND - (D.hover || 0);
+    b.x = x0 + (tx - x0) * e;
+    if (D.fly || D.hover) { b.baseY = ty - (1 - e) * (D.fly ? 360 : 190); if (Math.random() < dt * 14) g.particles.burst(b.x + 40, b.baseY - 60, ['rgba(255,255,255,.7)', 'rgba(255,200,120,.6)'], 2, { speed: 70, size: 6, up: 10, grav: -20, life: 0.6 }); }
+    else { b.baseY = ty; b.stepT -= dt; if (b.stepT <= 0 && u < 0.97) { b.stepT = 0.36; shake = Math.max(shake, 0.16); CC.sfx.step(); g.particles.burst(b.x, GROUND - 2, ['rgba(255,255,255,.6)', 'rgba(215,200,170,.6)'], 8, { speed: 120, size: 6, up: 40, grav: 60, life: 0.5 }); } }
+    if (u >= 1) { b.baseY = ty; b.state = 'idle'; b.idle = 1.3 / ag; b.x = tx; landT = 0.9; shake = Math.max(shake, 0.55); CC.sfx.bump(); CC.sfx.warn(); g.particles.burst(b.x, GROUND - 4, ['#fff', '#e8dcc0', '#ffd8a0'], 34, { speed: 280, size: 9, up: 90, grav: 90, life: 0.9 }); }
+    return;
+  }
   const p = bossPhase(b);
   if (p > b.phase && b.state !== 'tele' && b.state !== 'act') { b.phase = p; b.move = 'roar'; b.state = 'tele'; b.tele = 1.1; b.beam = null; b.lp = ''; CC.sfx.warn(); shake = Math.max(shake, 0.4); }
-  const rage = p === 3 ? 0.55 : p === 2 ? 0.8 : 1, spd = 1 + 0.3 * (p - 1);
+  const rage = (p === 3 ? 0.55 : p === 2 ? 0.8 : 1) / ag, spd = (1 + 0.3 * (p - 1)) * ag;
   if (b.state === 'idle') {
     b.x += b.dir * (28 + d * 20) * spd * dt; if (b.x < arenaMin) b.dir = 1; if (b.x > arenaMax) b.dir = -1;
     b.idle -= dt;
     if (b.idle <= 0) {
       const pool = D.moves.concat(p >= 2 ? D.p2 : [], p >= 3 ? D.p3 : []).filter(function (mv) { return li >= (MOVE_MIN[mv] || 0); }); let m = pool[Math.floor(Math.random() * pool.length)]; if (m === b.move && pool.length > 1) m = pool[(pool.indexOf(m) + 1) % pool.length];
-      b.move = m; b.state = 'tele'; b.tele = m === 'beam' ? 1.1 : TURRET_WARNING_SECONDS * (p === 3 ? 0.8 : 1); CC.sfx.warn();
+      b.move = m; b.state = 'tele'; b.tele = (m === 'beam' ? 1.1 : TURRET_WARNING_SECONDS * (p === 3 ? 0.8 : 1)) / Math.sqrt(ag); CC.sfx.warn();
     }
   } else if (b.state === 'tele') {
-    const total = b.move === 'beam' || b.move === 'roar' ? 1.1 : TURRET_WARNING_SECONDS * (p === 3 ? 0.8 : 1);
+    const total = (b.move === 'beam' || b.move === 'roar' ? 1.1 : TURRET_WARNING_SECONDS * (p === 3 ? 0.8 : 1)) / (b.move === 'roar' ? 1 : Math.sqrt(ag));
     b.tele -= dt; b.charge = 1 - Math.max(0, b.tele) / total;
     if (b.tele <= 0) { b.charge = 0; bossPerform(g, b); b.state = 'act'; }
   } else if (b.state === 'act') {
     b.act -= dt; b.qT -= dt;
-    const mx = b.x - 60, my = b.baseY - 80;
+    const mo = mouthOf(b), mx = mo.x, my = mo.y;
     if (b.move === 'orbs' && b.q > 0 && b.qT <= 0) { orb(mx, my, hero.x, hero.y - 30, ORB_SPEED * 1.1); CC.sfx.shoot('spread'); b.q--; b.qT = 0.4; }
     else if (b.move === 'rain' && b.q > 0 && b.qT <= 0) { orbs.push({ x: CC.rand(cam + 60, cam + W - 60), y: -30, vx: 0, vy: 0, t: 0, wait: 0.75, rain: true, bomb: false }); b.q--; b.qT = 0.2; }
     else if (b.move === 'wave' && b.q > 0 && b.qT <= 0) { waves.push({ x: b.x - D.w * 0.4, vx: -(210 + d * 90), t: 0 }); CC.sfx.bump(); shake = 0.25; g.particles.burst(b.x - D.w * 0.4, GROUND, ['#ffe9a8', '#fff'], 10, { speed: 140, up: 80, size: 5 }); b.q--; b.qT = 0.8; }
     else if (b.move === 'bombs' && b.q > 0 && b.qT <= 0) { lobBomb(mx, my - 30, hero.x + CC.rand(-150, 150), GROUND - 10, true); CC.sfx.shoot('big'); b.q--; b.qT = 0.35; }
+    else if (b.move === 'breath' && b.q > 0 && b.qT <= 0) { const a = b.aim + (Math.random() - 0.5) * 0.5, sp = ORB_SPEED * 1.35 * (0.8 + Math.random() * 0.5); orbs.push({ x: mx, y: my, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, bomb: false, flame: true }); if (b.q % 3 === 0) CC.sfx.shoot('rapid'); b.q--; b.qT = 0.07; }
     else if (b.move === 'barrage' && b.q > 0 && b.qT <= 0) { const a = b.aim + Math.sin(b.q * 0.9) * 0.5; orbs.push({ x: mx, y: my, vx: Math.cos(a) * ORB_SPEED * 1.25, vy: Math.sin(a) * ORB_SPEED * 1.25, t: 0, bomb: false }); CC.sfx.shoot('rapid'); b.q--; b.qT = 0.09; }
     else if (b.move === 'lunge') {
       const home = arenaMax - 80;
@@ -350,7 +363,7 @@ function update(g, dt) {
   if (invincible > 0) invincible -= dt;
   if (hurtT > 0) hurtT -= dt;
   if (dropT > 0) dropT -= dt;
-  if (shake > 0) shake -= dt; if (flashT > 0) flashT -= dt;
+  if (shake > 0) shake -= dt; if (flashT > 0) flashT -= dt; if (landT > 0) landT -= dt; if (warnT > 0) warnT -= dt;
   if (rescue) {
     rescue.t += dt; const u = Math.min(1, rescue.t / rescue.dur), e = u * u * (3 - 2 * u);
     hero.x = rescue.fx + (rescue.tx - rescue.fx) * e; hero.y = rescue.fy + (GROUND - rescue.fy) * e - Math.sin(Math.PI * u) * 170; hero.vy = 0; hero.grounded = false;
@@ -389,7 +402,8 @@ function update(g, dt) {
   wantFire = false;
   // checkpoints
   L.flags.forEach(function (f) { if (!f.on && hero.x >= f.x) { f.on = true; cpX = f.x; cpSaved[li] = f.x; CC.sfx.pickup(); g.particles.burst(f.x, GROUND - 70, ['#6bcb77', '#ffd23f', '#fff'], 14, { speed: 160, up: 160, size: 5 }); } });
-  // boss trigger
+  // boss warning alarm just before the arena, then the creature arrives
+  if (!warned && !boss && hero.x > L.len - W - 380) { warned = true; warnT = 2.6; CC.sfx.warn(); setTimeout(CC.sfx.warn, 420); shake = Math.max(shake, 0.2); }
   if (!boss && cam >= maxCam - 2 && hero.x > cam + 140) spawnBoss(g);
   if (bossAnnounce > 0) bossAnnounce -= dt;
   // bullets
@@ -572,6 +586,7 @@ function computeHint() {
 /* ---------------- drawing ---------------- */
 function hrr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 function draw(g) {
+  if (g.state !== 'play') shake = 0;                 // no shaking while a stage-complete or try-again screen is showing
   const c = g.ctx, th = SP.THEMES[lv.theme];
   SP.world(c, W, g.H, GROUND, cam, lv.theme, g.t);
   c.save(); c.translate(-cam + (shake > 0 ? (Math.random() - 0.5) * shake * 18 : 0), shake > 0 ? (Math.random() - 0.5) * shake * 12 : 0);
@@ -597,12 +612,12 @@ function draw(g) {
     else if (e.type === 'tank') SP.tank(c, e.x, e.y, e.t, { charge: e.charge, hurt: e.hit > 0 });
     else if (e.type === 'gunship') SP.gunship(c, e.x, e.y, e.t, { charge: e.charge, hurt: e.hit > 0 });
     else if (e.type === 'charger') SP.charger(c, e.x, e.y, e.t, { wind: e.st === 'wind' ? e.charge : 0, dash: e.st === 'dash' });
-    else SP.bossDraw(c, e.kind, e.x, e.baseY, { t: e.t, hurt: e.hit > 0, pal: SP.BOSS_PALS[lv.pal], charge: e.charge, hp: e.hp / e.maxHp, scale: BOSS_SCALE, rage: e.phase === 3, phase: e.phase, acting: e.state === 'act', move: e.move });
+    else SP.bossDraw(c, e.kind, e.x, e.baseY, { enter: e.state === 'enter', land: Math.max(0, landT) / 0.9, t: e.t, hurt: e.hit > 0, pal: SP.BOSS_PALS[lv.pal], charge: e.charge, hp: e.hp / e.maxHp, scale: BOSS_SCALE, rage: e.phase === 3, phase: e.phase, acting: e.state === 'act', move: e.move });
     c.globalAlpha = 1;
   }
   for (const o of orbs) {
     if (o.rain) { c.fillStyle = 'rgba(0,0,0,' + (o.wait > 0 ? 0.25 : 0.12) + ')'; c.beginPath(); c.ellipse(o.x, GROUND + 2, 14, 4, 0, 0, 6.283); c.fill(); if (o.wait > 0) { c.globalAlpha = 0.5; SP.enemyOrb(c, o.x, 20, o.t); c.globalAlpha = 1; continue; } }
-    if (o.bomb) SP.bomb(c, o.x, o.y, o.t); else SP.enemyOrb(c, o.x, o.y, o.t);
+    if (o.bomb) SP.bomb(c, o.x, o.y, o.t); else if (o.flame) SP.fireball(c, o.x, o.y, o.t, Math.atan2(o.vy, o.vx), lv.boss === 'alien'); else SP.enemyOrb(c, o.x, o.y, o.t);
   }
   for (const f of fires) SP.firePatch(c, f.x, GROUND, g.t, f.t);
   if (boss && boss.state === 'tele' && boss.move === 'beam') { const by = GROUND - 56, bw = boss.x - 60 - cam; c.fillStyle = 'rgba(255,60,60,' + (0.25 + 0.5 * boss.charge) + ')'; c.fillRect(cam, by - 3, bw, 6); }
@@ -645,7 +660,13 @@ function draw(g) {
     c.beginPath(); c.arc(bx + bw * CC.clamp(hero.x / L.len, 0, 1), 25, 6, 0, 6.283); c.fillStyle = '#ff6b86'; c.fill(); c.lineWidth = 2; c.strokeStyle = '#1a1b3f'; c.stroke();
   }
   if (weapon !== 'normal') SP.capsule(c, 44, 84, weapon, g.t);
-  if (bossAnnounce > 0) { c.globalAlpha = Math.min(1, bossAnnounce); c.font = '60px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#fff'; c.fillText('👹❗', W / 2, 130); c.globalAlpha = 1; }
+  if (warnT > 0 || bossAnnounce > 0) {                // red alarm: WARNING stripes + big text
+    const a = Math.min(1, Math.max(warnT, bossAnnounce * 1.4)), pulse = 0.5 + 0.5 * Math.sin(g.t * 9);
+    c.save(); c.globalAlpha = a * (0.16 + 0.16 * pulse); c.fillStyle = '#ff2a2a'; c.fillRect(0, 0, W, g.H); c.globalAlpha = a;
+    [70, g.H - 96].forEach(function (y) { c.fillStyle = '#ffd23f'; c.fillRect(0, y, W, 26); c.fillStyle = '#1a1b3f'; for (let i = -2; i < W / 40 + 2; i++) { c.beginPath(); c.moveTo(i * 40 + (g.t * 70) % 40, y); c.lineTo(i * 40 + 20 + (g.t * 70) % 40, y); c.lineTo(i * 40 + (g.t * 70) % 40 - 6, y + 26); c.lineTo(i * 40 - 20 + (g.t * 70) % 40, y + 26); c.closePath(); c.fill(); } });
+    CC.outlineText(c, 'WARNING', W / 2, 190, 74, '#ff5a4a', 'center'); CC.outlineText(c, '⚠  BIG BOSS  ⚠', W / 2, 238, 34, '#ffd23f', 'center'); c.restore();
+  }
+  if (landT > 0) { c.fillStyle = 'rgba(255,255,255,' + (landT / 0.9) * 0.35 + ')'; c.fillRect(0, 0, W, g.H); }
 }
 
 function drawHint(c, x, y, t) {

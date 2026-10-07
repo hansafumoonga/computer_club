@@ -36,7 +36,7 @@ const LEVELS = [
 
 const D = { E: [0, 1], W: [0, -1], S: [1, 0], N: [-1, 0], SE: [1, 1], NE: [-1, 1], SW: [1, -1], NW: [-1, -1] };
 const COLORS = ['#ff8fa8', '#ffc070', '#ffe666', '#7ee08a', '#6adcec', '#a898ff', '#ff9ae0', '#b8e060', '#78a8ff', '#e8b080', '#60d8b0', '#ff8870'];
-const GAP = 4, PAD = 12;
+const GAP = 8, PAD = 18;
 const $ = function (id) { return document.getElementById(id); };
 let level = 0, grid = [], words = [], cellEls = [], found = {}, sel = null, cursor = null, firstClick = null, built = false, size = 7, stageEl = null, dragging = false, cell = 44;
 const stars = {};                         // stars earned this visit (not saved anywhere)
@@ -84,7 +84,7 @@ function generate(lv) {
 
 /* ---- layout: cells shrink to fit the window so the board always looks tidy ---- */
 function fit() {
-  const availH = Math.max(260, window.innerHeight - 235), availW = Math.max(260, Math.min(window.innerWidth, 1100) - (window.innerWidth < 800 ? 40 : 400));
+  const availH = Math.max(260, window.innerHeight - 262), availW = Math.max(260, Math.min(window.innerWidth, 1100) - (window.innerWidth < 800 ? 40 : 400));
   cell = Math.max(28, Math.min(64, Math.floor(Math.min(availH, availW) / size) - GAP));
   $('stage-words').style.setProperty('--cell', cell + 'px');
   const px = size * (cell + GAP) - GAP + PAD * 2, svg = $('wh-svg'); svg.setAttribute('width', px); svg.setAttribute('height', px); svg.setAttribute('viewBox', '0 0 ' + px + ' ' + px);

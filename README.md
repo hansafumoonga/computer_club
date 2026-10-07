@@ -1,9 +1,9 @@
-# Computer Club & Keyboard Skills
+# Tech Explorers
 
 A set of browser games for a school computer club. Runs entirely in the browser: no server, no install, no accounts, nothing saved, no internet needed after loading.
 
 * **Session 1 (Year 1-3, normal keyboard):** Click & Type Quest (mouse + keyboard lessons), Fruit Slice, Word Hunt (word search), Jump Over!, Star Blaster
-* **Session 2 (Year 4-6, Makey Makey):** Piano, Jump Over!, Star Blaster, Commando Run (15 stages), Pattern Pop!
+* **Session 2 (Year 4-6, Makey Makey):** Piano (with Christmas songs: Jingle Bells, Silent Night, Merry Christmas), Jump Over!, Star Blaster, Commando Run (15 stages, ending with a dragon king), Pattern Pop!
 
 Session 2 games use only the Makey Makey's five keys: Left, Up, Down, Right and Space.
 

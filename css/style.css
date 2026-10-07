@@ -211,10 +211,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .wh-lvl.cur{background:var(--accent);color:#1a1b3f;border-color:#fff3b0}
 .wh-lvl i{position:absolute;right:-6px;top:-8px;font-size:.8rem;font-style:normal}
 .words-left{display:flex;flex-direction:column;align-items:center;gap:6px}
-.wh-board{position:relative;background:rgba(255,255,255,.08);border-radius:22px;touch-action:none;user-select:none;-webkit-user-select:none}
-.wh-grid{position:absolute;inset:12px;display:grid;gap:4px;padding:0;background:none}
+.wh-board{position:relative;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.05));box-shadow:0 0 0 3px rgba(255,255,255,.1),0 10px 24px rgba(0,0,0,.25);border-radius:26px;touch-action:none;user-select:none;-webkit-user-select:none}
+.wh-grid{position:absolute;inset:18px;display:grid;gap:8px;padding:0;background:none}
 .wh-svg{position:absolute;left:0;top:0;pointer-events:none;mix-blend-mode:multiply}
-.ws-cell{width:var(--cell);height:var(--cell);font-size:calc(var(--cell) * .52);border-radius:calc(var(--cell) * .22)}
+.ws-cell{width:var(--cell);height:var(--cell);font-size:calc(var(--cell) * .5);font-weight:800;letter-spacing:0;border-radius:calc(var(--cell) * .26);box-shadow:0 calc(var(--cell) * .07) 0 rgba(0,0,0,.2)}
 .ws-cell.sel{background:#fff3b0;transform:none}
 .wh-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;width:100%;position:sticky;top:8px}
 .wh-list li{display:flex;align-items:center;gap:12px;margin:0;background:var(--panel-2);border:3px solid #3a3e8a;border-bottom-width:5px;border-radius:16px;padding:7px 14px;font-weight:bold;font-size:1.2rem;letter-spacing:.08em;min-height:50px}
@@ -233,3 +233,21 @@ button{font:inherit;color:inherit;cursor:pointer}
 .wh-list.dense{gap:6px}
 .wh-list.dense li{font-size:1rem;padding:3px 10px;min-height:38px;gap:10px}
 .wh-list.dense li .e{font-size:1.3rem}
+
+/* ---- christmas songs on the piano ---- */
+.btn.xmas{border-color:#6bcb77;border-bottom-color:#2e9e45}
+.btn.xmas.on{background:linear-gradient(#ff7a8a,#e03a50);color:#fff;border-color:#ffd9de}
+
+/* ---- small windows: the big keycap title still fits on one line, and overlays never spill out of the stage ---- */
+@media (max-width:480px){
+  .kcl{width:clamp(26px,7.8vw,70px);height:clamp(32px,9.4vw,82px);font-size:clamp(17px,5.2vw,48px);border-radius:10px}
+  .logo-row{gap:4px}
+}
+.overlay{overflow:hidden}
+
+/* ---- piano: everything (songs, modes, keys, recorder) fits one screen ---- */
+#mode-piano .piano{height:min(34vh,290px);margin-top:2px}
+#mode-piano .row{margin:4px 0;gap:8px}
+#mode-piano .btn{padding:.4em .85em;font-size:1rem}
+#mode-piano .piano-msg{margin:6px 0;min-height:1.6em;font-size:1.1rem}
+#mode-piano .warn{font-size:.85rem;margin:2px;max-width:640px}
