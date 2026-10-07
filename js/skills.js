@@ -1004,6 +1004,6 @@ CC.modes.skills = {
     else if (S.view === 'play' && (e.code === 'Space') && e.target && e.target.tagName === 'BUTTON') e.preventDefault();
   },
   onKeyUp: function (e) { if (e.getModifierState) { const c = e.getModifierState('CapsLock'); if (c !== S.caps) setCaps(c, true); } if (S.view === 'play' && S.act && (S.act.char || S.act.enter) && (e.key === ' ' || e.key === 'Enter')) e.preventDefault(); },
-  _S: S, _go: function (id) { startLevel(id); }, _task: function (i) { CC.ui.close(); beginTask(i, true); }
+  _S: S, _go: function (id) { startLevel(id); }, _finish: function () { S.finished = true; finishLevel(); }, _task: function (i) { CC.ui.close(); beginTask(i, true); }
 };
 })();

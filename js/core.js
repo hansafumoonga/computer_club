@@ -159,7 +159,8 @@ CC.createLoop = function (update, draw) {
   function frame(ts) {
     if (!running) return;
     const dt = Math.min(0.05, Math.max(0, (ts - last) / 1000)); last = ts;
-    update(dt); draw();
+    if (!CC.paused) update(dt);          // paused: the picture stays, nothing moves
+    draw();
     raf = requestAnimationFrame(frame);
   }
   return {
@@ -228,6 +229,23 @@ UI.fit = function (el) {
   for (let i = 0; i < 5 && el.clientHeight > 0 && el.scrollHeight > el.clientHeight + 1; i++) { u *= Math.max(0.5, (el.clientHeight - 2) / el.scrollHeight); el.style.setProperty('--u', u.toFixed(2) + 'px'); }
 };
 window.addEventListener('resize', function () { UI.fit(); });
+/* ---------- Pause (every game except the free-play piano) ---------- */
+CC.paused = false;
+CC.pausable = { jump: 1, blaster: 1, commando: 1, pattern: 1, fruit: 1, words: 1 };
+function syncPauseBtn() { document.querySelectorAll('.pause-btn').forEach(function (b) { b.textContent = CC.paused ? '▶' : '⏸'; b.classList.toggle('on', CC.paused); }); }
+CC.resume = function () { if (!CC.paused) return; CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); UI.close(); syncPauseBtn(); };
+CC.togglePause = function (mode) {
+  mode = mode || CC.app.mode;
+  if (CC.paused) { CC.resume(); return false; }
+  if (!CC.pausable[mode] || UI.active) return false;               // an intro / level-complete screen is already showing
+  const m = CC.modes[mode], g = m && m.game ? m.game() : null;
+  if (g && g.state !== 'play') return false;
+  CC.paused = true; CC.held = {}; if (CC.audio.ctx) CC.audio.ctx.suspend();
+  UI.show(document.getElementById('stage-' + mode), { emoji: '⏸️', title: 'Paused', buttons: [
+    { icon: '▶', label: 'Play', primary: true, keys: ['Enter', 'Space', 'Escape'], fn: function () { CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); syncPauseBtn(); } },
+    { icon: '🏠', label: 'Menu', fn: function () { CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); syncPauseBtn(); CC.goMenu(); } }] });
+  syncPauseBtn(); return true;
+};
 UI.fire = function (ov, fn) { if (UI.active === ov) { UI.close(); } fn && fn(); };
 UI.close = function () {
   if (UI.active) { if (UI.active.el.parentNode) UI.active.el.parentNode.removeChild(UI.active.el); UI.active = null; if (CC.music) CC.music.duck(false); }

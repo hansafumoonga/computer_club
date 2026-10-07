@@ -251,3 +251,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 #mode-piano .btn{padding:.4em .85em;font-size:1rem}
 #mode-piano .piano-msg{margin:6px 0;min-height:1.6em;font-size:1.1rem}
 #mode-piano .warn{font-size:.85rem;margin:2px;max-width:640px}
+
+/* ---- pause button ---- */
+.pause-btn{font-size:1.2rem;padding:.3em .7em;min-width:2.4em}
+.pause-btn.on{background:var(--accent);color:#1a1b3f}
+.topbar{gap:8px}
+/* every pop-up screen (intro, pause, level complete, try again) sits above everything else on the stage */
+.overlay-root{z-index:10}

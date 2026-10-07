@@ -141,7 +141,7 @@
 .sk-cursor.click .ring{animation:skring .35s}
 .sk-cursor.down{transform:scale(.88)}
 @keyframes skring{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.5)}}
-.sk-conf{position:absolute;top:-4%;width:calc(var(--u)*1.2);height:calc(var(--u)*1.8);border-radius:2px;z-index:70;pointer-events:none;animation:skfall 1.6s linear forwards}
+.sk-conf{position:absolute;top:-4%;width:calc(var(--u)*1.2);height:calc(var(--u)*1.8);border-radius:2px;z-index:40;pointer-events:none;animation:skfall 1.6s linear forwards}
 @keyframes skfall{to{transform:translate(var(--dx),calc(var(--u)*62)) rotate(540deg);opacity:.9}}
 
 /* typing area */
@@ -270,3 +270,6 @@
   .sk-tile{padding:9px 6px 6px}.sk-tile .ic{font-size:2.3rem}.sk-tile .nm{font-size:.92rem}
   .sk-go{font-size:1.6rem !important}
 }
+
+/* the Next / Go / Play buttons must always sit above every piece, cursor and picture on the stage */
+.sk-stage .overlay-root{z-index:50}

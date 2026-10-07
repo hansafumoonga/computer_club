@@ -28,7 +28,8 @@ function showOnly(el) {
 function leaveMode() {
   const m = CC.modes[app.mode];
   if (m && m.exit) m.exit();
-  CC.ui.close(); CC.held = {}; app.mode = null; CC.music.stop();
+  CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); CC.ui.close(); CC.held = {}; app.mode = null; CC.music.stop();
+  document.querySelectorAll('.pause-btn').forEach(function (b) { b.textContent = '⏸'; b.classList.remove('on'); });
 }
 function showSessions() { leaveMode(); app.session = null; showOnly($('screen-session')); }
 function showMenu() {
@@ -65,6 +66,13 @@ document.querySelectorAll('.session-card').forEach(function (b) {
 $('btn-change-session').addEventListener('click', function () { this.blur(); showSessions(); });
 document.querySelectorAll('[data-action="menu"]').forEach(function (b) { b.addEventListener('click', function () { b.blur(); showMenu(); }); });
 
+/* ---- a pause button in the top bar of every game (not the free-play piano or the skills lessons, which have their own) ---- */
+document.querySelectorAll('.mode > .topbar').forEach(function (tb) {
+  const id = tb.parentNode.id.replace('mode-', ''); if (!CC.pausable[id]) return;
+  const p = document.createElement('button'); p.className = 'btn pause-btn'; p.textContent = '⏸'; p.setAttribute('aria-label', 'pause'); p.title = 'Pause';
+  p.addEventListener('click', function () { p.blur(); CC.togglePause(id); }); tb.insertBefore(p, tb.lastElementChild);
+});
+
 /* ---- music on/off button in every top bar ---- */
 document.querySelectorAll('.topbar').forEach(function (tb) {
   const b = document.createElement('button'); b.className = 'btn music-btn'; b.textContent = '🎵'; b.setAttribute('aria-label', 'music on or off');
@@ -77,6 +85,7 @@ window.addEventListener('keydown', function (e) {
   CC.held[e.code] = true;
   if (CC.audio.ctx && CC.audio.ctx.state === 'suspended') CC.audio.ctx.resume();
   if (CC.ui.handleKey(e)) return;
+  if (e.code === 'Escape' && !e.repeat && CC.pausable[app.mode] && ['jump', 'blaster', 'commando', 'pattern'].indexOf(app.mode) >= 0) { CC.togglePause(app.mode); return; }
   const m = CC.modes[app.mode]; if (!m) return;
   // Only the 5 Makey Makey keys are blocked, and only in the Makey modes. Full-keyboard modes keep normal key behaviour.
   if (m.makey && CC.MAKEY_KEYS.indexOf(e.code) >= 0) e.preventDefault();
@@ -92,7 +101,7 @@ window.addEventListener('keyup', function (e) {
 window.addEventListener('blur', function () { CC.held = {}; });
 document.addEventListener('visibilitychange', function () {
   if (document.hidden) CC.held = {};
-  if (CC.audio.ctx) { if (document.hidden) CC.audio.ctx.suspend(); else CC.audio.ctx.resume(); }   // no music in a hidden tab
+  if (CC.audio.ctx) { if (document.hidden) CC.audio.ctx.suspend(); else if (!CC.paused) CC.audio.ctx.resume(); }   // no music in a hidden tab
 });
 
 /* ---- landing page art: keycap logo, mini keyboard, drifting keys ---- */

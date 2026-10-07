@@ -168,3 +168,6 @@ UPDATE: TECH EXPLORERS (new name), COMMANDO, PIANO, VOICE
   - Click & Type Quest (Tech Explorers > Session 1): Buddy now talks (a calm voice that already exists on the computer - never the internet). Each demonstration is narrated
     step by step ("press and hold the left button... now drag it...") and the cursor, piece and voice move together. Turn the voice on/off with the 🗣️ button.
     If a computer has no English voice installed, the demonstrations still run, with the words shown on screen.
+
+  - PAUSE: every game has a pause button in the top bar (next to the music button): Fruit, Word Hunt, Jump Over, Star Blaster, Commando Run, Pattern Pop. The Escape key also pauses/resumes the arrow-key games.
+    Pausing freezes the game and the sound; Play carries on exactly where you were; Menu leaves. (The piano is free play, and the Click & Type Quest lessons have their own pause button.)
