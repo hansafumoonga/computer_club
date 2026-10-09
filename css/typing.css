@@ -158,3 +158,18 @@
   .rep-game{padding:6px 10px}.rep-game .rg{margin-bottom:3px}
   .ty-tile{padding:8px 4px 6px}.ty-tile .ic{font-size:1.7rem}
 }
+
+/* certificate */
+.ty-certwrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 14px;width:100%}
+.ty-cert{width:min(100%,calc((100vh - 230px) * 1.414));min-width:min(100%,480px);background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.45);overflow:hidden;line-height:0}
+.ty-cert svg{width:100%;height:auto;display:block}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  .ty-certwrap,.ty-certwrap *{visibility:visible}
+  #mode-typing{height:auto;padding:0;display:block}
+  .ty-stage,.ty-root{position:static;overflow:visible;height:auto;max-height:none;box-shadow:none;background:#fff}
+  .ty-certwrap{position:absolute;left:0;top:0;width:297mm;padding:0;gap:0}
+  .ty-cert{width:297mm;height:210mm;box-shadow:none;border-radius:0}
+  .ty-cert svg{width:297mm;height:210mm}
+  .ty-certwrap .ty-opts,.ty-certwrap .rep-note{display:none !important}
+}
