@@ -135,3 +135,28 @@
 /* the certificate must never be squashed: let the page scroll instead */
 .bd-certwrap>*{flex:none}
 .bd-root>.bd-certwrap{min-height:min-content}
+
+/* year chooser: a clear round-button group, never dark when not chosen */
+.bd-years{display:flex;gap:10px;align-items:center;background:#fff;padding:6px 8px 6px 16px;border-radius:99px;box-shadow:0 4px 0 rgba(31,42,85,.15);font-weight:bold;color:#1f2a55}
+.bd-years .yr{width:2.4em;height:2.4em;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:1.15rem;border:3px solid #cfd8f5;background:#eef2ff;color:#1f2a55}
+.bd-years .yr:hover{background:#dfe7ff}
+.bd-years .yr.on{background:#ff7a45;border-color:#ff7a45;color:#fff;box-shadow:0 0 0 3px #ffd9c2;transform:scale(1.08)}
+
+/* roomier menus on normal-sized screens */
+.bd-home{gap:24px}
+.bd-title{font-size:clamp(2.4rem,6vw,3.8rem)}
+.bd-door{width:min(300px,42vw);padding:26px 16px}
+.bd-door .di{font-size:4.4rem}.bd-door .dn{font-size:1.6rem}
+.bd-opts .btn{font-size:1.05rem;padding:.6em 1.1em}
+.bd-years{font-size:1.1rem}
+@media (max-height:700px){
+  .bd-home{gap:12px}
+  .bd-title{font-size:2.2rem}
+  .bd-door{width:min(250px,42vw);padding:12px}.bd-door .di{font-size:2.8rem}.bd-door .dn{font-size:1.3rem}
+  .bd-opts .btn{font-size:.95rem;padding:.5em .9em}
+}
+.bd-opts .btn:disabled{background:#fff;color:#7a84ad;border-color:#cfd8f5;opacity:1;cursor:default}
+@media (max-height:620px){
+  .bd-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+  .bd-tile{padding:6px 4px 4px;border-width:3px}.bd-tile .ic{font-size:1.6rem}.bd-tile .nm{font-size:.85rem}.bd-tile .n{top:3px;left:6px;font-size:.7rem}
+}

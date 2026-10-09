@@ -103,7 +103,7 @@ function showHome() {
   const row = el('div', 'ty-opts');
   const gd = el('button', 'btn' + (S.guide ? ' on' : ''), '🖐️ Finger guide'); gd.type = 'button'; gd.addEventListener('click', function () { gd.blur(); S.guide = !S.guide; gd.classList.toggle('on', S.guide); });
   const rp = el('button', 'btn', '📋 Teacher report'); rp.type = 'button'; rp.addEventListener('click', function () { rp.blur(); showReport(); });
-  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), '🎓 Certificate'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Finish all 10 levels of one game to unlock'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
+  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Finish all 10 levels of one game to unlock'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
   const un = el('button', 'btn', S.unlockAll ? '🔒 Lock levels' : '🔓 Unlock all'); un.type = 'button'; un.addEventListener('click', function () { un.blur(); S.unlockAll = !S.unlockAll; showHome(); });
   [gd, ce, rp, un].forEach(function (b) { row.appendChild(b); }); h.appendChild(row);
   setView('home', h);
@@ -215,9 +215,9 @@ function carSvg(c1, c2) {
     '<linearGradient id="' + id + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cdeeff"/><stop offset="1" stop-color="#2d4f86"/></linearGradient></defs>' +
     '<ellipse cx="105" cy="80" rx="92" ry="5" fill="#000" opacity=".28"/>' +
     '<path d="M4,46 L2,28 L34,28 L34,33 L12,35 L12,46 Z" fill="' + ink + '"/>' +
-    '<path d="M6,62 L6,50 Q6,43 22,41 L60,36 Q74,16 102,14 L134,14 Q154,15 164,34 L190,40 Q204,43 204,54 L204,62 Q204,66 198,66 L12,66 Q6,66 6,62 Z" fill="url(#' + id + ')" stroke="' + ink + '" stroke-width="2.5" stroke-linejoin="round"/>' +
-    '<path d="M68,34 Q80,21 100,20 L112,20 L112,34 Z" fill="url(#' + id + 'g)" stroke="' + ink + '" stroke-width="2"/><path d="M118,20 L134,20 Q148,21 156,34 L118,34 Z" fill="url(#' + id + 'g)" stroke="' + ink + '" stroke-width="2"/>' +
-    '<path d="M112,34 V62" stroke="' + ink + '" stroke-width="2" opacity=".5"/><rect x="124" y="46" width="12" height="3.5" rx="1.7" fill="#fff" opacity=".85"/><path d="M12,56 L196,56" stroke="#fff" stroke-width="2.5" opacity=".35"/>' +
+    '<path d="M6,62 L6,48 Q6,42 20,40 L48,38 Q56,36 62,22 Q66,15 78,14 L108,14 Q126,15 140,26 L164,38 L190,42 Q204,45 204,54 L204,62 Q204,66 198,66 L12,66 Q6,66 6,62 Z" fill="url(#' + id + ')" stroke="' + ink + '" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<path d="M66,34 L70,23 Q73,19 80,19 L104,19 L104,34 Z" fill="url(#' + id + 'g)" stroke="' + ink + '" stroke-width="2"/><path d="M110,19 L120,19 Q132,21 144,34 L110,34 Z" fill="url(#' + id + 'g)" stroke="' + ink + '" stroke-width="2"/>' +
+    '<path d="M107,34 V62" stroke="' + ink + '" stroke-width="2" opacity=".5"/><rect x="112" y="46" width="12" height="3.5" rx="1.7" fill="#fff" opacity=".85"/><path d="M12,56 L196,56" stroke="#fff" stroke-width="2.5" opacity=".35"/>' +
     '<rect x="6" y="46" width="9" height="7" rx="2" fill="#ff9aa8"/><ellipse cx="198" cy="48" rx="7" ry="5" fill="#fff6b0" stroke="' + ink + '" stroke-width="1.5"/>' + wheelSvg(54) + wheelSvg(156) + '</svg>';
 }
 const SCENE = { jungle: ['#4fae6a', '#2f8a4a'], beach: ['#e8d9a0', '#c9b878'], volcano: ['#8a4a4a', '#5a2a2a'], ocean: ['#5aa0c8', '#3a7aa8'], desert: ['#e0b878', '#c09050'], snow: ['#e8f2fa', '#b9d0e6'], city: ['#8a8fb5', '#6a6f95'], lab: ['#6aa8a8', '#4a8888'], candy: ['#f2a0c8', '#d870a8'], sky: ['#bcd6f5', '#8fb4e0'] };
@@ -470,7 +470,7 @@ function certSvg(name) {
   g += '<path d="M0,0 H' + W + ' V186 L0,262 Z" fill="url(#hd)"/>';
   /* keycap pattern in the banner */
   for (let r = 0; r < 3; r++) for (let c = 0; c < 17; c++) { const x = 20 + c * 68 + (r % 2) * 34, y = 16 + r * 62; if (y + 50 < 200 - c * 2.4 + 40) g += '<rect x="' + x + '" y="' + y + '" width="54" height="50" rx="10" fill="#fff" fill-opacity=".09"/>'; }
-  g += '<text x="' + mid + '" y="78" font-family="' + sans + '" font-size="19" font-weight="bold" letter-spacing="7" fill="#fff" fill-opacity=".85" text-anchor="middle">TECH EXPLORERS  ·  TYPING CLUB</text>';
+  g += CC.keycapsSvg(CC.APP_NAME, mid, 30, 40);
   g += '<text x="' + mid + '" y="150" font-family="' + sans + '" font-size="68" font-weight="bold" letter-spacing="3" fill="#fff" text-anchor="middle">TYPING CERTIFICATE</text>';
   g += '<text x="' + mid + '" y="318" font-family="' + sans + '" font-size="17" font-weight="bold" letter-spacing="8" fill="' + SOFT + '" text-anchor="middle">AWARDED TO</text>';
   const fsz = n.length <= 14 ? 64 : n.length <= 20 ? 52 : 42;

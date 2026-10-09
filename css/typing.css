@@ -221,3 +221,28 @@
 /* the certificate must never be squashed: let the page scroll instead */
 .ty-certwrap>*{flex:none}
 .ty-root>.ty-certwrap{min-height:min-content}
+
+/* year chooser: a clear round-button group */
+.ty-years{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.08);padding:6px 8px 6px 16px;border-radius:99px;font-weight:bold}
+.ty-years .yr{width:2.4em;height:2.4em;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:1.15rem;border:3px solid #5a60b8;background:#2b3170;color:#e6e8ff}
+.ty-years .yr:hover{background:#3a418a}
+.ty-years .yr.on{background:#ffd23f;border-color:#fff3b0;color:#1a1b3f;box-shadow:0 0 0 3px rgba(255,210,63,.35);transform:scale(1.08)}
+
+/* roomier menus on normal-sized screens */
+.ty-home{gap:24px}
+.ty-title{font-size:clamp(2.4rem,6vw,3.8rem)}
+.ty-gcard{width:240px;padding:24px 14px}
+.ty-gcard .gi{font-size:4rem}.ty-gcard .gn{font-size:1.4rem}.ty-gcard .gp{font-size:1rem}
+.ty-opts .btn{font-size:1.05rem;padding:.6em 1.1em}
+.ty-years{font-size:1.1rem}
+@media (max-height:700px){
+  .ty-home{gap:12px}
+  .ty-title{font-size:2.2rem}
+  .ty-gcard{width:210px;padding:12px 10px}.ty-gcard .gi{font-size:2.6rem}.ty-gcard .gn{font-size:1.2rem}
+  .ty-opts .btn{font-size:.95rem;padding:.5em .9em}
+}
+.ty-opts .btn:disabled{background:#1f2358;color:#8a90c8;border-color:#3a3e8a;opacity:1}
+@media (max-height:620px){
+  .ty-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+  .ty-tile{padding:6px 4px 4px}.ty-tile .ic{font-size:1.6rem}.ty-tile .nm{font-size:.8rem;min-height:2em}.ty-tile .n{top:3px;left:6px;font-size:.7rem}
+}

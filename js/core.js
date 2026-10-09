@@ -369,6 +369,19 @@ CC.outlineText = function (ctx, txt, x, y, size, color, align) {
 };
 CC.rand = function (a, b) { return a + Math.random() * (b - a); };
 CC.clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+/* the coloured keycap letters of the landing-page logo, as SVG text for the certificates (centred on cx, top edge at top, key size ks) */
+CC.keycapsSvg = function (text, cx, top, ks) {
+  const pal = [['#ff5c72', '#d8334e'], ['#ff9f45', '#e07a1a'], ['#ffd23f', '#e0a800'], ['#6bcb77', '#3fa84f'], ['#22c6c6', '#139a9a']], gap = ks * 0.17, wgap = ks * 0.55, pos = [];
+  let x = 0, ci = 0;
+  text.toUpperCase().split('').forEach(function (ch) { if (ch === ' ') { x += wgap - gap; return; } pos.push([ch, x, pal[ci++ % 5]]); x += ks + gap; });
+  const total = x - gap, x0 = cx - total / 2; let g = '';
+  pos.forEach(function (p) {
+    const px = x0 + p[1];
+    g += '<rect x="' + px.toFixed(1) + '" y="' + (top + ks * 0.11).toFixed(1) + '" width="' + ks + '" height="' + ks + '" rx="' + (ks * 0.22).toFixed(1) + '" fill="' + p[2][1] + '"/><rect x="' + px.toFixed(1) + '" y="' + top + '" width="' + ks + '" height="' + ks + '" rx="' + (ks * 0.22).toFixed(1) + '" fill="' + p[2][0] + '"/>' +
+      '<text x="' + (px + ks / 2).toFixed(1) + '" y="' + (top + ks * 0.7).toFixed(1) + '" font-family="Trebuchet MS,Segoe UI,Arial,sans-serif" font-size="' + (ks * 0.6).toFixed(1) + '" font-weight="bold" fill="#fff" text-anchor="middle">' + p[0] + '</text>';
+  });
+  return g;
+};
 CC.overlap = function (a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; };
 /* box shrunk by pad on every side - used for forgiving hitboxes */
 CC.shrink = function (x, y, w, h, pad) { return { x: x + pad, y: y + pad, w: Math.max(2, w - pad * 2), h: Math.max(2, h - pad * 2) }; };

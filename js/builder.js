@@ -53,7 +53,7 @@ function showHome() {
   const nm = el('input', 'bd-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name'); nm.addEventListener('input', function () { S.name = nm.value; }); setup.appendChild(nm);
   h.appendChild(setup);
   const doors = el('div', 'bd-doors');
-  [{ id: 'type', icon: '⌨️', name: 'Type & Build', desc: 'Type the word to build it', c: '#ff7a45' }, { id: 'click', icon: '🖱️', name: 'Click & Build', desc: 'Click, drag and build', c: '#22b8cf' }].forEach(function (d) {
+  [{ id: 'click', icon: '🖱️', name: 'Click & Build', desc: 'Click, drag and build', c: '#22b8cf' }, { id: 'type', icon: '⌨️', name: 'Type & Build', desc: 'Type the word to build it', c: '#ff7a45' }].forEach(function (d) {
     const c = el('button', 'bd-door'); c.type = 'button'; c.style.setProperty('--c', d.c);
     c.innerHTML = '<span class="di"></span><span class="dn"></span><span class="dd"></span><span class="dp"></span>';
     c.querySelector('.di').textContent = d.icon; c.querySelector('.dn').textContent = d.name; c.querySelector('.dd').textContent = d.desc; c.querySelector('.dp').textContent = doneCount(d.id) + ' / 10 built';
@@ -61,7 +61,7 @@ function showHome() {
   });
   h.appendChild(doors);
   const row = el('div', 'bd-opts');
-  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), '🎓 My certificate'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Build all 10 pictures in one game to unlock';
+  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 My certificate' : '🔒 Certificate: build all 10'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Build all 10 pictures in one game to unlock';
   ce.addEventListener('click', function () { ce.blur(); showCertificate(); }); row.appendChild(ce); h.appendChild(row);
   setView('home', h);
 }
@@ -252,9 +252,10 @@ function certSvg(name) {
   g += '<rect x="20" y="20" width="' + (W - 40) + '" height="' + (H - 40) + '" rx="34" fill="none" stroke="#1fb6a6" stroke-width="14"/><rect x="42" y="42" width="' + (W - 84) + '" height="' + (H - 84) + '" rx="22" fill="none" stroke="#ff9f45" stroke-width="4" stroke-dasharray="3 12" stroke-linecap="round"/>';
   /* confetti */
   [[110, 120, '#ff5c72'], [180, 90, '#ffd23f'], [950, 110, '#a77bff'], [1010, 150, '#ff8ad8'], [90, 340, '#4f9bff'], [1030, 360, '#6bcb77'], [250, 70, '#ff9f45'], [860, 80, '#22c6c6']].forEach(function (c, i) { g += '<rect x="' + c[0] + '" y="' + c[1] + '" width="18" height="18" rx="4" fill="' + c[2] + '" transform="rotate(' + (i * 25) + ' ' + c[0] + ' ' + c[1] + ')"/>'; });
-  g += '<text x="' + mid + '" y="150" font-family="' + rnd + '" font-size="82" font-weight="bold" fill="#ff7a45" stroke="#fff" stroke-width="14" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">Super Builder!</text>';
-  g += '<text x="' + mid + '" y="200" font-family="' + sans + '" font-size="26" font-weight="bold" letter-spacing="4" fill="#1d8f8f" text-anchor="middle">CERTIFICATE OF ACHIEVEMENT</text>';
-  g += '<text x="' + mid + '" y="250" font-family="' + sans + '" font-size="22" fill="#555" text-anchor="middle">proudly presented to</text>';
+  g += CC.keycapsSvg(CC.APP_NAME, mid, 54, 32);
+  g += '<text x="' + mid + '" y="166" font-family="' + rnd + '" font-size="82" font-weight="bold" fill="#ff7a45" stroke="#fff" stroke-width="14" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">Super Builder!</text>';
+  g += '<text x="' + mid + '" y="208" font-family="' + sans + '" font-size="26" font-weight="bold" letter-spacing="4" fill="#1d8f8f" text-anchor="middle">CERTIFICATE OF ACHIEVEMENT</text>';
+  g += '<text x="' + mid + '" y="254" font-family="' + sans + '" font-size="22" fill="#555" text-anchor="middle">proudly presented to</text>';
   const fsz = n.length <= 14 ? 64 : n.length <= 20 ? 52 : 42;
   g += '<text x="' + mid + '" y="324" font-family="' + rnd + '" font-size="' + fsz + '" font-weight="bold" fill="#ff5c72" text-anchor="middle">' + esc(n) + '</text>';
   g += '<line x1="260" y1="342" x2="863" y2="342" stroke="#ffc92e" stroke-width="4" stroke-linecap="round"/>';

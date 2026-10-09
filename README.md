@@ -4,6 +4,8 @@ A set of free browser games for a school computer club, to help children learn t
 
 **Play it:** https://hansafumoonga.github.io/computer_club/
 
+> **Please use it on a computer.** Tech Explorers is made for a **desktop or laptop computer with a keyboard and a mouse** (or a Makey Makey for Session 2). **iPads, phones and other tablets may not work, or may not give the results you expect**: touch screens have no physical keyboard, so the typing and keyboard games do not work properly, and some mouse actions (such as right-click and drag) can behave differently. It has been tested on a computer in Chrome.
+
 It runs entirely in the browser. No install, no accounts, no server and no internet needed after the page has loaded. Nothing about the children is collected or saved.
 
 ---
@@ -77,6 +79,7 @@ Plain HTML, CSS and JavaScript only. No libraries and no build step.
 ## Known limits
 - **Progress is not saved.** It lasts only while the page is open, so download the teacher report or print the certificate before closing the tab.
 - **The spoken voice** uses a voice already installed on the device. If a device has no English voice, the lessons still work with the words on screen.
+- **Computers only:** use a desktop or laptop with a keyboard and mouse. iPads, phones and tablets may not work or may not produce the results you expect.
 - **Browsers:** it has been tested in Chrome. Other modern browsers should work but have not been checked as carefully.
 - Because the code is AI-generated, there may be rough edges we have not found yet. Reports are appreciated.
 
