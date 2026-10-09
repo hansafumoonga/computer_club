@@ -46,7 +46,7 @@ These games use only the five Makey Makey keys: Left, Up, Down, Right and Space.
 - **Jump Over!**, **Star Blaster**
 - **Commando Run**: 15 stages with big creatures, ending with a dragon king.
 - **Pattern Pop!**: watch, listen and copy.
-- **Typing Club** (needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing all 10 levels of any one game unlocks a printable **certificate** with a speed medal.
+- **Typing Club** (needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. **Coach**, a friendly fox guide with an optional spoken voice, gives a short lesson before each level (posture, the new keys and which finger types them, then a warm-up), and gives gentle tips while you type. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing all 10 levels of any one game unlocks a printable **certificate** with a speed medal.
 
 ### For teachers
 - A **pause** button in every game (the Escape key also works in the arrow-key games).
