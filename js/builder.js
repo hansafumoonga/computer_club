@@ -11,13 +11,48 @@ const $root = function () { return document.getElementById('bd-root'); };
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-const S = { year: 2, name: '', door: 'type', level: 1, best: {}, run: null, timers: [], loop: null, view: 'home' };
+const S = { year: 2, name: '', door: 'type', level: 1, best: {}, run: null, timers: [], loop: null, view: 'home', voice: true, kindSeen: {}, howSeen: {} };
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
 function bestOf(door, lv) { return S.best[door + ':' + lv] || null; }
 function doorDone(door) { return BUILDS.every(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }); }
 function doneCount(door) { return BUILDS.filter(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }).length; }
 function certEarned() { return doorDone('type') || doorDone('click'); }
+function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+/* ---------- Bo, the building bear: a gentle guide with a slow, friendly voice. The voice is one already on this computer; nothing is sent anywhere. ---------- */
+let voicePick = null;
+function bestVoice() {
+  if (!window.speechSynthesis) return null;
+  const vs = speechSynthesis.getVoices().filter(function (v) { return v.localService && /^en/i.test(v.lang); });
+  if (!vs.length) return null;
+  if (voicePick && vs.indexOf(voicePick) >= 0) return voicePick;
+  const prefs = [/aria|jenny|natural|neural/i, /zira|samantha|karen|moira|susan|hazel|libby|sonia|serena|tessa|fiona/i, /female/i];
+  for (let i = 0; i < prefs.length; i++) { const f = vs.filter(function (v) { return prefs[i].test(v.name); })[0]; if (f) return (voicePick = f); }
+  return (voicePick = vs[0]);
+}
+if (window.speechSynthesis) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function () { voicePick = null; }; } catch (e) { } }
+function spoken(t) { return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u2B50\uFE0F]/gu, ' ').replace(/\s+/g, ' ').trim(); }
+function setTalk(on) { document.querySelectorAll('.bd-av').forEach(function (a) { a.classList.toggle('talk', on); }); }
+function speak(text) {
+  if (!S.voice || !window.speechSynthesis) return;
+  const v = bestVoice(), clean = spoken(text); if (!v || !clean) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = 0.82; u.pitch = 1.12; u.volume = 1;
+    u.onstart = function () { setTalk(true); }; u.onend = function () { setTalk(false); }; u.onerror = function () { setTalk(false); };
+    speechSynthesis.speak(u);
+  } catch (e) { }
+}
+function hush() { setTalk(false); if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } }
+function bo(R, text, say) { if (R && R.ui && R.ui.bt) R.ui.bt.textContent = text; speak(say || text); }
+const HOW = { type: 'Look at the word. Find each letter on the keyboard and press it. The next letter glows!', click: 'Use the mouse to add each piece. I will show you what to do!' };
+const KINDLONG = {
+  click: 'Move the mouse onto the glowing piece and press the left button once.',
+  drag: 'Press the mouse button on the piece below, hold it down, move to the dotted spot, then let go.',
+  dbl: 'Click the glowing piece two times, very fast. Click, click!',
+  right: 'Press the RIGHT mouse button on the glowing piece. A little menu opens. Then press Add.'
+};
 
 /* which mouse skill each piece of a level asks for (the first levels are simply "click") */
 const KINDS = [['click'], ['click'], ['drag'], ['drag'], ['dbl'], ['right'], ['click', 'drag', 'dbl'], ['drag', 'dbl', 'right'], ['click', 'drag', 'dbl', 'right'], ['click', 'drag', 'dbl', 'right']];
@@ -41,7 +76,7 @@ function hlKey(ch) { Object.keys(kbEls).forEach(function (k) { kbEls[k].classLis
 
 /* ---------- screens ---------- */
 function setView(v, node) { S.view = v; const r = $root(); r.innerHTML = ''; r.appendChild(node); r.scrollTop = 0; }
-function stopRun() { clearTimers(); closeMenu(); if (S.run) { S.run.phase = 'off'; if (S.run.float && S.run.float.parentNode) S.run.float.parentNode.removeChild(S.run.float); } S.run = null; }
+function stopRun() { clearTimers(); hush(); closeMenu(); if (S.run) { S.run.phase = 'off'; if (S.run.float && S.run.float.parentNode) S.run.float.parentNode.removeChild(S.run.float); } S.run = null; }
 function showHome() {
   stopRun(); CC.ui.close();
   const h = el('div', 'bd-home');
@@ -62,7 +97,8 @@ function showHome() {
   h.appendChild(doors);
   const row = el('div', 'bd-opts');
   const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 My certificate' : '🔒 Certificate: build all 10'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Build all 10 pictures in one game to unlock';
-  ce.addEventListener('click', function () { ce.blur(); showCertificate(); }); row.appendChild(ce); h.appendChild(row);
+  ce.addEventListener('click', function () { ce.blur(); showCertificate(); }); const vc = el('button', 'btn' + (S.voice ? ' on' : ''), '🗣️ Voice'); vc.type = 'button'; vc.addEventListener('click', function () { vc.blur(); S.voice = !S.voice; vc.classList.toggle('on', S.voice); if (S.voice) speak('Hello! I am Bo. Let us build something!'); else hush(); });
+  row.appendChild(vc); row.appendChild(ce); h.appendChild(row);
   setView('home', h);
 }
 function showMap() {
@@ -82,7 +118,7 @@ function showMap() {
 }
 function intro() {
   const b = BUILDS[S.level - 1];
-  CC.sfx.letsGo();
+  CC.sfx.letsGo(); speak(b.intro + (S.door === 'type' ? ' Type each word to add a piece.' : ' Use the mouse to add each piece.'));
   CC.ui.show($stage(), { emoji: b.icon, title: b.intro, text: S.door === 'type' ? 'Type each word to add a piece.' : 'Use the mouse to add each piece.', buttons: [
     { icon: '▶', label: 'Go!', primary: true, keys: ['Enter', 'Space'], fn: startRun },
     { icon: '🗺️', label: '', fn: showMap }] });
@@ -104,9 +140,12 @@ function startRun() {
   R.ui.dots = el('div', 'bd-dots'); b.pieces.forEach(function () { R.ui.dots.appendChild(el('i')); });
   hud.appendChild(map); hud.appendChild(chip); hud.appendChild(R.ui.dots);
   if (S.door === 'type') { const hb = el('button', 'btn ico', '💡'); hb.type = 'button'; hb.setAttribute('aria-label', 'show me the key'); hb.title = 'Show me the key'; hb.addEventListener('click', function () { hb.blur(); showHint(R); }); hud.appendChild(hb); }
+  const vb = el('button', 'btn ico' + (S.voice ? '' : ' off'), '🗣️'); vb.type = 'button'; vb.setAttribute('aria-label', 'voice on or off'); vb.title = 'Bo voice'; vb.addEventListener('click', function () { vb.blur(); S.voice = !S.voice; vb.classList.toggle('off', !S.voice); if (!S.voice) hush(); }); hud.appendChild(vb);
   p.appendChild(hud);
   const scene = el('div', 'bd-scene'); scene.innerHTML = svgFor(b); p.appendChild(scene); R.svg = scene.firstChild;
   R.ui.bottom = el('div', 'bd-bottom'); p.appendChild(R.ui.bottom); R.play = p;
+  R.ui.coach = el('div', 'bd-coach'); R.ui.coach.innerHTML = '<span class="bd-av">🐻</span><span class="bt"></span>'; R.ui.bt = R.ui.coach.querySelector('.bt'); R.ui.bottom.appendChild(R.ui.coach);
+  R.ui.tip = { set textContent(v) { bo(R, v); } };
   setView('play', p);
   R.pcs = Array.prototype.slice.call(R.svg.querySelectorAll('.pc')); R.hits = []; R.bb = [];
   R.pcs.forEach(function (g) { const bb = g.getBBox(), h = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); h.setAttribute('class', 'hit'); h.setAttribute('x', bb.x - 6); h.setAttribute('y', bb.y - 6); h.setAttribute('width', bb.width + 12); h.setAttribute('height', bb.height + 12); h.setAttribute('fill', 'transparent'); g.appendChild(h); R.hits.push(h); R.bb.push(bb); });
@@ -114,7 +153,7 @@ function startRun() {
     R.ui.word = el('div', 'bd-word'); R.ui.bottom.appendChild(R.ui.word);
     R.ui.kbwrap = el('div', 'bd-kbwrap'); R.ui.kbwrap.appendChild(buildKeyboard()); R.ui.bottom.appendChild(R.ui.kbwrap); R.ui.kbwrap.classList.toggle('faint', S.year === 3);
   } else {
-    R.ui.tip = el('div', 'bd-tip'); R.ui.bottom.appendChild(R.ui.tip); R.ui.tray = el('div', 'bd-tray'); R.ui.bottom.appendChild(R.ui.tray);
+    R.ui.tray = el('div', 'bd-tray'); R.ui.bottom.appendChild(R.ui.tray);
     R.svg.addEventListener('click', function (e) { if (R.phase !== 'play' || (e.target.classList && e.target.classList.contains('hit'))) return; R.misses++; pulse(R); });
     R.svg.addEventListener('contextmenu', function (e) { if (S.run === R) e.preventDefault(); });
   }
@@ -128,13 +167,15 @@ function setCur(R) {
     R.pos = 0; R.word = R.b.pieces[R.i].w; R.ui.word.innerHTML = '';
     R.word.split('').forEach(function (ch) { R.ui.word.appendChild(el('span', 'lt', ch.toUpperCase())); });
     paintWord(R);
+    const first = !S.howSeen.type && R.i === 0, say = (first ? 'Hello! I am Bo. ' + HOW.type + ' ' : '') + (R.praise ? R.praise + ' ' : '') + 'Type the word ' + R.word + '. ' + R.word.split('').join(', ') + '.'; S.howSeen.type = true; R.praise = '';
+    bo(R, first ? HOW.type : 'Type the word: ' + R.word.toUpperCase(), say);
   } else { setupTask(R); }
 }
 function paintWord(R) {
   const ts = R.ui.word.children; for (let k = 0; k < ts.length; k++) ts[k].className = 'lt' + (k < R.pos ? ' ok' : k === R.pos ? ' next' : '');
   const nx = R.word[R.pos]; if (S.year < 3 || R.hint) hlKey(nx); else hlKey(null);
 }
-function showHint(R) { if (!R || R.phase !== 'play' || R.door !== 'type') return; R.hint = true; R.ui.kbwrap.classList.remove('faint'); hlKey(R.word[R.pos]); }
+function showHint(R) { if (!R || R.phase !== 'play' || R.door !== 'type') return; R.hint = true; R.ui.kbwrap.classList.remove('faint'); hlKey(R.word[R.pos]); bo(R, 'Press the glowing key: ' + R.word[R.pos].toUpperCase(), 'Try the letter ' + R.word[R.pos] + '.'); }
 
 /* ---- typing door ---- */
 function typed(R, ch) {
@@ -147,7 +188,7 @@ function advance(R) {
   if (R.pos >= R.word.length) { place(R); return; }
   paintWord(R);
 }
-function assist(R) { R.assists++; R.idle = 8; CC.sfx.clink(); advance(R); }
+function assist(R) { R.assists++; R.idle = 8; CC.sfx.clink(); bo(R, 'Let me help with this letter!'); advance(R); }
 
 /* ---- shared: a piece is placed ---- */
 function place(R) {
@@ -155,7 +196,7 @@ function place(R) {
   const g = R.pcs[R.i]; g.classList.remove('pend', 'cur', 'act', 'pulse'); g.classList.add('on');
   sparkle(R, R.bb[R.i]); CC.sfx.pickup();
   if (R.ui.tray) R.ui.tray.innerHTML = '';
-  R.hits[R.i].style.pointerEvents = 'none'; R.picked = false; R.i++; hlKey(null);
+  R.hits[R.i].style.pointerEvents = 'none'; R.picked = false; R.i++; hlKey(null); R.praise = rnd(['Great job!', 'Well done!', 'Fantastic!', 'You did it!', 'Super!', 'Brilliant!']);
   if (R.i >= R.n) { finish(R); return; }
   later(function () { if (S.run === R) setCur(R); }, 380);
 }
@@ -167,7 +208,9 @@ function sparkle(R, bb) {
 
 /* ---- mouse door ---- */
 function setupTask(R) {
-  const kind = KINDS[R.lv - 1][R.i % KINDS[R.lv - 1].length], g = R.pcs[R.i], hit = R.hits[R.i]; R.kind = kind; R.picked = false; R.dropMiss = 0; R.ui.tip.textContent = TIPS[kind]; R.ui.tray.innerHTML = '';
+  const kind = KINDS[R.lv - 1][R.i % KINDS[R.lv - 1].length], g = R.pcs[R.i], hit = R.hits[R.i]; R.kind = kind; R.picked = false; R.dropMiss = 0; R.ui.tray.innerHTML = '';
+  const longer = !S.kindSeen[kind], say = (!S.howSeen.click ? 'Hello! I am Bo. ' + HOW.click + ' ' : '') + (R.praise ? R.praise + ' ' : '') + (longer ? KINDLONG[kind] : TIPS[kind]); S.kindSeen[kind] = true; S.howSeen.click = true; R.praise = '';
+  bo(R, longer ? KINDLONG[kind] : TIPS[kind], say);
   hit.style.pointerEvents = ''; g.classList.add('act'); g.classList.toggle('dragkind', kind === 'drag');
   const fresh = hit.cloneNode(false); hit.parentNode.replaceChild(fresh, hit); R.hits[R.i] = fresh;     // drop old listeners
   if (kind === 'click') fresh.addEventListener('click', function () { place(R); });
@@ -230,6 +273,7 @@ function finish(R) {
     else if (!last) btns.push({ icon: '▶', label: 'Next', primary: true, keys: ['Enter'], fn: function () { S.level = R.lv + 1; intro(); } });
     else btns.push({ icon: '🔁', label: 'Again', primary: true, keys: ['Enter'], fn: function () { startRun(); } });
     btns.push({ icon: '🔁', label: '', fn: startRun }); btns.push({ icon: '🗺️', label: '', fn: showMap });
+    speak('Your ' + R.b.name.toLowerCase() + ' is ready! ' + (last ? 'You built a whole city!' : 'Amazing building!'));
     CC.ui.show($stage(), { emoji: R.b.icon, stars: stars, title: 'Your ' + R.b.name.toLowerCase() + ' is ready!', text: last ? 'You built a whole city!' : 'Amazing building!', buttons: btns });
   }, 1500);
 }
@@ -297,8 +341,8 @@ function showCertificate() {
 /* ---------- plug into the hub ---------- */
 CC.modes.builder = {
   makey: false,
-  enter: function () { CC.audio.init(); CC.watchStage($stage()); stopRun(); if (!S.loop) S.loop = CC.createLoop(update, function () { }); S.loop.start(); showHome(); },
-  exit: function () { stopRun(); if (S.loop) S.loop.stop(); S.view = 'home'; },
+  enter: function () { CC.audio.init(); CC.watchStage($stage()); stopRun(); if (!S.loop) S.loop = CC.createLoop(update, function () { if (CC.paused && !S.hushed) { hush(); S.hushed = true; } else if (!CC.paused) S.hushed = false; }); S.loop.start(); showHome(); },
+  exit: function () { stopRun(); hush(); if (S.loop) S.loop.stop(); S.view = 'home'; },
   onKeyDown: function (e) {
     const R = S.run; if (S.view !== 'play' || !R || R.door !== 'type') return;
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;

@@ -160,3 +160,39 @@
   .bd-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
   .bd-tile{padding:6px 4px 4px;border-width:3px}.bd-tile .ic{font-size:1.6rem}.bd-tile .nm{font-size:.85rem}.bd-tile .n{top:3px;left:6px;font-size:.7rem}
 }
+
+/* ---------- Bo, the building bear ---------- */
+.bd-coach{display:flex;align-items:center;gap:10px;background:#fff;color:#1f2a55;border-radius:22px;padding:.3em 1.3em .3em .6em;font-weight:bold;font-size:clamp(1rem,2.4vw,1.4rem);box-shadow:0 4px 0 rgba(0,0,0,.25);max-width:100%;min-height:2.4em}
+.bd-av{font-size:2.2rem;line-height:1;display:inline-block;flex:none}
+.bd-av.talk{animation:bdTalk .45s ease-in-out infinite alternate}
+@keyframes bdTalk{from{transform:scale(1) rotate(-5deg)}to{transform:scale(1.14) rotate(5deg)}}
+.bd-hud .btn.off{opacity:.45}
+
+/* the same deep indigo look as the rest of Tech Explorers */
+.bd-stage{background:var(--bg,#15163a);color:var(--ink,#f5f4ff)}
+.bd-title{color:var(--accent,#ffd23f);text-shadow:0 4px 0 #0c0d26}
+.bd-sub{color:var(--ink-dim,#b7b8de)}
+.bd-years{background:rgba(255,255,255,.08);color:var(--ink,#f5f4ff);box-shadow:none}
+.bd-years .yr{border-color:#5a60b8;background:#2b3170;color:#e6e8ff}
+.bd-years .yr:hover{background:#3a418a}
+.bd-years .yr.on{background:var(--accent,#ffd23f);border-color:#fff3b0;color:#1a1b3f;box-shadow:0 0 0 3px rgba(255,210,63,.35)}
+.bd-name{background:#1a1b3f;color:var(--ink,#f5f4ff);border-color:#3a3e8a}
+.bd-name:focus{border-color:var(--accent,#ffd23f)}
+.bd-door{background:var(--panel,#1f2150);color:var(--ink,#f5f4ff);box-shadow:none}
+.bd-door .dd{color:var(--ink-dim,#b7b8de)}
+.bd-door .dp{background:rgba(255,255,255,.1);color:var(--ink,#f5f4ff)}
+.bd-maptop h3{color:var(--ink,#f5f4ff)}
+.bd-tile{background:var(--panel,#1f2150);color:var(--ink,#f5f4ff);border-color:#3a3e8a;box-shadow:none}
+.bd-tile:hover{border-color:var(--accent,#ffd23f)}
+.bd-tile.done{background:#1b3a38;border-color:var(--good,#6bcb77)}
+.bd-tile .n{color:var(--ink-dim,#b7b8de)}
+.bd-opts .btn:disabled{background:#1f2358;color:#8a90c8;border-color:#3a3e8a}
+.bd-certwrap .bd-note{color:var(--ink-dim,#b7b8de)}
+.bd-chip{background:var(--panel,#1f2150);color:var(--ink,#f5f4ff);box-shadow:none}
+.bd-dots i{background:rgba(255,255,255,.22)}
+.bd-svg{box-shadow:0 0 0 4px #3a3e8a,0 10px 24px rgba(0,0,0,.4)}
+.bd-word .lt{background:var(--panel,#1f2150);color:var(--ink,#f5f4ff);border-color:#4a50a8;box-shadow:none}
+.bd-word .lt.ok{background:#6bcb77;color:#fff;border-color:#3fa84f}
+.bd-word .lt.next{border-color:#ff9f45;animation:bdNextD .8s ease-in-out infinite alternate}
+@keyframes bdNextD{to{transform:translateY(-4px);background:#3a418a}}
+.bd-trayhint{color:var(--accent,#ffd23f)}

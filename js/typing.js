@@ -20,7 +20,7 @@ const GAMES = [
 ];
 
 /* ---------- state for the whole visit (nothing is stored on disk) ---------- */
-const S = { year: 4, name: '', view: 'home', game: 'racer', level: 1, guide: true, voice: true, lessonSeen: false, lessonDone: {}, tipSeen: {}, lesson: null, lastCh: null, unlockAll: false, best: {}, ghost: {}, keys: {}, rounds: [], run: null, timers: [], loop: null, view2: null };
+const S = { year: 4, name: '', view: 'home', game: 'racer', level: 1, guide: true, unlockAll: false, best: {}, ghost: {}, keys: {}, rounds: [], run: null, timers: [], loop: null, view2: null };
 function target() { return D.TARGET_WPM[S.year]; }
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
@@ -54,145 +54,13 @@ function buildKeyboard() {
   });
   return kb;
 }
-function markKey(ch) {
+function hlKey(ch) {
+  Object.keys(kbEls).forEach(function (k) { kbEls[k].classList.remove('hl'); });
+  const fl = S.run && S.run.ui && S.run.ui.finger; if (!ch) { if (fl) fl.textContent = ''; return; }
   const i = info(ch), k = kbEls[i.base]; if (k) k.classList.add('hl');
-  if (i.shift) { const right = 'RI RM RR RP'.indexOf(KF[i.base]) >= 0, sh = kbEls[right ? 'ShiftL' : 'ShiftR']; if (sh) sh.classList.add('hl'); }
-  return i;
-}
-function clearKeys() { Object.keys(kbEls).forEach(function (k) { kbEls[k].classList.remove('hl'); }); }
-function hlKey(ch, flEl) {
-  clearKeys();
-  const fl = flEl || (S.run && S.run.ui && S.run.ui.fingerT), saying = !flEl && S.run && S.run.sayUntil > performance.now(); S.lastCh = ch;
-  if (!ch) { if (fl && !saying) fl.textContent = ''; return; }
-  const i = markKey(ch);
   let msg = 'Next: ' + (ch === ' ' ? 'SPACE' : ch.toUpperCase()) + ' with your ' + (FNAME[KF[i.base]] || 'finger');
-  if (i.shift) { const right = 'RI RM RR RP'.indexOf(KF[i.base]) >= 0; msg += ' + ' + (right ? 'LEFT' : 'RIGHT') + ' Shift'; }
-  if (fl && !saying) fl.textContent = msg;
-}
-
-/* ---------- Coach: a friendly guide with a calm voice. The voice is one already installed on this computer; nothing is sent anywhere. ---------- */
-let voicePick = null;
-function bestVoice() {
-  if (!window.speechSynthesis) return null;
-  const vs = speechSynthesis.getVoices().filter(function (v) { return v.localService && /^en/i.test(v.lang); });
-  if (!vs.length) return null;
-  if (voicePick && vs.indexOf(voicePick) >= 0) return voicePick;
-  const prefs = [/aria|jenny|natural|neural/i, /zira|samantha|karen|moira|susan|hazel|libby|sonia|serena|tessa|fiona/i, /female/i];
-  for (let i = 0; i < prefs.length; i++) { const f = vs.filter(function (v) { return prefs[i].test(v.name); })[0]; if (f) return (voicePick = f); }
-  return (voicePick = vs[0]);
-}
-if (window.speechSynthesis) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function () { voicePick = null; }; } catch (e) { } }
-function spoken(t) { return String(t).replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}⭐️]/gu, ' ').replace(/\s+/g, ' ').trim(); }
-function setTalk(on) { document.querySelectorAll('.ty-coach-av').forEach(function (a) { a.classList.toggle('talk', on); }); }
-function speak(text) {
-  if (!S.voice || !window.speechSynthesis) return;
-  const v = bestVoice(), clean = spoken(text); if (!v || !clean) return;
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = 0.9; u.pitch = 1.05; u.volume = 1;
-    u.onstart = function () { setTalk(true); }; u.onend = function () { setTalk(false); }; u.onerror = function () { setTalk(false); };
-    speechSynthesis.speak(u);
-  } catch (e) { }
-}
-function hush() { setTalk(false); if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } }
-/* a short line from Coach in the strip above the keyboard (and spoken); the finger guide comes back a moment later */
-function coachSay(R, text, ms) {
-  if (!R || S.run !== R || !R.ui.fingerT) return;
-  ms = ms || 4200; R.sayUntil = performance.now() + ms; R.ui.fingerT.textContent = text; R.ui.fingerT.classList.add('say'); speak(text);
-  later(function () { if (S.run === R && R.sayUntil <= performance.now() + 50) { R.ui.fingerT.classList.remove('say'); R.sayUntil = 0; hlKey(S.lastCh); } }, ms + 80);
-}
-function coachWatch(R, ok, ch) {
-  if (!R || R.phase !== 'play') return;
-  if (ok) { R.errRun = 0; return; }
-  R.errRun = (R.errRun || 0) + 1;
-  if (R.errRun >= 3 && R.t - (R.lastCoach === undefined ? -99 : R.lastCoach) > 10) {
-    R.lastCoach = R.t; R.errRun = 0; const i = info(ch);
-    coachSay(R, 'Slow down a little. Find the glowing key and use your ' + (FNAME[KF[i.base]] || 'finger') + '.');
-  }
-}
-
-/* ---------- the lesson before each level: posture, the new keys and which finger types them, then a warm-up ---------- */
-const GTIPS = {
-  racer: 'In Typing Racer you type the line to drive your car. The more you type, the faster you go. Try to beat your own best time!',
-  blaster: 'In Word Pop, balloons float up. Type the word on a balloon to pop it. Do not let them float away!',
-  boss: 'In Boss Sentences, type each sentence to hurt the boss. Finish it before the boss power bar fills up.'
-};
-const SAYKEY = { '.': 'full stop', ',': 'comma', '?': 'question mark', '!': 'exclamation mark', '-': 'dash', ';': 'semicolon' };
-function keyTokens(str) { return String(str || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean); }
-function fingerLine(tokens, forSpeech) {
-  const g = {}, order = [];
-  tokens.forEach(function (t) {
-    const f = t === 'Shift' ? 'SH' : (KF[info(/^[A-Za-z]$/.test(t) ? t.toLowerCase() : t).base] || 'LP');
-    if (!g[f]) { g[f] = []; order.push(f); }
-    g[f].push(t === 'Shift' ? t : forSpeech ? (SAYKEY[t] || t.toUpperCase()) : t.toUpperCase());
-  });
-  return order.map(function (f) { return f === 'SH' ? 'Shift is pressed with your little finger on the other hand' : g[f].join(forSpeech ? ', ' : ' ') + ' with your ' + FNAME[f]; }).join('. ') + '.';
-}
-function drillFor(lv) {
-  const nt = keyTokens(lv.newKeys).filter(function (t) { return /^[A-Za-z0-9]$/.test(t); }).map(function (t) { return t.toLowerCase(); });
-  if ((lv.id <= 4 || lv.id === 9) && nt.length) { const a = []; for (let k = 0; k < Math.min(8, Math.max(6, nt.length * 2)); k++) a.push(nt[k % nt.length]); return a.join(' '); }
-  const pool = lv.sentences.filter(function (s) { return s.length <= 30; }).sort(function (a, b) { return a.length - b.length; });
-  return pool.length ? pool[0] : lv.words.slice(0, 3).join(' ');
-}
-function lessonSteps(lv) {
-  const st = [], first = !S.lessonSeen, nt = keyTokens(lv.newKeys);
-  if (first) st.push({ text: 'Hi! I am Coach. Sit up tall, keep your feet flat on the floor and your wrists relaxed.', keys: [] });
-  if (first && lv.id !== 1) st.push({ text: 'Rest your fingers on the home row: A S D F on the left and J K L ; on the right. Feel the bumps on F and J.', say: 'Rest your fingers on the home row. A, S, D, F on the left. J, K, L and semicolon on the right. Feel the little bumps on F and J.', keys: keyTokens('a s d f j k l ;') });
-  if (nt.length) st.push({ text: 'New keys: ' + nt.join(' ') + '. ' + fingerLine(nt), say: 'In this level you learn these keys. ' + fingerLine(nt, true), keys: nt });
-  if (!S.tipSeen[S.game]) st.push({ text: GTIPS[S.game], keys: [] });
-  st.push({ text: lv.tip, keys: [] });
-  st.push({ text: 'Warm-up! Type this line slowly. Follow the glowing key.', say: 'Now you try. Type this line slowly and follow the glowing key.', keys: [], warm: drillFor(lv) });
-  return st;
-}
-function lessonDone() { S.lessonSeen = true; S.tipSeen[S.game] = true; S.lessonDone[S.level] = true; S.lesson = null; hush(); startRun(); }
-function showLesson() {
-  stopRun(); CC.ui.close();
-  const lv = LEVELS[S.level - 1], steps = lessonSteps(lv), L = S.lesson = { steps: steps, i: 0, warm: null };
-  CC.sfx.letsGo && CC.sfx.letsGo();
-  const w = el('div', 'ty-lesson'), top = el('div', 'ty-ltop');
-  const mp = el('button', 'btn ico', '🗺️'); mp.type = 'button'; mp.setAttribute('aria-label', 'level map'); mp.addEventListener('click', function () { mp.blur(); S.lesson = null; hush(); showMap(); });
-  const vc = el('button', 'btn ico' + (S.voice ? '' : ' off'), '🗣️'); vc.type = 'button'; vc.setAttribute('aria-label', 'coach voice on or off'); vc.title = 'Coach voice';
-  vc.addEventListener('click', function () { vc.blur(); S.voice = !S.voice; vc.classList.toggle('off', !S.voice); if (S.voice) speak(L.say); else hush(); });
-  top.appendChild(mp); top.appendChild(el('h3', '', lv.icon + ' Level ' + lv.id + ': ' + lv.name)); top.appendChild(vc); w.appendChild(top);
-  const row = el('div', 'ty-lrow'), av = el('div', 'ty-coach-av big', '🦊'), bub = el('div', 'ty-bubble'), btxt = el('div', 'bt'), bfin = el('div', 'ty-lfinger');
-  bub.appendChild(btxt); bub.appendChild(bfin); row.appendChild(av); row.appendChild(bub); w.appendChild(row);
-  const warm = el('div', 'ty-lwarm'); w.appendChild(warm);
-  const dots = el('div', 'ty-ldots'); steps.forEach(function () { dots.appendChild(el('i')); }); w.appendChild(dots);
-  const kbw = el('div', 'ty-kbwrap'); kbw.appendChild(buildKeyboard()); w.appendChild(kbw);
-  const nav = el('div', 'ty-opts');
-  const back = el('button', 'btn', '◀ Back'); back.type = 'button';
-  const again = el('button', 'btn', '🔊 Again'); again.type = 'button';
-  const next = el('button', 'btn primary', 'Next ▶'); next.type = 'button';
-  const skip = el('button', 'btn', '⏭ Skip lesson'); skip.type = 'button';
-  [back, again, next, skip].forEach(function (b) { nav.appendChild(b); }); w.appendChild(nav);
-  function render() {
-    const st = steps[L.i]; L.say = st.say || st.text; L.warm = null; btxt.textContent = st.text; bfin.textContent = ''; warm.innerHTML = '';
-    [].forEach.call(dots.children, function (d, k) { d.className = k < L.i ? 'on' : k === L.i ? 'cur' : ''; });
-    clearKeys(); st.keys.forEach(function (t) { markKey(/^[A-Za-z]$/.test(t) ? t.toLowerCase() : t === 'Shift' ? 'A' : t); });
-    if (st.keys.indexOf('Shift') >= 0) { kbEls.ShiftL.classList.add('hl'); kbEls.ShiftR.classList.add('hl'); }
-    back.disabled = L.i === 0; next.textContent = L.i === steps.length - 1 ? 'Start ▶' : 'Next ▶'; next.disabled = false;
-    if (st.warm) { const line = lineEl(st.warm); warm.appendChild(line); L.warm = { text: st.warm, i: 0, line: line, bfin: bfin }; markLine(line, 0); hlKey(st.warm[0], bfin); next.disabled = true; next.classList.remove('primary'); } else next.classList.add('primary');
-    speak(L.say);
-  }
-  L.render = render; L.next = function () { if (next.disabled) return; if (L.i >= steps.length - 1) lessonDone(); else { L.i++; render(); } };
-  L.back = function () { if (L.i > 0) { L.i--; render(); } };
-  L.finishWarm = function () { next.disabled = false; next.classList.add('primary'); bfin.textContent = ''; clearKeys(); btxt.textContent = 'Brilliant! You are ready. Press Start.'; speak('Brilliant! You are ready. Press start.'); CC.sfx.pop && CC.sfx.pop(); };
-  next.addEventListener('click', function () { next.blur(); L.next(); }); back.addEventListener('click', function () { back.blur(); L.back(); });
-  again.addEventListener('click', function () { again.blur(); speak(L.say); }); skip.addEventListener('click', function () { skip.blur(); lessonDone(); });
-  setView('lesson', w); render();
-}
-function lessonKey(e) {
-  const L = S.lesson; if (!L) return;
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
-  const w = L.warm;
-  if (w && e.key.length === 1) {
-    e.preventDefault(); if (e.repeat) return;
-    if (e.key === w.text[w.i]) { CC.sfx.tick && CC.sfx.tick(); w.i++; markLine(w.line, w.i); if (w.i >= w.text.length) { w.warm = null; L.warm = null; L.finishWarm(); } else hlKey(w.text[w.i], w.bfin); }
-    else { CC.sfx.step && CC.sfx.step(); markLine(w.line, w.i, true); }
-    return;
-  }
-  if (e.key === 'Enter' || e.key === 'ArrowRight') { e.preventDefault(); L.next(); }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); L.back(); }
+  if (i.shift) { const right = 'RI RM RR RP'.indexOf(KF[i.base]) >= 0, sh = kbEls[right ? 'ShiftL' : 'ShiftR']; if (sh) sh.classList.add('hl'); msg += ' + ' + (right ? 'LEFT' : 'RIGHT') + ' Shift'; }
+  if (fl) fl.textContent = msg;
 }
 
 /* ---------- what a round measures ---------- */
@@ -200,7 +68,7 @@ function wpm(R) { return R.started && R.t > 1 ? Math.round((R.correct / 5) / (R.
 function acc(R) { const n = R.correct + R.errors; return n ? Math.round(R.correct / n * 1000) / 10 : 100; }
 function noteKey(ch, ok, R) {
   const k = S.keys[ch] || (S.keys[ch] = { n: 0, err: 0, ms: 0, c: 0 });
-  k.n++; if (!ok) k.err++; coachWatch(R, ok, ch);
+  k.n++; if (!ok) k.err++;
   if (ok) { const dt = clamp(R.t - R.lastT, 0, 2); if (R.lastT > 0 || R.correct > 1) { k.ms += dt * 1000; k.c++; } R.lastT = R.t; }
 }
 function practiceKeys(max) {
@@ -234,11 +102,10 @@ function showHome() {
   h.appendChild(cards);
   const row = el('div', 'ty-opts');
   const gd = el('button', 'btn' + (S.guide ? ' on' : ''), '🖐️ Finger guide'); gd.type = 'button'; gd.addEventListener('click', function () { gd.blur(); S.guide = !S.guide; gd.classList.toggle('on', S.guide); });
-  const vc = el('button', 'btn' + (S.voice ? ' on' : ''), '🗣️ Coach voice'); vc.type = 'button'; vc.addEventListener('click', function () { vc.blur(); S.voice = !S.voice; vc.classList.toggle('on', S.voice); if (S.voice) speak('Hello! I am Coach. Let us learn to type together.'); else hush(); });
   const rp = el('button', 'btn', '📋 Teacher report'); rp.type = 'button'; rp.addEventListener('click', function () { rp.blur(); showReport(); });
   const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Finish all 10 levels of one game to unlock'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
   const un = el('button', 'btn', S.unlockAll ? '🔒 Lock levels' : '🔓 Unlock all'); un.type = 'button'; un.addEventListener('click', function () { un.blur(); S.unlockAll = !S.unlockAll; showHome(); });
-  [gd, vc, ce, rp, un].forEach(function (b) { row.appendChild(b); }); h.appendChild(row);
+  [gd, ce, rp, un].forEach(function (b) { row.appendChild(b); }); h.appendChild(row);
   setView('home', h);
 }
 function showMap() {
@@ -261,10 +128,17 @@ function showMap() {
   });
   m.appendChild(grid); setView('map', m);
 }
-function intro() { if (S.lessonDone[S.level]) { CC.sfx.letsGo && CC.sfx.letsGo(); startRun(); } else showLesson(); }
+function intro() {
+  const lv = LEVELS[S.level - 1], g = GAMES.filter(function (x) { return x.id === S.game; })[0];
+  CC.sfx.letsGo && CC.sfx.letsGo();
+  CC.ui.show($stage(), { emoji: lv.icon, title: 'Level ' + lv.id + ': ' + lv.name, text: (lv.newKeys ? 'New keys: ' + lv.newKeys + '. ' : '') + lv.tip, buttons: [
+    { icon: '▶', label: 'Go!', primary: true, keys: ['Enter', 'Space'], fn: function () { startRun(); } },
+    { icon: '🗺️', label: '', fn: showMap }] });
+  void g;
+}
 
 /* ---------- running a round ---------- */
-function stopRun() { clearTimers(); hush(); if (S.run) S.run.phase = 'off'; S.run = null; }
+function stopRun() { clearTimers(); if (S.run) S.run.phase = 'off'; S.run = null; }
 function passageFor(lv) {
   const L = LEVELS[lv - 1], goal = [40, 50, 60, 75, 90, 100, 110, 120, 125, 0][lv - 1];
   if (lv === 10) return rnd(L.sentences);
@@ -279,7 +153,7 @@ function startRun() {
   S.run = R; buildPlay(R);
   const nums = ['3', '2', '1', 'GO!']; let i = 0;
   (function tick() { if (S.run !== R) return; R.ui.count.textContent = nums[i]; R.ui.count.classList.remove('pop'); void R.ui.count.offsetWidth; R.ui.count.classList.add('pop'); CC.sfx.tick && CC.sfx.tick();
-    if (i === nums.length - 1) { later(function () { if (S.run !== R) return; R.ui.count.hidden = true; R.phase = 'play'; if (R.begin) R.begin(); if ((S.goSaid = (S.goSaid || 0) + 1) <= 3) coachSay(R, 'Go! Accuracy first, speed will follow.'); }, 650); return; } i++; later(tick, 750); })();
+    if (i === nums.length - 1) { later(function () { if (S.run !== R) return; R.ui.count.hidden = true; R.phase = 'play'; if (R.begin) R.begin(); }, 650); return; } i++; later(tick, 750); })();
 }
 function hud(R) {
   const bar = el('div', 'ty-hud');
@@ -288,9 +162,7 @@ function hud(R) {
   R.ui.wpm = el('div', 'ty-stat', '⚡ 0 wpm'); R.ui.acc = el('div', 'ty-stat', '🎯 100%'); R.ui.extra = el('div', 'ty-stat ty-extra');
   const gd = el('button', 'btn ico' + (S.guide ? '' : ' off'), '🖐️'); gd.type = 'button'; gd.setAttribute('aria-label', 'finger guide on or off'); gd.title = 'Finger guide';
   gd.addEventListener('click', function () { gd.blur(); S.guide = !S.guide; gd.classList.toggle('off', !S.guide); R.ui.kbwrap.hidden = !S.guide; });
-  const vc = el('button', 'btn ico' + (S.voice ? '' : ' off'), '🗣️'); vc.type = 'button'; vc.setAttribute('aria-label', 'coach voice on or off'); vc.title = 'Coach voice';
-  vc.addEventListener('click', function () { vc.blur(); S.voice = !S.voice; vc.classList.toggle('off', !S.voice); if (!S.voice) hush(); });
-  [map, chip, R.ui.wpm, R.ui.acc, R.ui.extra, vc, gd].forEach(function (x) { bar.appendChild(x); });
+  [map, chip, R.ui.wpm, R.ui.acc, R.ui.extra, gd].forEach(function (x) { bar.appendChild(x); });
   return bar;
 }
 function refresh(R) { if (!R.ui.wpm) return; R.ui.wpm.textContent = '⚡ ' + Math.round(wpm(R)) + ' wpm'; R.ui.acc.textContent = '🎯 ' + Math.round(acc(R)) + '%'; }
@@ -300,7 +172,7 @@ function buildPlay(R) {
   p.appendChild(hud(R));
   const main = el('div', 'ty-main'); p.appendChild(main); R.ui.main = main;
   R.ui.count = el('div', 'ty-count', ''); main.appendChild(R.ui.count);
-  R.ui.finger = el('div', 'ty-finger'); R.ui.finger.innerHTML = '<span class="ty-coach-av">🦊</span><span class="t"></span>'; R.ui.fingerT = R.ui.finger.querySelector('.t'); p.appendChild(R.ui.finger);
+  R.ui.finger = el('div', 'ty-finger'); p.appendChild(R.ui.finger);
   R.ui.kbwrap = el('div', 'ty-kbwrap'); R.ui.kbwrap.appendChild(buildKeyboard()); R.ui.kbwrap.hidden = !S.guide; p.appendChild(R.ui.kbwrap);
   setView('play', p);
   ({ racer: setupRacer, blaster: setupBlaster, boss: setupBoss })[R.game](R);
@@ -383,7 +255,7 @@ function racerPos(R) {
   R.ui.far.style.backgroundPositionX = (-p * 520) + 'px'; R.ui.near.style.backgroundPositionX = (-p * 1400) + 'px'; R.ui.tint.style.opacity = (p * 0.4).toFixed(2);   // the day slowly turns to evening
   R.ui.track.classList.toggle('go', R.started && R.t - R.lastOk < 1.2);                                                                                      // the wheels and road move while you type
 }
-function racerUpdate(R, dt) { if (R.phase !== 'play') return; if (R.started) R.t += dt; racerPos(R); refresh(R); if (!R.half && R.i >= R.text.length / 2) { R.half = true; coachSay(R, 'Halfway there! Keep it smooth and steady.'); } }
+function racerUpdate(R, dt) { if (R.phase !== 'play') return; if (R.started) R.t += dt; racerPos(R); refresh(R); }
 
 /* ================= game 2: Word Blaster (balloons float up; type a word to pop it) ================= */
 const BAL = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#4f9bff', '#a77bff', '#ff8ad8'];
@@ -420,7 +292,7 @@ function blasterChar(R, ch) {
   refresh(R); blasterUI(R);
 }
 function zap(R, w) {
-  R.streak++; if (R.streak === 5 || R.streak === 10) coachSay(R, 'Great streak! Keep it up.'); R.score += w.text.length * 10 * (1 + Math.min(4, Math.floor(R.streak / 3))); CC.sfx.pop && CC.sfx.pop();
+  R.streak++; R.score += w.text.length * 10 * (1 + Math.min(4, Math.floor(R.streak / 3))); CC.sfx.pop && CC.sfx.pop();
   const f = R.ui.field, H = f.clientHeight || 340, bx = (f.clientWidth || 600) / 2, wx = w.el.offsetLeft + w.el.offsetWidth / 2, wy = w.y + 26, dx = wx - bx, dy = H - 46 - wy;
   R.ui.beam.style.cssText = 'left:' + bx + 'px;height:' + Math.max(10, Math.hypot(dx, dy)) + 'px;transform:rotate(' + Math.atan2(dx, dy) + 'rad);opacity:1';
   later(function () { R.ui.beam.style.opacity = '0'; }, 140);
@@ -488,7 +360,7 @@ function bossChar(R, ch) {
   if (!R.started) { R.started = true; R.t = 0; R.lastT = 0; }
   const s = R.sentences[R.si], exp = s[R.i];
   if (ch === exp) { noteKey(exp, true, R); R.correct++; R.dmg++; R.i++; CC.sfx.tick && CC.sfx.tick(); markLine(R.ui.line, R.i); R.ui.hp.style.width = Math.max(0, 100 - R.dmg / R.hpMax * 100) + '%'; R.ui.boss.classList.remove('hurt'); void R.ui.boss.offsetWidth; R.ui.boss.classList.add('hurt');
-    if (R.i >= s.length) { CC.sfx.pop && CC.sfx.pop(); R.si++; if (R.si >= R.sentences.length) { finishRun(R, true); return; } nextSentence(R); coachSay(R, rnd(['Great hit!', 'Nice typing!', 'Keep going, the boss is wobbling!'])); } else hlKey(s[R.i]); }
+    if (R.i >= s.length) { CC.sfx.pop && CC.sfx.pop(); R.si++; if (R.si >= R.sentences.length) { finishRun(R, true); return; } nextSentence(R); } else hlKey(s[R.i]); }
   else { noteKey(exp, false, R); R.errors++; CC.sfx.softMiss && CC.sfx.softMiss(); markLine(R.ui.line, R.i, true); wobble(R.ui.line); }
   refresh(R);
 }
@@ -521,7 +393,6 @@ function finishRun(R, won) {
   if (won && prac.length) bits.push('Practise: ' + prac.join(' '));
   if (!won) bits.push('Slow and steady is best. Try again!');
   CC.sfx.levelComplete && won && CC.sfx.levelComplete();
-  later(function () { speak(won ? titles[0] + ' You typed ' + Math.round(w) + ' words a minute with ' + Math.round(a) + ' percent accuracy.' + (beat ? ' A new personal best!' : '') + (med ? ' ' + med.replace(/^\S+\s/, '') + '.' : '') + (prac.length ? ' Practise the keys ' + prac.join(', ') + '.' : '') : titles[1] + ' Slow and steady wins. Let us try again.'); }, 800);
   const last = R.lv >= LEVELS.length;
   later(function () {
     CC.ui.show($stage(), { emoji: won ? '🏆' : '💪', stars: won ? stars : 0, title: titles[won ? 0 : 1], text: bits.join(' · '), buttons: [
@@ -666,12 +537,11 @@ CC.modes.typing = {
   makey: false,
   enter: function () {
     CC.audio.init(); CC.watchStage($stage()); stopRun();
-    if (!S.loop) S.loop = CC.createLoop(update, function () { const pl = document.querySelector('#ty-root .ty-play'); if (pl) pl.classList.toggle('still', CC.paused || !S.run || S.run.phase !== 'play'); if (CC.paused && !S.hushed) { hush(); S.hushed = true; } else if (!CC.paused) S.hushed = false; });
+    if (!S.loop) S.loop = CC.createLoop(update, function () { const pl = document.querySelector('#ty-root .ty-play'); if (pl) pl.classList.toggle('still', CC.paused || !S.run || S.run.phase !== 'play'); });
     S.loop.start(); showHome();
   },
-  exit: function () { stopRun(); S.lesson = null; hush(); if (S.loop) S.loop.stop(); S.view = 'home'; },
+  exit: function () { stopRun(); if (S.loop) S.loop.stop(); S.view = 'home'; },
   onKeyDown: function (e) {
-    if (S.view === 'lesson') { lessonKey(e); return; }
     const R = S.run; if (S.view !== 'play' || !R) return;
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -681,6 +551,6 @@ CC.modes.typing = {
   /* test hooks (used only by the automated checks) */
   _S: S, _sim: function (secs) { const n = Math.round(secs * 60); for (let i = 0; i < n; i++) { if (!S.run || S.run.phase === 'done' || S.run.phase === 'off') break; update(1 / 60); } },
   _start: function (game, lv) { S.game = game; S.level = lv; startRun(); }, _go: function () { const R = S.run; if (R && R.phase === 'count') { clearTimers(); R.ui.count.hidden = true; R.phase = 'play'; if (R.begin) R.begin(); } },
-  _chars: onChar, _report: reportText, _cert: showCertificate, _earned: certEarned, _lesson: showLesson, _steps: function () { return lessonSteps(LEVELS[S.level - 1]); }
+  _chars: onChar, _report: reportText, _cert: showCertificate, _earned: certEarned
 };
 })();

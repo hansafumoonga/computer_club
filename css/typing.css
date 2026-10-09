@@ -246,34 +246,3 @@
   .ty-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
   .ty-tile{padding:6px 4px 4px}.ty-tile .ic{font-size:1.6rem}.ty-tile .nm{font-size:.8rem;min-height:2em}.ty-tile .n{top:3px;left:6px;font-size:.7rem}
 }
-
-/* ---------- Coach: the guide that talks you through each level ---------- */
-.ty-lesson{display:flex;flex-direction:column;align-items:center;gap:12px;padding:14px 18px;width:100%}
-.ty-ltop{width:100%;display:flex;align-items:center;gap:10px}
-.ty-ltop h3{flex:1;margin:0;text-align:center;font-size:clamp(1.1rem,2.6vw,1.6rem)}
-.ty-ltop .btn.ico{font-size:1.2rem;padding:.2em .55em}
-.ty-ltop .btn.off{opacity:.45}
-.ty-lrow{display:flex;align-items:center;gap:20px;width:100%;max-width:820px}
-.ty-coach-av{display:inline-block;line-height:1;font-size:2rem}
-.ty-coach-av.big{font-size:clamp(3.4rem,9vw,5.5rem);flex:none;animation:tyBob 2.4s ease-in-out infinite}
-.ty-coach-av.talk{animation:tyTalk .45s ease-in-out infinite alternate}
-@keyframes tyBob{50%{transform:translateY(-6px)}}
-@keyframes tyTalk{from{transform:scale(1) rotate(-4deg)}to{transform:scale(1.12) rotate(4deg)}}
-.ty-bubble{position:relative;flex:1;background:#fff;color:#1a1b3f;border-radius:22px;padding:16px 20px;font-size:clamp(1rem,2.3vw,1.35rem);font-weight:bold;line-height:1.45;box-shadow:0 5px 0 rgba(0,0,0,.28);min-height:3.2em}
-.ty-bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-10px;border:10px solid transparent;border-right-color:#fff;border-left:0}
-.ty-lfinger{margin-top:6px;color:#d9531e;font-size:.9em;min-height:0}
-.ty-lwarm{width:100%;max-width:820px;min-height:0}
-.ty-lwarm .ty-line{text-align:center}
-.ty-ldots{display:flex;gap:7px}
-.ty-ldots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.25)}
-.ty-ldots i.cur{background:#ffd23f;box-shadow:0 0 0 3px rgba(255,255,255,.5)}
-.ty-ldots i.on{background:#6bcb77}
-.ty-finger{display:flex;gap:8px;align-items:center;justify-content:center}
-.ty-finger .ty-coach-av{font-size:1.6rem}
-.ty-finger .t{padding:.1em .7em;border-radius:99px;transition:background .2s}
-.ty-finger .t.say{background:#fff;color:#1a1b3f;box-shadow:0 3px 0 rgba(0,0,0,.3)}
-@media (max-width:760px){.ty-lrow{flex-direction:column;gap:12px}.ty-bubble::before{display:none}}
-@media (max-height:700px){.ty-lesson{gap:8px;padding:10px 14px}.ty-coach-av.big{font-size:3.2rem}.ty-bubble{padding:10px 16px;font-size:1rem}}
-@media (max-height:600px){.ty-kbwrap .kr:first-child{display:none}}
-.ty-lesson{--k:clamp(26px,min(5vw,6.6vh),46px);gap:16px}
-.ty-lesson .ty-kbwrap{margin:4px 0}

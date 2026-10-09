@@ -35,7 +35,7 @@ What that means for you:
 
 ### Session 1: Year 1, 2 and 3 (normal keyboard and mouse)
 - **Click & Type Quest**: a guided adventure of 10 levels that teaches the mouse (moving, clicking, choosing, drag and drop, connecting, double-click, right-click) and the keyboard (finding letters, small and BIG letters, Caps Lock, words, Space, Backspace, Enter). A friendly guide called Buddy shows each action first, then the learner tries, with gentle hints and stars. Finishing all 10 levels unlocks a printable **certificate**.
-- **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. In **Type & Build** the child types each word to add a piece; in **Click & Build** they use the mouse (click, drag, double-click and right-click). Very gentle: hints and help appear by themselves, and every picture earns at least one star. Finishing all 10 pictures in one game unlocks a printable certificate.
+- **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. In **Type & Build** the child types each word to add a piece; in **Click & Build** they use the mouse (click, drag, double-click and right-click). Bo, a friendly bear guide with an optional spoken voice, explains what to do and cheers each piece. Very gentle: hints and help appear by themselves, and every picture earns at least one star. Finishing all 10 pictures in one game unlocks a printable certificate.
 - **Slice & Pop**: press the right letter to slice or pop.
 - **Word Hunt**: a computer-words word search with 10 levels.
 - **Jump Over!** and **Star Blaster**: simple arcade games with many levels.
@@ -46,7 +46,7 @@ These games use only the five Makey Makey keys: Left, Up, Down, Right and Space.
 - **Jump Over!**, **Star Blaster**
 - **Commando Run**: 15 stages with big creatures, ending with a dragon king.
 - **Pattern Pop!**: watch, listen and copy.
-- **Typing Club** (needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. **Coach**, a friendly fox guide with an optional spoken voice, gives a short lesson before each level (posture, the new keys and which finger types them, then a warm-up), and gives gentle tips while you type. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing all 10 levels of any one game unlocks a printable **certificate** with a speed medal.
+- **Typing Club** (needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing all 10 levels of any one game unlocks a printable **certificate** with a speed medal.
 
 ### For teachers
 - A **pause** button in every game (the Escape key also works in the arrow-key games).
