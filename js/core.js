@@ -231,7 +231,7 @@ UI.fit = function (el) {
 window.addEventListener('resize', function () { UI.fit(); });
 /* ---------- Pause (every game except the free-play piano) ---------- */
 CC.paused = false;
-CC.pausable = { jump: 1, blaster: 1, commando: 1, pattern: 1, fruit: 1, words: 1 };
+CC.pausable = { jump: 1, blaster: 1, commando: 1, pattern: 1, fruit: 1, words: 1, typing: 1 };
 function syncPauseBtn() { document.querySelectorAll('.pause-btn').forEach(function (b) { b.textContent = CC.paused ? '▶' : '⏸'; b.classList.toggle('on', CC.paused); }); }
 CC.resume = function () { if (!CC.paused) return; CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); UI.close(); syncPauseBtn(); };
 CC.togglePause = function (mode) {

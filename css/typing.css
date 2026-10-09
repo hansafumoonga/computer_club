@@ -1,0 +1,160 @@
+/* typing.css - Typing Club (all rules start with ty- so nothing else is touched) */
+.ty-stage{position:relative;width:min(100%,1100px);flex:1 1 auto;min-height:0;height:calc(100vh - 80px);max-height:calc(100vh - 80px);border-radius:16px;overflow:hidden;
+  background:#15163a;box-shadow:0 0 0 4px #3a3e8a,0 14px 30px rgba(0,0,0,.4);--u:8px;margin:4px 0}
+.ty-stage .overlay-root{z-index:50}
+.ty-root{position:absolute;inset:0;overflow:auto;display:flex;flex-direction:column}
+.ty-root>*{margin:auto 0;min-height:0}
+.ty-root .ty-play{margin:0;flex:1 1 auto}
+
+/* ---------- home ---------- */
+.ty-home,.ty-map,.ty-report{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 20px;text-align:center;width:100%}
+.ty-title{font-size:clamp(1.8rem,5vw,3rem);font-weight:bold;color:var(--accent);text-shadow:0 3px 0 #0c0d26}
+.ty-sub{margin:0;color:var(--ink-dim);font-size:clamp(.95rem,2vw,1.2rem)}
+.ty-setup{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
+.ty-years{display:flex;gap:8px;align-items:center;font-weight:bold}
+.ty-years .yr{min-width:2.6em;font-size:1.3rem}
+.ty-name{font:inherit;font-size:1.1rem;padding:.5em .8em;border-radius:14px;border:3px solid #3a3e8a;background:#1a1b3f;color:var(--ink);width:12em;max-width:100%}
+.ty-name:focus{outline:none;border-color:var(--accent)}
+.ty-goal{margin:0;font-weight:bold;color:var(--accent);font-size:1.15rem}
+.ty-games{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+.ty-gcard{width:210px;padding:16px 12px;border-radius:22px;border:4px solid var(--c);background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .12s}
+.ty-gcard:hover{transform:translateY(-4px) scale(1.02)}
+.ty-gcard .gi{font-size:3rem;line-height:1.1}
+.ty-gcard .gn{font-size:1.25rem;font-weight:bold}
+.ty-gcard .gd{color:var(--ink-dim);font-size:.9rem}
+.ty-gcard .gp{color:var(--c);font-weight:bold;font-size:.95rem}
+.ty-opts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+/* ---------- level map ---------- */
+.ty-maptop{width:100%;display:flex;align-items:center;gap:12px}
+.ty-maptop h3{margin:0;flex:1;font-size:clamp(1.2rem,3vw,1.8rem)}
+.ty-goal2{font-weight:bold;color:var(--accent)}
+.ty-levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;width:100%}
+.ty-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px 10px;border-radius:18px;border:3px solid #3a3e8a;background:var(--panel);min-width:0;transition:transform .12s}
+.ty-tile:hover:not(:disabled){transform:translateY(-3px)}
+.ty-tile .n{position:absolute;top:6px;left:10px;font-size:.85rem;font-weight:bold;color:var(--ink-dim)}
+.ty-tile .ic{font-size:2.2rem;line-height:1.15}
+.ty-tile .nm{font-size:.9rem;font-weight:bold;line-height:1.15;min-height:2.3em;display:flex;align-items:center}
+.ty-tile .st{font-size:.8rem;color:var(--accent);min-height:1.2em}
+.ty-tile.done{border-color:#6bcb77}
+.ty-tile.locked{opacity:.5}
+.ty-tile:disabled{cursor:default}
+
+/* ---------- playing ---------- */
+.ty-play{display:flex;flex-direction:column;gap:8px;padding:10px 14px;height:100%;min-height:0;background:linear-gradient(#2a3b7a,#15163a);--k:clamp(22px,min(4.2vw,6.2vh),46px)}
+.ty-t-jungle{background:linear-gradient(#1d5a3a,#12283a)}
+.ty-t-beach{background:linear-gradient(#1c7fa8,#7a6a3a)}
+.ty-t-volcano{background:linear-gradient(#6a2020,#241024)}
+.ty-t-ocean{background:linear-gradient(#0f4a8a,#0a1a44)}
+.ty-t-desert{background:linear-gradient(#a8742a,#4a2a2a)}
+.ty-t-snow{background:linear-gradient(#5a7fa8,#1a2444)}
+.ty-t-city{background:linear-gradient(#3a2a6a,#14142e)}
+.ty-t-lab{background:linear-gradient(#1a5a5a,#0e1a30)}
+.ty-t-candy{background:linear-gradient(#a8407a,#3a1a4a)}
+.ty-t-sky{background:linear-gradient(#2a6ac8,#7aa8e8)}
+.ty-hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:none}
+.ty-hud .btn.ico{font-size:1.2rem;padding:.2em .55em}
+.ty-hud .btn.off{opacity:.45}
+.ty-chip{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.35);padding:.25em .8em;border-radius:99px;font-weight:bold}
+.ty-chip b{background:var(--accent);color:#1a1b3f;border-radius:99px;min-width:1.5em;text-align:center}
+.ty-stat{background:rgba(0,0,0,.35);padding:.25em .8em;border-radius:99px;font-weight:bold;white-space:nowrap}
+.ty-extra{margin-left:auto}
+.ty-main{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.ty-count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(3rem,12vw,7rem);font-weight:bold;color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.4);z-index:5;pointer-events:none}
+.ty-count.pop{animation:tyPop .7s ease-out}
+@keyframes tyPop{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:.9}}
+.ty-finger{flex:none;min-height:1.5em;text-align:center;font-weight:bold;color:#fff3b0;font-size:clamp(.9rem,1.8vw,1.1rem)}
+
+/* the text being typed */
+.ty-line{background:rgba(10,12,40,.72);border-radius:16px;padding:14px 18px;font-family:"Courier New",Consolas,monospace;font-size:clamp(1.1rem,2.8vw,1.8rem);line-height:1.6;letter-spacing:.02em;white-space:pre-wrap;overflow-wrap:break-word;border:3px solid #3a3e8a}
+.ty-line .c{color:#c9cdf5;border-bottom:3px solid transparent}
+.ty-line .c.ok{color:#6bcb77}
+.ty-line .c.cur{background:#ffd23f;color:#1a1b3f;border-radius:4px}
+.ty-line .c.cur.bad{background:#ff8a9a;animation:tyShake .25s}
+@keyframes tyShake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.wob{animation:tyShake .25s}
+
+/* racer */
+.ty-track{display:flex;flex-direction:column;gap:8px}
+.ty-track .lane{display:flex;align-items:center;gap:10px}
+.ty-track .lab{width:7.5em;font-size:.85rem;font-weight:bold;text-align:right;flex:none;color:#e6e8ff}
+.ty-track .road{position:relative;flex:1;height:2.6em;border-radius:12px;background:repeating-linear-gradient(90deg,#3a3e5a 0 28px,#444866 28px 56px);border:3px solid #1a1b3f}
+.ty-track .car{position:absolute;top:50%;left:2%;transform:translateY(-50%) scaleX(-1);font-size:1.8rem;line-height:1;transition:left .12s linear}
+.ty-track .lane.ghost .car{opacity:.75}
+.ty-track .flag{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:1.5rem}
+
+/* word blaster */
+.ty-field{position:relative;flex:1 1 auto;min-height:150px;border-radius:16px;overflow:hidden;background:rgba(5,8,30,.45);border:3px solid #3a3e8a}
+.ty-word{position:absolute;padding:.15em .6em;border-radius:99px;background:#fff;color:#1a1b3f;font-family:"Courier New",Consolas,monospace;font-weight:bold;font-size:clamp(1rem,2.2vw,1.5rem);white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.35);border:3px solid #9aa0ff}
+.ty-word .c.ok{color:#1fa84f}
+.ty-word.locked{border-color:#ffd23f;background:#fff8d0}
+.ty-word.shake{animation:tyShake .25s}
+.ty-word.boom{animation:tyBoom .38s ease-out forwards}
+.ty-word.hit{animation:tyHit .35s ease-out forwards}
+@keyframes tyBoom{to{transform:scale(1.7);opacity:0}}
+@keyframes tyHit{to{transform:scale(.6);opacity:0;background:#ff8a9a}}
+.ty-field .ship{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font-size:2.4rem;line-height:1}
+.ty-field .beam{position:absolute;bottom:40px;width:4px;margin-left:-2px;border-radius:4px;background:linear-gradient(#fff,#5ac8ff);opacity:0;transform-origin:50% 100%;transition:opacity .12s;bottom:44px;top:auto}
+
+/* boss */
+.ty-boss{display:flex;flex-direction:column;align-items:center;gap:4px}
+.ty-boss .face{font-size:clamp(3rem,10vh,5.5rem);line-height:1.05}
+.ty-boss .face.hurt{animation:tyShake .2s}
+.ty-boss .face.roar{animation:tyRoar .5s}
+@keyframes tyRoar{40%{transform:scale(1.35)}}
+.ty-boss .lab{font-size:.8rem;font-weight:bold;color:#e6e8ff}
+.ty-boss .bar{width:min(420px,80%);height:14px;border-radius:99px;background:rgba(0,0,0,.45);overflow:hidden;border:2px solid #1a1b3f}
+.ty-boss .bar i{display:block;height:100%;width:100%;border-radius:99px;transition:width .2s}
+.ty-boss .hp i{background:linear-gradient(90deg,#ff5c72,#ff9f45)}
+.ty-boss .pw i{width:0;background:linear-gradient(90deg,#ffd23f,#ff5c72)}
+.ty-snum{text-align:center;font-weight:bold;color:#e6e8ff;font-size:.9rem}
+
+/* on-screen keyboard */
+.ty-kbwrap{flex:none;display:flex;justify-content:center}
+.ty-kb{display:flex;flex-direction:column;gap:3px;align-items:center}
+.ty-kb .kr{display:flex;gap:3px;justify-content:center}
+.tk{min-width:var(--k);height:calc(var(--k)*.85);padding:0 4px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:calc(var(--k)*.38);font-weight:bold;color:#1a1b3f;border-bottom:3px solid rgba(0,0,0,.3);background:#ddd;position:relative}
+.tk.space{min-width:calc(var(--k)*6)}
+.tk.shift{min-width:calc(var(--k)*1.9);font-size:calc(var(--k)*.3)}
+.tk.bump::after{content:"";position:absolute;bottom:3px;width:40%;height:2px;background:rgba(0,0,0,.45);border-radius:2px}
+.tk.f-LP{background:#ff9aae}.tk.f-LR{background:#ffb877}.tk.f-LM{background:#ffe27a}.tk.f-LI{background:#8fe09a}
+.tk.f-RI{background:#7adbe0}.tk.f-RM{background:#8fb8ff}.tk.f-RR{background:#c4a0ff}.tk.f-RP{background:#ff9ad8}.tk.f-TH{background:#cfd2ee}
+.tk.hl{outline:4px solid #fff;outline-offset:1px;transform:translateY(-3px) scale(1.12);z-index:2;box-shadow:0 0 14px #fff}
+
+/* report */
+.ty-report h3{margin:0;font-size:clamp(1.1rem,2.6vw,1.6rem)}
+.rep-game{width:100%;background:var(--panel);border-radius:16px;padding:10px 12px;border:3px solid #3a3e8a;text-align:left}
+.rep-game .rg{font-weight:bold;margin-bottom:6px}
+.rep-levels{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px}
+.rl{background:#1a1b3f;border-radius:8px;padding:4px 2px;text-align:center;font-size:.75rem;display:flex;flex-direction:column;min-width:0}
+.rl b{font-size:.9rem}
+.rl.ok{background:#1f4a3a}.rl.try{background:#4a3a1f}
+.rep-p{margin:0;font-size:1rem}
+.rep-note{margin:0;color:var(--ink-dim);font-size:.85rem}
+
+/* small screens: keep everything inside the stage */
+@media (max-width:760px){
+  .ty-levels{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .rep-levels{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .ty-track .lab{width:5em;font-size:.7rem}
+  .ty-play{padding:8px;--k:24px}
+}
+@media (max-height:620px){
+  .ty-kbwrap .kr:first-child{display:none}
+  .ty-line{padding:8px 12px}
+}
+@media print{
+  body *{visibility:hidden}
+  .ty-report,.ty-report *{visibility:visible}
+  .ty-report{position:absolute;left:0;top:0;width:100%;color:#000;background:#fff}
+  .ty-report .ty-opts{display:none}
+}
+
+/* short windows: tighten the menu screens so they fit without scrolling */
+@media (max-height:700px){
+  .ty-home,.ty-map,.ty-report{gap:8px;padding:10px 14px}
+  .ty-title{font-size:1.7rem}
+  .ty-gcard{padding:10px 10px}.ty-gcard .gi{font-size:2.2rem}
+  .rep-game{padding:6px 10px}.rep-game .rg{margin-bottom:3px}
+  .ty-tile{padding:8px 4px 6px}.ty-tile .ic{font-size:1.7rem}
+}

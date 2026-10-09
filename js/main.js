@@ -11,15 +11,16 @@ const MODES = {
   blaster:  { icon: '🚀', name: 'Star Blaster',  desc: 'Pop the friendly space rocks',    color: '#6bcb77' },
   piano:    { icon: '🎹', name: 'Piano',         desc: 'Play songs on 5 keys',            color: '#ff9f45' },
   commando: { icon: '🤖', name: 'Commando Run',  desc: 'Run, jump and blast the bots',    color: '#a77bff' },
-  pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy',          color: '#22c6c6' }
+  pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy',          color: '#22c6c6' },
+  typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Full keyboard: race, blast, beat the boss', color: '#5ac8ff' }
 };
 const SESSIONS = {
   '1': { title: 'Session 1 · Year 1, 2 & 3', modes: ['skills', 'fruit', 'words', 'jump', 'blaster'] },
-  '2': { title: 'Session 2 · Year 4, 5 & 6', modes: ['piano', 'jump', 'blaster', 'commando', 'pattern'] }
+  '2': { title: 'Session 2 · Year 4, 5 & 6', modes: ['piano', 'jump', 'blaster', 'commando', 'pattern', 'typing'] }
 };
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
-const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null };
+const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null };
 
 function showOnly(el) {
   document.querySelectorAll('.screen, .mode').forEach(function (s) { s.hidden = true; });
@@ -85,7 +86,7 @@ window.addEventListener('keydown', function (e) {
   CC.held[e.code] = true;
   if (CC.audio.ctx && CC.audio.ctx.state === 'suspended') CC.audio.ctx.resume();
   if (CC.ui.handleKey(e)) return;
-  if (e.code === 'Escape' && !e.repeat && CC.pausable[app.mode] && ['jump', 'blaster', 'commando', 'pattern'].indexOf(app.mode) >= 0) { CC.togglePause(app.mode); return; }
+  if (e.code === 'Escape' && !e.repeat && CC.pausable[app.mode] && ['jump', 'blaster', 'commando', 'pattern', 'typing'].indexOf(app.mode) >= 0) { CC.togglePause(app.mode); return; }
   const m = CC.modes[app.mode]; if (!m) return;
   // Only the 5 Makey Makey keys are blocked, and only in the Makey modes. Full-keyboard modes keep normal key behaviour.
   if (m.makey && CC.MAKEY_KEYS.indexOf(e.code) >= 0) e.preventDefault();

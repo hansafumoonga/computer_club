@@ -43,6 +43,7 @@ These games use only the five Makey Makey keys: Left, Up, Down, Right and Space.
 - **Jump Over!**, **Star Blaster**
 - **Commando Run**: 15 stages with big creatures, ending with a dragon king.
 - **Pattern Pop!**: watch, listen and copy.
+- **Typing Club** (needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Blaster** (zap falling words) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise.
 
 ### For teachers
 - A **pause** button in every game (the Escape key also works in the arrow-key games).
@@ -62,6 +63,7 @@ These games use only the five Makey Makey keys: Left, Up, Down, Right and Space.
 3. Share `https://<your-name>.github.io/<repo-name>/`.
 
 ## Files
+- `css/typing.css`, `js/typing_data.js`, `js/typing.js`: Typing Club (styling, levels and sentences, engine)
 - `index.html`: the page
 - `css/style.css`: styling for the whole system
 - `css/skills.css`, `js/skills.js`, `js/skills_levels.js`: Click & Type Quest (engine and all level content)
