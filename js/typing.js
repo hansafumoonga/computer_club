@@ -387,43 +387,46 @@ function certFacts() {
 function certSvg(name) {
   const W = 1123, H = 794, n = (name || '').trim(), dt = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }), f = certFacts();
   const serif = "Georgia,'Times New Roman',serif", sans = "'Trebuchet MS','Segoe UI',Arial,sans-serif", hand = "'Segoe Script','Brush Script MT','Lucida Handwriting',cursive", mid = W / 2;
-  let g = '<rect width="' + W + '" height="' + H + '" fill="#fffaf0"/>';
-  KEYC.forEach(function (c, i) { const o = 12 + i * 7; g += '<rect x="' + o + '" y="' + o + '" width="' + (W - 2 * o) + '" height="' + (H - 2 * o) + '" rx="' + (16 - i * 2) + '" fill="none" stroke="' + c[0] + '" stroke-width="7"/>'; });
-  g += '<rect x="58" y="58" width="' + (W - 116) + '" height="' + (H - 116) + '" rx="6" fill="none" stroke="#15163a" stroke-width="2"/>';
-  const club = CC.APP_NAME.toUpperCase(), nk = club.replace(/ /g, '').length, ks = nk > 12 ? 42 : 46, gap = 8, wgap = 28; let x = (W - (nk * ks + (nk - 2) * gap + wgap)) / 2, ci = 0;
-  club.split('').forEach(function (ch) {
-    if (ch === ' ') { x += wgap - gap; return; }
-    const c = KEYC[ci++ % 5];
-    g += '<rect x="' + x + '" y="89" width="' + ks + '" height="' + ks + '" rx="10" fill="' + c[1] + '"/><rect x="' + x + '" y="84" width="' + ks + '" height="' + ks + '" rx="10" fill="' + c[0] + '"/>' +
-      '<text x="' + (x + ks / 2) + '" y="117" font-family="' + sans + '" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">' + ch + '</text>';
-    x += ks + gap;
+  const NAVY = '#14224a', GOLD = '#b8892b', GOLD2 = '#e3b94f', INK = '#2b3350', SOFT = '#6b7390';
+  const medalCol = { Gold: ['#f4cf5a', '#b8892b'], Silver: ['#e3e7ef', '#8a93a8'], Bronze: ['#e0a070', '#9a5a2a'] }[f.tier] || ['#e3b94f', '#b8892b'];
+  let g = '<defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + GOLD2 + '"/><stop offset="1" stop-color="' + GOLD + '"/></linearGradient>' +
+    '<linearGradient id="md" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + medalCol[0] + '"/><stop offset="1" stop-color="' + medalCol[1] + '"/></linearGradient></defs>';
+  g += '<rect width="' + W + '" height="' + H + '" fill="#fbf8f0"/>';
+  /* faint key-grid watermark */
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++) g += '<rect x="' + (110 + c * 66) + '" y="' + (250 + r * 66) + '" width="54" height="54" rx="9" fill="none" stroke="' + NAVY + '" stroke-opacity=".05" stroke-width="2"/>';
+  /* frame: navy band, thin gold line, corner blocks */
+  g += '<rect x="22" y="22" width="' + (W - 44) + '" height="' + (H - 44) + '" fill="none" stroke="' + NAVY + '" stroke-width="10"/>';
+  g += '<rect x="42" y="42" width="' + (W - 84) + '" height="' + (H - 84) + '" fill="none" stroke="url(#gd)" stroke-width="2.5"/>';
+  [[22, 22], [W - 22, 22], [22, H - 22], [W - 22, H - 22]].forEach(function (p) { g += '<rect x="' + (p[0] - 22) + '" y="' + (p[1] - 22) + '" width="44" height="44" fill="' + NAVY + '"/><rect x="' + (p[0] - 13) + '" y="' + (p[1] - 13) + '" width="26" height="26" fill="none" stroke="url(#gd)" stroke-width="2.5"/>'; });
+  /* header */
+  g += '<text x="' + mid + '" y="108" font-family="' + sans + '" font-size="19" font-weight="bold" letter-spacing="7" fill="' + GOLD + '" text-anchor="middle">TECH EXPLORERS  ·  TYPING CLUB</text>';
+  g += '<line x1="' + (mid - 60) + '" y1="128" x2="' + (mid + 60) + '" y2="128" stroke="url(#gd)" stroke-width="3"/>';
+  g += '<text x="' + mid + '" y="200" font-family="' + serif + '" font-size="58" font-weight="bold" letter-spacing="5" fill="' + NAVY + '" text-anchor="middle">CERTIFICATE</text>';
+  g += '<text x="' + mid + '" y="236" font-family="' + serif + '" font-size="22" letter-spacing="9" fill="' + SOFT + '" text-anchor="middle">OF ACHIEVEMENT</text>';
+  g += '<text x="' + mid + '" y="292" font-family="' + serif + '" font-size="21" font-style="italic" fill="' + SOFT + '" text-anchor="middle">This certificate is proudly presented to</text>';
+  const fsz = n.length <= 14 ? 66 : n.length <= 20 ? 52 : 42;
+  g += '<text x="' + mid + '" y="366" font-family="' + hand + '" font-size="' + fsz + '" fill="' + NAVY + '" text-anchor="middle">' + esc(n) + '</text>';
+  g += '<line x1="260" y1="384" x2="863" y2="384" stroke="url(#gd)" stroke-width="2.5"/>';
+  g += '<text x="' + mid + '" y="424" font-family="' + sans + '" font-size="20" fill="' + INK + '" text-anchor="middle">for completing all ' + LEVELS.length + ' levels of <tspan font-weight="bold">' + esc(f.game ? f.game.name : 'Typing Club') + '</tspan></text>';
+  g += '<text x="' + mid + '" y="452" font-family="' + sans + '" font-size="20" fill="' + INK + '" text-anchor="middle">and for showing accuracy, focus and steady typing skill  ·  Year ' + S.year + '</text>';
+  /* three stat blocks */
+  const stats = [[f.best ? String(f.best) : '–', 'WORDS A MINUTE'], [f.avg + '%', 'ACCURACY'], [String(f.stars), 'STARS EARNED']];
+  stats.forEach(function (s, i) {
+    const x = 226 + i * 236, y = 492;
+    g += '<rect x="' + x + '" y="' + y + '" width="212" height="100" rx="6" fill="#fff" stroke="' + NAVY + '" stroke-opacity=".25" stroke-width="2"/><rect x="' + x + '" y="' + y + '" width="6" height="100" fill="url(#gd)"/>';
+    g += '<text x="' + (x + 112) + '" y="' + (y + 56) + '" font-family="' + serif + '" font-size="46" font-weight="bold" fill="' + NAVY + '" text-anchor="middle">' + s[0] + '</text>';
+    g += '<text x="' + (x + 112) + '" y="' + (y + 84) + '" font-family="' + sans + '" font-size="13" font-weight="bold" letter-spacing="2.5" fill="' + SOFT + '" text-anchor="middle">' + s[1] + '</text>';
   });
-  g += '<text x="' + mid + '" y="222" font-family="' + serif + '" font-size="56" font-weight="bold" fill="#15163a" text-anchor="middle">Certificate of Achievement</text>';
-  g += '<text x="' + mid + '" y="266" font-family="' + serif + '" font-size="25" font-style="italic" fill="#555" text-anchor="middle">proudly presented to</text>';
-  const fsz = n.length <= 14 ? 62 : n.length <= 20 ? 50 : 40;
-  g += '<text x="' + mid + '" y="340" font-family="' + hand + '" font-size="' + fsz + '" fill="#d8334e" text-anchor="middle">' + esc(n) + '</text>';
-  g += '<line x1="290" y1="356" x2="833" y2="356" stroke="#e0a800" stroke-width="3"/>';
-  g += '<text x="' + mid + '" y="398" font-family="' + sans + '" font-size="23" fill="#333" text-anchor="middle">for finishing all ' + LEVELS.length + ' levels of</text>';
-  g += '<text x="' + mid + '" y="448" font-family="' + sans + '" font-size="40" font-weight="bold" fill="#e07a1a" text-anchor="middle">Typing Club' + (f.game ? ' · ' + esc(f.game.name) : '') + '</text>';
-  g += '<text x="' + mid + '" y="482" font-family="' + sans + '" font-size="21" fill="#333" text-anchor="middle">Typing skills · Year ' + S.year + '</text>';
-  const facts = [];
-  if (f.best) facts.push('Best speed: ' + f.best + ' words a minute');
-  facts.push('Accuracy: ' + f.avg + '%');
-  g += '<text x="' + mid + '" y="530" font-family="' + sans + '" font-size="20" fill="#555" text-anchor="middle">' + esc(facts.join('  •  ')) + '</text>';
-  if (f.tier) g += '<text x="' + mid + '" y="562" font-family="' + sans + '" font-size="22" font-weight="bold" fill="#15163a" text-anchor="middle">' + esc(f.tier) + ' Typist Medal</text>';
-  g += '<polygon points="' + starPath(mid - 90, 598, 12, 5) + '" fill="#ffc92e" stroke="#e0a800"/><text x="' + (mid - 70) + '" y="604" font-family="' + sans + '" font-size="19" font-weight="bold" fill="#15163a">Stars collected: ' + f.stars + '</text>';
-  /* a keyboard on each side */
-  [82, 849].forEach(function (x0, ki) {
-    const y0 = 330;
-    g += '<rect x="' + x0 + '" y="' + y0 + '" width="192" height="76" rx="9" fill="#eceeff" stroke="#15163a" stroke-width="3"/>';
-    [[10, 0, 337], [9, 7, 351], [8, 14, 365]].forEach(function (r, ri) { for (let i = 0; i < r[0]; i++) { const c = KEYC[(i + ri + ki) % 5]; g += '<rect x="' + (x0 + 8 + r[1] + i * 17.6) + '" y="' + r[2] + '" width="14" height="10.5" rx="2.6" fill="' + c[0] + '" stroke="' + c[1] + '" stroke-width="1"/>'; } });
-    g += '<rect x="' + (x0 + 40) + '" y="' + (y0 + 60) + '" width="112" height="10" rx="3" fill="#c9f0ff" stroke="#139a9a" stroke-width="1.2"/>';
-  });
-  g += '<polygon points="' + starPath(1010, 310, 8, 3.2) + '" fill="#ffd23f"/><polygon points="' + starPath(238, 440, 6, 2.4) + '" fill="#6bcb77"/><polygon points="' + starPath(78, 440, 7, 2.8) + '" fill="#ff5c72"/>';
-  g += '<polygon points="536,690 516,752 541,740 555,757 561,694" fill="#ff5c72"/><polygon points="586,690 606,752 581,740 567,757 561,694" fill="#3b82f6"/>';
-  g += '<circle cx="561" cy="668" r="46" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="668" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPath(561, 668, 24, 10) + '" fill="#e07a1a"/>';
-  g += '<text x="240" y="702" font-family="' + sans + '" font-size="20" fill="#15163a" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="710" x2="360" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="240" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
-  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="883" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher, ' + esc(CC.APP_NAME) + '</text>';
+  /* medal seal */
+  const sx = mid, sy = 660;
+  g += '<polygon points="' + (sx - 28) + ',' + (sy + 22) + ' ' + (sx - 46) + ',' + (sy + 82) + ' ' + (sx - 24) + ',' + (sy + 70) + ' ' + (sx - 10) + ',' + (sy + 86) + ' ' + (sx - 4) + ',' + (sy + 28) + '" fill="' + NAVY + '"/>';
+  g += '<polygon points="' + (sx + 28) + ',' + (sy + 22) + ' ' + (sx + 46) + ',' + (sy + 82) + ' ' + (sx + 24) + ',' + (sy + 70) + ' ' + (sx + 10) + ',' + (sy + 86) + ' ' + (sx + 4) + ',' + (sy + 28) + '" fill="' + GOLD + '"/>';
+  g += '<circle cx="' + sx + '" cy="' + sy + '" r="46" fill="url(#md)" stroke="' + NAVY + '" stroke-width="3"/><circle cx="' + sx + '" cy="' + sy + '" r="36" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2" stroke-dasharray="3 4"/>';
+  g += '<polygon points="' + starPath(sx, sy, 22, 9) + '" fill="' + NAVY + '"/>';
+  if (f.tier) g += '<text x="' + (mid + 64) + '" y="' + (sy + 6) + '" font-family="' + sans + '" font-size="15" font-weight="bold" letter-spacing="2.5" fill="' + medalCol[1] + '" text-anchor="start">' + esc(f.tier.toUpperCase()) + ' SPEED</text>';
+  /* date and signature */
+  g += '<text x="215" y="688" font-family="' + sans + '" font-size="19" fill="' + INK + '" text-anchor="middle">' + esc(dt) + '</text><line x1="105" y1="700" x2="325" y2="700" stroke="' + NAVY + '" stroke-width="1.5"/><text x="215" y="724" font-family="' + sans + '" font-size="13" letter-spacing="3" fill="' + SOFT + '" text-anchor="middle">DATE</text>';
+  g += '<line x1="798" y1="700" x2="1018" y2="700" stroke="' + NAVY + '" stroke-width="1.5"/><text x="908" y="724" font-family="' + sans + '" font-size="13" letter-spacing="3" fill="' + SOFT + '" text-anchor="middle">TEACHER</text>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 function showCertificate() {
