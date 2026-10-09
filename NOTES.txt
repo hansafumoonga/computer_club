@@ -101,6 +101,8 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
   Star Blaster  js/blaster.js
     BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, BLASTER_WEAPON_SECONDS, FIRE_DELAY,
     ENEMIES (size/speed/hits), BLASTER_LEVELS: count, gap, types, speedMul, rockHp, boss (hit points).
+  Builder Club  js/builder_data.js (every picture is plain SVG: add a build by copying one entry; each piece has a short word) and js/builder.js
+                (KINDS: which mouse skill each level asks for; hint/assist times are in update(); stars: 0 assists / few misses = 3).
   Typing Club   js/typing_data.js (TARGET_WPM per year: 4=12, 5=18, 6=24; every level's words and sentences) and js/typing.js
                 (stars: 90% accuracy = 2, 95% = 3; Word Blaster/Boss pace come from the year's target). Full keyboard, Session 2.
   Pattern Pop!  js/pattern.js   PATTERN_START_LENGTH, PATTERN_LIT_SECONDS, PATTERN_GAP_SECONDS, PATTERN_GRACE_RETRIES.

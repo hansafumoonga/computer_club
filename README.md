@@ -33,6 +33,7 @@ What that means for you:
 
 ### Session 1: Year 1, 2 and 3 (normal keyboard and mouse)
 - **Click & Type Quest**: a guided adventure of 10 levels that teaches the mouse (moving, clicking, choosing, drag and drop, connecting, double-click, right-click) and the keyboard (finding letters, small and BIG letters, Caps Lock, words, Space, Backspace, Enter). A friendly guide called Buddy shows each action first, then the learner tries, with gentle hints and stars. Finishing all 10 levels unlocks a printable **certificate**.
+- **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. In **Type & Build** the child types each word to add a piece; in **Click & Build** they use the mouse (click, drag, double-click and right-click). Very gentle: hints and help appear by themselves, and every picture earns at least one star. Finishing all 10 pictures in one game unlocks a printable certificate.
 - **Slice & Pop**: press the right letter to slice or pop.
 - **Word Hunt**: a computer-words word search with 10 levels.
 - **Jump Over!** and **Star Blaster**: simple arcade games with many levels.
@@ -63,6 +64,7 @@ These games use only the five Makey Makey keys: Left, Up, Down, Right and Space.
 3. Share `https://<your-name>.github.io/<repo-name>/`.
 
 ## Files
+- `css/builder.css`, `js/builder_data.js`, `js/builder.js`: Builder Club (styling, the drawn pictures and their words, engine)
 - `css/typing.css`, `js/typing_data.js`, `js/typing.js`: Typing Club (styling, levels and sentences, engine)
 - `index.html`: the page
 - `css/style.css`: styling for the whole system

@@ -12,15 +12,16 @@ const MODES = {
   piano:    { icon: '🎹', name: 'Piano',         desc: 'Play songs on 5 keys',            color: '#ff9f45' },
   commando: { icon: '🤖', name: 'Commando Run',  desc: 'Run, jump and blast the bots',    color: '#a77bff' },
   pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy',          color: '#22c6c6' },
+  builder:  { icon: '🏗️', name: 'Builder Club',  desc: 'Type or click to build a car, a house, a city!', color: '#22b8cf' },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Full keyboard: race, blast, beat the boss', color: '#5ac8ff' }
 };
 const SESSIONS = {
-  '1': { title: 'Session 1 · Year 1, 2 & 3', modes: ['skills', 'fruit', 'words', 'jump', 'blaster'] },
+  '1': { title: 'Session 1 · Year 1, 2 & 3', modes: ['skills', 'builder', 'fruit', 'words', 'jump', 'blaster'] },
   '2': { title: 'Session 2 · Year 4, 5 & 6', modes: ['piano', 'jump', 'blaster', 'commando', 'pattern', 'typing'] }
 };
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
-const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null };
+const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, builder: 'words' };
 
 function showOnly(el) {
   document.querySelectorAll('.screen, .mode').forEach(function (s) { s.hidden = true; });

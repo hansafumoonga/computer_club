@@ -161,7 +161,7 @@
 
 /* certificate */
 .ty-certwrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 14px;width:100%}
-.ty-cert{width:min(100%,calc((100vh - 230px) * 1.414));min-width:min(100%,480px);background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.45);overflow:hidden;line-height:0}
+.ty-cert{width:min(100%,calc((100vh - 280px) * 1.414));min-width:min(100%,480px);background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.45);overflow:hidden;line-height:0}
 .ty-cert svg{width:100%;height:auto;display:block}
 @media print{
   @page{size:A4 landscape;margin:0}
@@ -173,3 +173,7 @@
   .ty-cert svg{width:297mm;height:210mm}
   .ty-certwrap .ty-opts,.ty-certwrap .rep-note{display:none !important}
 }
+
+/* the certificate must never be squashed: let the page scroll instead */
+.ty-certwrap>*{flex:none}
+.ty-root>.ty-certwrap{min-height:min-content}
