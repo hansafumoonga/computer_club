@@ -74,40 +74,84 @@
 @keyframes tyShake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 .wob{animation:tyShake .25s}
 
-/* racer */
-.ty-track{display:flex;flex-direction:column;gap:8px}
-.ty-track .lane{display:flex;align-items:center;gap:10px}
-.ty-track .lab{width:7.5em;font-size:.85rem;font-weight:bold;text-align:right;flex:none;color:#e6e8ff}
-.ty-track .road{position:relative;flex:1;height:2.6em;border-radius:12px;background:repeating-linear-gradient(90deg,#3a3e5a 0 28px,#444866 28px 56px);border:3px solid #1a1b3f}
-.ty-track .car{position:absolute;top:50%;left:2%;transform:translateY(-50%) scaleX(-1);font-size:1.8rem;line-height:1;transition:left .12s linear}
-.ty-track .lane.ghost .car{opacity:.75}
-.ty-track .flag{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:1.5rem}
+/* ---------- animated backgrounds ---------- */
+.ty-play{position:relative;overflow:hidden}
+.ty-play>*:not(.ty-bg){position:relative;z-index:1}
+.ty-bg,.ty-field .ty-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.ty-field .ty-bg{z-index:1}
+.bgi{position:absolute;opacity:.55;line-height:1;animation-timing-function:linear;animation-iteration-count:infinite}
+.bgi.drift{left:-12%;animation-name:bgDrift}
+.bgi.fall{top:-10%;animation-name:bgFall}
+.bgi.rise{top:105%;animation-name:bgRise}
+@keyframes bgDrift{from{left:-12%}to{left:108%}}
+@keyframes bgFall{from{top:-10%;transform:rotate(0)}to{top:105%;transform:rotate(300deg)}}
+@keyframes bgRise{from{top:105%;transform:translateX(0)}50%{transform:translateX(14px)}to{top:-10%;transform:translateX(0)}}
+.ty-play.still *{animation-play-state:paused !important}
 
-/* word blaster */
-.ty-field{position:relative;flex:1 1 auto;min-height:150px;border-radius:16px;overflow:hidden;background:rgba(5,8,30,.45);border:3px solid #3a3e8a}
-.ty-word{position:absolute;padding:.15em .6em;border-radius:99px;background:#fff;color:#1a1b3f;font-family:"Courier New",Consolas,monospace;font-weight:bold;font-size:clamp(1rem,2.2vw,1.5rem);white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.35);border:3px solid #9aa0ff}
-.ty-word .c.ok{color:#1fa84f}
-.ty-word.locked{border-color:#ffd23f;background:#fff8d0}
-.ty-word.shake{animation:tyShake .25s}
-.ty-word.boom{animation:tyBoom .38s ease-out forwards}
-.ty-word.hit{animation:tyHit .35s ease-out forwards}
-@keyframes tyBoom{to{transform:scale(1.7);opacity:0}}
-@keyframes tyHit{to{transform:scale(.6);opacity:0;background:#ff8a9a}}
-.ty-field .ship{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font-size:2.4rem;line-height:1}
-.ty-field .beam{position:absolute;bottom:40px;width:4px;margin-left:-2px;border-radius:4px;background:linear-gradient(#fff,#5ac8ff);opacity:0;transform-origin:50% 100%;transition:opacity .12s;bottom:44px;top:auto}
+/* racer: a real-looking sports car on a road, with hills that slide past and an evening that slowly arrives */
+.ty-track{position:relative;border-radius:16px;overflow:hidden;border:3px solid #1a1b3f;background:linear-gradient(#8fd8ff,#e9f8ff);flex:none}
+.ty-track .scn{position:relative;height:clamp(46px,10vh,92px)}
+.ty-track .scn .l{position:absolute;inset:0;background-repeat:repeat-x;background-position:0 100%}
+.ty-track .scn .far{background-size:auto 100%}
+.ty-track .scn .near{background-size:auto 70%}
+.ty-track .scn .tint{background:#ff7a3a;opacity:0;mix-blend-mode:multiply;transition:opacity .4s}
+.ty-track .lane{position:relative;height:clamp(54px,9.5vh,86px);background:linear-gradient(#5b607a,#464a63);border-top:4px solid #cfd3e8}
+.ty-track .lane+.lane{border-top:3px dashed #e8c84a}
+.ty-track .lane::after{content:"";position:absolute;left:0;right:0;bottom:5px;height:4px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 26px,transparent 26px 58px)}
+.ty-track.go .lane::after{animation:tyRoad .35s linear infinite}
+@keyframes tyRoad{to{background-position-x:-58px}}
+.ty-track .tag{position:absolute;left:8px;top:4px;font-size:.7rem;font-weight:bold;background:rgba(0,0,0,.5);color:#fff;border-radius:99px;padding:.05em .6em;z-index:2}
+.ty-track .car{position:absolute;bottom:4px;left:2%;width:clamp(78px,15%,150px);transition:left .12s linear;z-index:1}
+.ty-track .car svg{display:block;width:100%;height:auto;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35))}
+.ty-track .lane.ghost .car{opacity:.82}
+.ty-track .wh{transform-box:fill-box;transform-origin:center}
+.ty-track.go .wh{animation:tySpin .3s linear infinite}
+@keyframes tySpin{to{transform:rotate(360deg)}}
+.ty-track .flag{position:absolute;right:0;top:0;bottom:0;width:18px;background:repeating-conic-gradient(#fff 0 25%,#222 0 50%) 0 0/9px 9px;z-index:0}
 
-/* boss */
+/* word blaster: balloons float up over a sky that goes from day to sunset to a starry night */
+.ty-field{position:relative;flex:1 1 auto;min-height:150px;border-radius:16px;overflow:hidden;border:3px solid #fff;box-shadow:0 0 0 3px #3a3e8a}
+.ty-field .sk{position:absolute;inset:0;opacity:0;transition:opacity 3s}
+.ty-field .sk.on{opacity:1}
+.sk.d{background:linear-gradient(#6fc8ff,#d8f3ff)}
+.sk.s{background:linear-gradient(#ff8a5c,#ffc98a 55%,#ffe9b8)}
+.sk.n{background:radial-gradient(2px 2px at 20% 20%,#fff,transparent),radial-gradient(2px 2px at 70% 30%,#fff,transparent),radial-gradient(2px 2px at 40% 60%,#fff,transparent),radial-gradient(2px 2px at 85% 70%,#fff,transparent),radial-gradient(2px 2px at 10% 80%,#fff,transparent),radial-gradient(2px 2px at 55% 12%,#fff,transparent),radial-gradient(2px 2px at 92% 15%,#fff,transparent),linear-gradient(#10204a,#3a2f7a)}
+.ty-bal{position:absolute;z-index:2;animation:tySway 2.8s ease-in-out infinite alternate}
+.ty-bal .bb{display:flex;justify-content:center;align-items:center;padding:.85em 1.15em 1.15em;min-width:4.2em;font-family:"Courier New",Consolas,monospace;font-weight:bold;font-size:clamp(1rem,2.2vw,1.5rem);color:#1a1b3f;white-space:nowrap;
+  background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.8),transparent 34%),var(--c);border-radius:50% 50% 50% 50%/58% 58% 42% 42%;border:3px solid rgba(26,27,63,.75);box-shadow:inset -7px -9px 0 rgba(0,0,0,.12)}
+.ty-bal .kn{position:absolute;left:50%;bottom:-8px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:9px solid var(--c);transform:translateX(-50%)}
+.ty-bal .sg{position:absolute;left:50%;top:100%;margin-top:1px;width:2px;height:30px;background:rgba(26,27,63,.55);transform:translateX(-50%) rotate(4deg);transform-origin:top}
+.ty-bal .c.ok{color:#fff;text-shadow:0 1px 0 #1a1b3f}
+.ty-bal.locked .bb{border-color:#fff;box-shadow:inset -7px -9px 0 rgba(0,0,0,.12),0 0 0 4px #ffd23f,0 0 16px #ffd23f}
+.ty-bal.shake{animation:tyShake .25s}
+.ty-bal.boom{animation:tyBoom .22s ease-out forwards}
+.ty-bal.hit{animation:tyFly .6s ease-in forwards}
+@keyframes tySway{from{transform:translateX(-7px) rotate(-3deg)}to{transform:translateX(7px) rotate(3deg)}}
+@keyframes tyBoom{to{transform:scale(1.6);opacity:0}}
+@keyframes tyFly{to{transform:translateY(-70px) scale(.7);opacity:0}}
+.ty-field .cf{position:absolute;z-index:3;width:9px;height:9px;border-radius:2px;animation:tyConf .7s ease-out forwards}
+@keyframes tyConf{to{transform:translate(var(--dx),var(--dy)) rotate(360deg);opacity:0}}
+.ty-field .ship{position:absolute;left:calc(50% - 1.3rem);bottom:2px;font-size:2.4rem;line-height:1;z-index:3}
+.ty-field .beam{position:absolute;bottom:46px;width:6px;margin-left:-3px;border-radius:6px;background:linear-gradient(#fff,#ffe27a,#ff8ad8);transform-origin:50% 100%;opacity:0;transition:opacity .12s;z-index:3}
+
+/* boss: each level has its own drawn monster that breathes and blinks */
 .ty-boss{display:flex;flex-direction:column;align-items:center;gap:4px}
-.ty-boss .face{font-size:clamp(3rem,10vh,5.5rem);line-height:1.05}
+.ty-boss .face{line-height:0;display:flex;justify-content:center}
+.ty-boss .face .mon{height:clamp(96px,22vh,190px);width:auto;animation:tyBreath 2.6s ease-in-out infinite;transform-origin:50% 100%;filter:drop-shadow(0 8px 6px rgba(0,0,0,.35))}
+@keyframes tyBreath{50%{transform:scale(1.04,.97)}}
+.mon .ey{transform-box:fill-box;transform-origin:center;animation:tyBlink 4.5s infinite}
+@keyframes tyBlink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.mon .mo{transform-box:fill-box;transform-origin:center top}
+.ty-boss .face.roar .mo{transform:scaleY(1.4)}
 .ty-boss .face.hurt{animation:tyShake .2s}
 .ty-boss .face.roar{animation:tyRoar .5s}
-@keyframes tyRoar{40%{transform:scale(1.35)}}
-.ty-boss .lab{font-size:.8rem;font-weight:bold;color:#e6e8ff}
+@keyframes tyRoar{40%{transform:scale(1.25)}}
+.ty-boss .lab{font-size:.8rem;font-weight:bold;color:#e6e8ff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
 .ty-boss .bar{width:min(420px,80%);height:14px;border-radius:99px;background:rgba(0,0,0,.45);overflow:hidden;border:2px solid #1a1b3f}
 .ty-boss .bar i{display:block;height:100%;width:100%;border-radius:99px;transition:width .2s}
 .ty-boss .hp i{background:linear-gradient(90deg,#ff5c72,#ff9f45)}
 .ty-boss .pw i{width:0;background:linear-gradient(90deg,#ffd23f,#ff5c72)}
-.ty-snum{text-align:center;font-weight:bold;color:#e6e8ff;font-size:.9rem}
+.ty-snum{text-align:center;font-weight:bold;color:#e6e8ff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
 
 /* on-screen keyboard */
 .ty-kbwrap{flex:none;display:flex;justify-content:center}

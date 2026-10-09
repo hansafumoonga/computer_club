@@ -1,6 +1,6 @@
 /* typing.js - Typing Club (Session 2, FULL keyboard). Three games that all train the same thing: accurate, steady typing.
      Typing Racer    - race a car by typing a passage; beat your own best "ghost"
-     Word Blaster    - zap falling words by typing them
+     Word Pop        - pop floating balloons by typing the word
      Boss Sentences  - type sentences to beat a friendly boss
    Stars reward ACCURACY first (finish = 1, 90% = 2, 95% = 3); speed earns a separate medal. Nothing is saved or sent anywhere. */
 (function () {
@@ -15,10 +15,9 @@ function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { co
 
 const GAMES = [
   { id: 'racer', icon: '🏎️', name: 'Typing Racer', desc: 'Race your own best time', color: '#ff7a8a' },
-  { id: 'blaster', icon: '🚀', name: 'Word Blaster', desc: 'Zap the falling words', color: '#5ac8ff' },
+  { id: 'blaster', icon: '🎈', name: 'Word Pop', desc: 'Pop the floating balloons', color: '#5ac8ff' },
   { id: 'boss', icon: '🐲', name: 'Boss Sentences', desc: 'Type sentences to beat the boss', color: '#ffd23f' }
 ];
-const BOSSES = ['🐙', '🦖', '🤖', '👾', '🦂', '🦑', '👻', '🐊', '🧌', '🐉'];
 
 /* ---------- state for the whole visit (nothing is stored on disk) ---------- */
 const S = { year: 4, name: '', view: 'home', game: 'racer', level: 1, guide: true, unlockAll: false, best: {}, ghost: {}, keys: {}, rounds: [], run: null, timers: [], loop: null, view2: null };
@@ -86,20 +85,18 @@ function showHome() {
   stopRun(); CC.ui.close();
   const h = el('div', 'ty-home');
   h.appendChild(el('div', 'ty-title', '⌨️ Typing Club'));
-  h.appendChild(el('p', 'ty-sub', 'You need a full keyboard for these games. Accuracy first, then speed!'));
   const setup = el('div', 'ty-setup');
   const yrs = el('div', 'ty-years'); yrs.appendChild(el('span', '', 'I am in Year'));
-  [4, 5, 6].forEach(function (y) { const b = el('button', 'btn yr' + (S.year === y ? ' on' : ''), String(y)); b.type = 'button'; b.addEventListener('click', function () { b.blur(); S.year = y; yrs.querySelectorAll('.yr').forEach(function (x, i) { x.classList.toggle('on', i + 4 === y); }); goal.textContent = '🎯 My goal: ' + target() + ' words a minute'; }); yrs.appendChild(b); });
+  [4, 5, 6].forEach(function (y) { const b = el('button', 'btn yr' + (S.year === y ? ' on' : ''), String(y)); b.type = 'button'; b.addEventListener('click', function () { b.blur(); S.year = y; yrs.querySelectorAll('.yr').forEach(function (x, i) { x.classList.toggle('on', i + 4 === y); }); }); yrs.appendChild(b); });
   setup.appendChild(yrs);
   const nm = el('input', 'ty-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name'); nm.addEventListener('input', function () { S.name = nm.value; });
   setup.appendChild(nm); h.appendChild(setup);
-  const goal = el('p', 'ty-goal', '🎯 My goal: ' + target() + ' words a minute'); h.appendChild(goal);
   const cards = el('div', 'ty-games');
   GAMES.forEach(function (g) {
     const done = LEVELS.filter(function (l) { const b = bestOf(g.id, l.id); return b && b.stars >= 1; }).length;
     const c = el('button', 'ty-gcard'); c.type = 'button'; c.style.setProperty('--c', g.color);
-    c.innerHTML = '<span class="gi">' + g.icon + '</span><span class="gn"></span><span class="gd"></span><span class="gp"></span>';
-    c.querySelector('.gn').textContent = g.name; c.querySelector('.gd').textContent = g.desc; c.querySelector('.gp').textContent = done + ' / 10 levels';
+    c.innerHTML = '<span class="gi">' + g.icon + '</span><span class="gn"></span><span class="gp"></span>';
+    c.querySelector('.gn').textContent = g.name; c.querySelector('.gp').textContent = done + ' / 10 levels';
     c.addEventListener('click', function () { c.blur(); CC.audio.init(); S.game = g.id; showMap(); }); cards.appendChild(c);
   });
   h.appendChild(cards);
@@ -171,6 +168,7 @@ function hud(R) {
 function refresh(R) { if (!R.ui.wpm) return; R.ui.wpm.textContent = '⚡ ' + Math.round(wpm(R)) + ' wpm'; R.ui.acc.textContent = '🎯 ' + Math.round(acc(R)) + '%'; }
 function buildPlay(R) {
   const p = el('div', 'ty-play ty-t-' + R.L.theme + ' g-' + R.game);
+  addBg(p, R.L.theme, R.game === 'blaster' ? 4 : 12);
   p.appendChild(hud(R));
   const main = el('div', 'ty-main'); p.appendChild(main); R.ui.main = main;
   R.ui.count = el('div', 'ty-count', ''); main.appendChild(R.ui.count);
@@ -185,13 +183,56 @@ function markLine(line, i, bad) {
   for (let k = 0; k < cs.length; k++) cs[k].className = 'c' + (k < i ? ' ok' : k === i ? ' cur' + (bad ? ' bad' : '') : '');
 }
 
+/* ---------- animated backgrounds: clouds, bubbles, snow, embers ... drift behind every game ---------- */
+const BGK = { jungle: ['🍃', '🦋', 'fall'], beach: ['☁️', '🐦', 'drift'], volcano: ['🔥', '✨', 'rise'], ocean: ['🫧', '🐟', 'rise'], desert: ['☁️', '🌵', 'drift'], snow: ['❄️', '❄️', 'fall'], city: ['☁️', '🌟', 'drift'], lab: ['💾', '✨', 'rise'], candy: ['🍬', '🍭', 'fall'], sky: ['☁️', '🎈', 'drift'], clouds: ['☁️', '☁️', 'drift'] };
+function addBg(host, theme, n) {
+  const k = BGK[theme] || BGK.sky, bg = el('div', 'ty-bg');
+  for (let i = 0; i < (n || 12); i++) {
+    const s = el('span', 'bgi ' + k[2], k[i % 2]);
+    s.style.fontSize = (14 + Math.random() * 22) + 'px'; s.style.animationDuration = (14 + Math.random() * 16) + 's'; s.style.animationDelay = (-Math.random() * 28) + 's';
+    if (k[2] === 'drift') s.style.top = (Math.random() * 70) + '%'; else s.style.left = (Math.random() * 94) + '%';
+    bg.appendChild(s);
+  }
+  host.insertBefore(bg, host.firstChild); return bg;
+}
+let svgId = 0;
+function confetti(host, x, y, n) {
+  for (let k = 0; k < (n || 10); k++) {
+    const s = el('i', 'cf'), a = Math.random() * 6.283, r = 36 + Math.random() * 50;
+    s.style.cssText = 'left:' + x + 'px;top:' + y + 'px;background:' + BAL[k % BAL.length] + ';--dx:' + (Math.cos(a) * r).toFixed(0) + 'px;--dy:' + (Math.sin(a) * r - 18).toFixed(0) + 'px';
+    host.appendChild(s); later(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 750);
+  }
+}
+
 /* ================= game 1: Typing Racer ================= */
+function wheelSvg(cx) {
+  return '<circle cx="' + cx + '" cy="64" r="19" fill="#0d0d18"/><g class="wh"><circle cx="' + cx + '" cy="64" r="15" fill="#23233a" stroke="#0d0d18" stroke-width="2"/><circle cx="' + cx + '" cy="64" r="9" fill="#d5d9ee"/>' +
+    '<path d="M' + cx + ',55 V73 M' + (cx - 9) + ',64 H' + (cx + 9) + ' M' + (cx - 6.4) + ',57.6 L' + (cx + 6.4) + ',70.4 M' + (cx + 6.4) + ',57.6 L' + (cx - 6.4) + ',70.4" stroke="#8a90ac" stroke-width="2"/><circle cx="' + cx + '" cy="64" r="3" fill="#1d1d33"/></g>';
+}
+function carSvg(c1, c2) {
+  const id = 'cg' + (svgId++), ink = '#1d1d33';
+  return '<svg viewBox="0 0 210 86" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient>' +
+    '<linearGradient id="' + id + 'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cdeeff"/><stop offset="1" stop-color="#2d4f86"/></linearGradient></defs>' +
+    '<ellipse cx="105" cy="80" rx="92" ry="5" fill="#000" opacity=".28"/>' +
+    '<path d="M4,46 L2,28 L34,28 L34,33 L12,35 L12,46 Z" fill="' + ink + '"/>' +
+    '<path d="M6,62 L6,50 Q6,43 22,41 L60,36 Q74,16 102,14 L134,14 Q154,15 164,34 L190,40 Q204,43 204,54 L204,62 Q204,66 198,66 L12,66 Q6,66 6,62 Z" fill="url(#' + id + ')" stroke="' + ink + '" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<path d="M68,34 Q80,21 100,20 L112,20 L112,34 Z" fill="url(#' + id + 'g)" stroke="' + ink + '" stroke-width="2"/><path d="M118,20 L134,20 Q148,21 156,34 L118,34 Z" fill="url(#' + id + 'g)" stroke="' + ink + '" stroke-width="2"/>' +
+    '<path d="M112,34 V62" stroke="' + ink + '" stroke-width="2" opacity=".5"/><rect x="124" y="46" width="12" height="3.5" rx="1.7" fill="#fff" opacity=".85"/><path d="M12,56 L196,56" stroke="#fff" stroke-width="2.5" opacity=".35"/>' +
+    '<rect x="6" y="46" width="9" height="7" rx="2" fill="#ff9aa8"/><ellipse cx="198" cy="48" rx="7" ry="5" fill="#fff6b0" stroke="' + ink + '" stroke-width="1.5"/>' + wheelSvg(54) + wheelSvg(156) + '</svg>';
+}
+const SCENE = { jungle: ['#4fae6a', '#2f8a4a'], beach: ['#e8d9a0', '#c9b878'], volcano: ['#8a4a4a', '#5a2a2a'], ocean: ['#5aa0c8', '#3a7aa8'], desert: ['#e0b878', '#c09050'], snow: ['#e8f2fa', '#b9d0e6'], city: ['#8a8fb5', '#6a6f95'], lab: ['#6aa8a8', '#4a8888'], candy: ['#f2a0c8', '#d870a8'], sky: ['#bcd6f5', '#8fb4e0'] };
+function tile(svg) { return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")'; }
+function farTile(c) { return tile('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="100" viewBox="0 0 600 100"><path d="M0,100 V62 Q75,8 150,56 T300,48 T450,38 T600,62 V100Z" fill="' + c + '"/></svg>'); }
+function nearTile(c) { let p = ''; for (let x = 20; x < 400; x += 70) p += '<path d="M' + (x - 16) + ',80 L' + x + ',22 L' + (x + 16) + ',80Z" fill="' + c + '"/><rect x="' + (x - 3) + '" y="78" width="6" height="2" fill="' + c + '"/>'; return tile('<svg xmlns="http://www.w3.org/2000/svg" width="420" height="80" viewBox="0 0 420 80">' + p + '</svg>'); }
 function setupRacer(R) {
-  R.text = passageFor(R.lv); R.i = 0;
+  R.text = passageFor(R.lv); R.i = 0; R.lastOk = -9;
   const key = 'racer:' + R.lv, gh = S.ghost[key] || null; R.ghostRec = gh; R.cps = target() * 5 / 60;
-  const track = el('div', 'ty-track');
-  function lane(label, emoji, cls) { const l = el('div', 'lane ' + cls), lab = el('div', 'lab', label), road = el('div', 'road'), car = el('div', 'car', emoji); road.appendChild(car); road.appendChild(el('div', 'flag', '🏁')); l.appendChild(lab); l.appendChild(road); track.appendChild(l); return car; }
-  R.ui.you = lane('You', '🏎️', 'you'); R.ui.ghost = lane(gh ? 'Your best' : 'Pace car (' + target() + ' wpm)', gh ? '🚙' : '🐢', 'ghost');
+  const sc = SCENE[R.L.theme] || SCENE.sky, track = el('div', 'ty-track'); R.ui.track = track;
+  const scn = el('div', 'scn'); R.ui.far = el('div', 'l far'); R.ui.near = el('div', 'l near'); R.ui.tint = el('div', 'l tint');
+  R.ui.far.style.backgroundImage = farTile(sc[0]); R.ui.near.style.backgroundImage = nearTile(sc[1]); scn.appendChild(R.ui.far); scn.appendChild(R.ui.near); scn.appendChild(R.ui.tint); track.appendChild(scn);
+  function lane(label, c1, c2, cls) { const l = el('div', 'lane ' + cls), car = el('div', 'car'); car.innerHTML = carSvg(c1, c2); l.appendChild(el('div', 'tag', label)); l.appendChild(car); l.appendChild(el('div', 'flag')); track.appendChild(l); return car; }
+  R.ui.you = lane('You', '#ff5c72', '#c4223c', 'you');
+  R.ui.ghost = gh ? lane('Your best', '#6aa8ff', '#2f5fc8', 'ghost') : lane('Pace car (' + target() + ' wpm)', '#ffd23f', '#d89a00', 'ghost');
   R.ui.main.appendChild(track);
   R.ui.line = lineEl(R.text); R.ui.main.appendChild(R.ui.line); markLine(R.ui.line, 0);
   R.ui.extra.textContent = '🏁 0%'; R.begin = function () { hlKey(R.text[0]); };
@@ -200,43 +241,50 @@ function setupRacer(R) {
 function racerChar(R, ch) {
   if (!R.started) { R.started = true; R.t = 0; R.lastT = 0; }
   const exp = R.text[R.i];
-  if (ch === exp) { noteKey(exp, true, R); R.correct++; R.times.push(R.t); R.i++; CC.sfx.tick && CC.sfx.tick(); markLine(R.ui.line, R.i); R.ui.you.parentNode.classList.remove('wob');
+  if (ch === exp) { noteKey(exp, true, R); R.correct++; R.times.push(R.t); R.i++; R.lastOk = R.t; CC.sfx.tick && CC.sfx.tick(); markLine(R.ui.line, R.i);
     if (R.i >= R.text.length) { finishRun(R, true); return; } hlKey(R.text[R.i]); }
   else { noteKey(exp, false, R); R.errors++; CC.sfx.softMiss && CC.sfx.softMiss(); markLine(R.ui.line, R.i, true); wobble(R.ui.you); }
   racerPos(R); refresh(R);
 }
 function wobble(e) { e.classList.remove('wob'); void e.offsetWidth; e.classList.add('wob'); }
 function racerPos(R) {
-  const p = R.i / R.text.length; R.ui.you.style.left = (2 + p * 86) + '%'; R.ui.extra.textContent = '🏁 ' + Math.round(p * 100) + '%';
+  const p = R.i / R.text.length; R.ui.you.style.left = (2 + p * 81) + '%'; R.ui.extra.textContent = '🏁 ' + Math.round(p * 100) + '%';
   let gp; if (R.ghostRec) { const tt = R.ghostRec.times, n = R.ghostRec.times.length; let k = R.gi || 0; while (k < n && tt[k] <= R.t) k++; R.gi = k; gp = k / n; }
   else gp = Math.min(1, (R.started ? R.t : 0) * R.cps / R.text.length);
-  R.ui.ghost.style.left = (2 + gp * 86) + '%';
+  R.ui.ghost.style.left = (2 + gp * 81) + '%';
+  R.ui.far.style.backgroundPositionX = (-p * 520) + 'px'; R.ui.near.style.backgroundPositionX = (-p * 1400) + 'px'; R.ui.tint.style.opacity = (p * 0.4).toFixed(2);   // the day slowly turns to evening
+  R.ui.track.classList.toggle('go', R.started && R.t - R.lastOk < 1.2);                                                                                      // the wheels and road move while you type
 }
 function racerUpdate(R, dt) { if (R.phase !== 'play') return; if (R.started) R.t += dt; racerPos(R); refresh(R); }
 
-/* ================= game 2: Word Blaster ================= */
+/* ================= game 2: Word Blaster (balloons float up; type a word to pop it) ================= */
+const BAL = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#4f9bff', '#a77bff', '#ff8ad8'];
 function setupBlaster(R) {
-  const L = R.L; R.words = []; R.spawned = 0; R.N = Math.min(30, 12 + 2 * R.lv); R.shields = 3; R.score = 0; R.streak = 0; R.target = null; R.started = true; R.spawnT = 0.6;
+  const L = R.L; R.words = []; R.spawned = 0; R.N = Math.min(30, 12 + 2 * R.lv); R.shields = 3; R.score = 0; R.streak = 0; R.target = null; R.started = true; R.spawnT = 0.6; R.skyStage = -1;
   const pool = shuffle(L.words); R.queue = []; while (R.queue.length < R.N) R.queue = R.queue.concat(shuffle(pool)); R.queue = R.queue.slice(0, R.N);
   const cps = target() * 5 / 60, demand = clamp(0.5 + 0.05 * R.lv, 0.55, 1.0), avg = R.queue.reduce(function (a, w) { return a + w.length; }, 0) / R.N;
   R.interval = clamp((avg + 1) / (cps * demand), 1.8, 5.2); R.fallSecs = clamp(15 - R.lv * 0.7 - (S.year - 4) * 0.8, 6.5, 14);
   const f = el('div', 'ty-field'); R.ui.field = f; R.ui.main.appendChild(f);
-  R.ui.ship = el('div', 'ship', '🚀'); f.appendChild(R.ui.ship); R.ui.beam = el('div', 'beam'); f.appendChild(R.ui.beam);
-  R.ui.extra.textContent = '🛡️🛡️🛡️  ·  0'; R.begin = function () { R.spawnT = 0.3; };
+  R.ui.sky = ['d', 's', 'n'].map(function (c) { const l = el('div', 'sk ' + c); f.appendChild(l); return l; });
+  addBg(f, 'clouds', 6);
+  R.ui.ship = el('div', 'ship', '🧚'); f.appendChild(R.ui.ship); R.ui.beam = el('div', 'beam'); f.appendChild(R.ui.beam);
+  setSky(R, 0); blasterUI(R); R.begin = function () { R.spawnT = 0.3; };
   hlKey(null);
 }
-function blasterUI(R) { R.ui.extra.textContent = '🛡️'.repeat(Math.max(0, R.shields)) + '  ·  ⭐ ' + R.score + (R.streak >= 3 ? '  🔥x' + (1 + Math.floor(R.streak / 3)) : ''); }
+function setSky(R, k) { if (R.skyStage === k) return; R.skyStage = k; R.ui.sky.forEach(function (l, i) { l.classList.toggle('on', i === k); }); }   // day, then sunset, then a starry night
+function blasterUI(R) { R.ui.extra.textContent = '❤️'.repeat(Math.max(0, R.shields)) + '🖤'.repeat(Math.max(0, 3 - R.shields)) + '  ·  ⭐ ' + R.score + (R.streak >= 3 ? '  🔥x' + (1 + Math.floor(R.streak / 3)) : ''); }
 function spawnWord(R) {
-  const text = R.queue[R.spawned++], d = el('div', 'ty-word'); text.split('').forEach(function (ch) { d.appendChild(el('span', 'c', ch)); });
+  const text = R.queue[R.spawned++], d = el('div', 'ty-bal'); d.style.setProperty('--c', BAL[Math.floor(Math.random() * BAL.length)]);
+  const bb = el('div', 'bb'); text.split('').forEach(function (ch) { bb.appendChild(el('span', 'c', ch)); }); d.appendChild(bb); d.appendChild(el('i', 'kn')); d.appendChild(el('i', 'sg'));
   const lanes = 5; let lane = Math.floor(Math.random() * lanes); if (lane === R.lastLane) lane = (lane + 2) % lanes; R.lastLane = lane;
-  const w = { text: text, i: 0, y: -30, el: d, lane: lane }; d.style.left = (8 + lane * 18) + '%'; d.style.top = '-30px'; R.ui.field.appendChild(d); R.words.push(w);
+  const H = R.ui.field.clientHeight || 340, w = { text: text, i: 0, y: H, el: d, bb: bb, lane: lane }; d.style.left = (6 + lane * 18) + '%'; d.style.top = H + 'px'; R.ui.field.appendChild(d); R.words.push(w);
+  setSky(R, Math.min(2, Math.floor(R.spawned / R.N * 3)));
 }
-function targetWord(R) { return R.target; }
 function setTarget(R, w) { if (R.target) R.target.el.classList.remove('locked'); R.target = w; if (w) { w.el.classList.add('locked'); hlKey(w.text[w.i]); } else hlKey(null); }
-function paintWord(w) { const cs = w.el.children; for (let k = 0; k < cs.length; k++) cs[k].className = 'c' + (k < w.i ? ' ok' : ''); }
+function paintWord(w) { const cs = w.bb.children; for (let k = 0; k < cs.length; k++) cs[k].className = 'c' + (k < w.i ? ' ok' : ''); }
 function blasterChar(R, ch) {
   let w = R.target;
-  if (!w) { const cands = R.words.filter(function (x) { return x.text[0] === ch; }).sort(function (a, b) { return b.y - a.y; }); if (!cands.length) { noteKey(ch, false, R); R.errors++; R.streak = 0; CC.sfx.softMiss && CC.sfx.softMiss(); wobble(R.ui.ship); refresh(R); blasterUI(R); return; } w = cands[0]; setTarget(R, w); }
+  if (!w) { const cands = R.words.filter(function (x) { return x.text[0] === ch; }).sort(function (a, b) { return a.y - b.y; }); if (!cands.length) { noteKey(ch, false, R); R.errors++; R.streak = 0; CC.sfx.softMiss && CC.sfx.softMiss(); wobble(R.ui.ship); refresh(R); blasterUI(R); return; } w = cands[0]; setTarget(R, w); }
   const exp = w.text[w.i];
   if (ch === exp) { noteKey(exp, true, R); R.correct++; w.i++; paintWord(w); CC.sfx.tick && CC.sfx.tick();
     if (w.i >= w.text.length) { R.correct++; zap(R, w); } else hlKey(w.text[w.i]); }
@@ -245,20 +293,21 @@ function blasterChar(R, ch) {
 }
 function zap(R, w) {
   R.streak++; R.score += w.text.length * 10 * (1 + Math.min(4, Math.floor(R.streak / 3))); CC.sfx.pop && CC.sfx.pop();
-  const f = R.ui.field, fw = f.clientWidth || 600, bx = fw / 2, wx = w.el.offsetLeft + w.el.offsetWidth / 2, wy = w.y + 12, dx = wx - bx, dy = (f.clientHeight || 340) - 50 - wy;
-  R.ui.beam.style.cssText = 'left:' + bx + 'px;height:' + Math.hypot(dx, dy) + 'px;transform:rotate(' + Math.atan2(dx, dy) * -1 + 'rad);opacity:1';
-  later(function () { R.ui.beam.style.opacity = '0'; }, 120);
-  w.el.classList.add('boom'); R.words.splice(R.words.indexOf(w), 1); if (R.target === w) R.target = null; hlKey(null); later(function () { if (w.el.parentNode) w.el.parentNode.removeChild(w.el); }, 380);
+  const f = R.ui.field, H = f.clientHeight || 340, bx = (f.clientWidth || 600) / 2, wx = w.el.offsetLeft + w.el.offsetWidth / 2, wy = w.y + 26, dx = wx - bx, dy = H - 46 - wy;
+  R.ui.beam.style.cssText = 'left:' + bx + 'px;height:' + Math.max(10, Math.hypot(dx, dy)) + 'px;transform:rotate(' + Math.atan2(dx, dy) + 'rad);opacity:1';
+  later(function () { R.ui.beam.style.opacity = '0'; }, 140);
+  confetti(f, wx, wy, 12);
+  w.el.classList.add('boom'); R.words.splice(R.words.indexOf(w), 1); if (R.target === w) R.target = null; hlKey(null); later(function () { if (w.el.parentNode) w.el.parentNode.removeChild(w.el); }, 220);
   if (R.spawned >= R.N && !R.words.length) finishRun(R, true);
 }
 function blasterUpdate(R, dt) {
   if (R.phase !== 'play') return; R.t += dt;
-  const H = R.ui.field.clientHeight || 340, v = (H - 50) / R.fallSecs;
+  const H = R.ui.field.clientHeight || 340, v = (H + 70) / R.fallSecs;
   R.spawnT -= dt; if (R.spawnT <= 0 && R.spawned < R.N) { spawnWord(R); R.spawnT = R.interval * (0.85 + Math.random() * 0.3); }
   for (let i = R.words.length - 1; i >= 0; i--) {
-    const w = R.words[i]; w.y += v * dt; w.el.style.top = w.y + 'px';
-    if (w.y >= H - 56) {                              // reached the ship: a shield breaks (never a hard "game over" sound)
-      R.shields--; R.streak = 0; if (R.target === w) { R.target = null; hlKey(null); } R.words.splice(i, 1); w.el.classList.add('hit'); later(function () { if (w.el.parentNode) w.el.parentNode.removeChild(w.el); }, 350); CC.sfx.softMiss && CC.sfx.softMiss(); wobble(R.ui.ship); blasterUI(R);
+    const w = R.words[i]; w.y -= v * dt; w.el.style.top = w.y + 'px';
+    if (w.y <= -64) {                                  // a balloon floated away: a heart is lost (never a hard "game over" sound)
+      R.shields--; R.streak = 0; if (R.target === w) { R.target = null; hlKey(null); } R.words.splice(i, 1); w.el.classList.add('hit'); later(function () { if (w.el.parentNode) w.el.parentNode.removeChild(w.el); }, 600); CC.sfx.softMiss && CC.sfx.softMiss(); wobble(R.ui.ship); blasterUI(R);
       if (R.shields <= 0) { finishRun(R, false); return; }
       if (R.spawned >= R.N && !R.words.length) { finishRun(R, true); return; }
     }
@@ -267,11 +316,35 @@ function blasterUpdate(R, dt) {
 }
 
 /* ================= game 3: Boss Sentences ================= */
+/* each level has its own monster: [body colour, shade, eyes, horns ('horn' | 'spike' | ''), wings, antenna, belly colour] */
+const MON = [['#6bcb77', '#2f9f4f', 2, 'horn', 0, 0, '#d9f7c9'], ['#ff9f45', '#d9701a', 1, '', 0, 1, '#ffe3b8'], ['#ff6b6b', '#c93a3a', 2, 'horn', 1, 0, '#ffd0c0'], ['#4f9bff', '#2a5fc0', 3, 'spike', 0, 0, '#cfe4ff'], ['#e0b060', '#b07a2a', 2, 'spike', 0, 0, '#fff0c8'],
+  ['#d6ecff', '#8fb8e0', 2, 'horn', 0, 0, '#ffffff'], ['#a77bff', '#6a40c8', 2, 'horn', 1, 0, '#e6dcff'], ['#22c6c6', '#128a8a', 3, '', 0, 1, '#c8f5f5'], ['#ff8ad8', '#d04aa0', 1, 'spike', 0, 0, '#ffd8f2'], ['#ffd23f', '#e08a00', 3, 'horn', 1, 1, '#fff3b8']];
+function monsterSvg(lv) {
+  const m = MON[lv - 1], id = 'mg' + (svgId++), A = m[0], B = m[1], ink = '#2b2540', st = ' stroke="' + ink + '" stroke-width="3" stroke-linejoin="round"';
+  let s = '<svg class="mon" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="' + id + '" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="' + A + '"/><stop offset="1" stop-color="' + B + '"/></radialGradient></defs>';
+  s += '<ellipse cx="100" cy="193" rx="64" ry="6" fill="#000" opacity=".25"/>';
+  if (m[4]) { const w = '<path d="M54,104 Q6,64 12,16 Q40,38 58,70 Q42,60 34,52 Q44,82 62,98 Z" fill="' + B + '"' + st + '/>'; s += w + '<g transform="translate(200,0) scale(-1,1)">' + w + '</g>'; }
+  s += '<ellipse cx="68" cy="184" rx="25" ry="11" fill="' + B + '"' + st + '/><ellipse cx="132" cy="184" rx="25" ry="11" fill="' + B + '"' + st + '/>';
+  s += '<ellipse cx="36" cy="126" rx="13" ry="26" transform="rotate(25 36 126)" fill="' + A + '"' + st + '/><ellipse cx="164" cy="126" rx="13" ry="26" transform="rotate(-25 164 126)" fill="' + A + '"' + st + '/>';
+  if (m[3] === 'horn') s += '<polygon points="58,66 44,20 86,52" fill="#ffe6a8"' + st + '/><polygon points="142,66 156,20 114,52" fill="#ffe6a8"' + st + '/>';
+  if (m[3] === 'spike') s += '<polygon points="66,54 78,22 92,50" fill="' + B + '"' + st + '/><polygon points="88,48 100,12 112,48" fill="' + B + '"' + st + '/><polygon points="108,50 122,22 134,54" fill="' + B + '"' + st + '/>';
+  if (m[5]) s += '<path d="M100,52 V22" stroke="' + ink + '" stroke-width="4" stroke-linecap="round"/><circle cx="100" cy="17" r="8" fill="#ff5c72"' + st + '/>';
+  s += '<ellipse cx="100" cy="120" rx="68" ry="70" fill="url(#' + id + ')"' + st + '/><ellipse cx="100" cy="146" rx="40" ry="38" fill="' + m[6] + '" opacity=".9"/>';
+  s += '<circle cx="64" cy="100" r="6" fill="' + B + '" opacity=".35"/><circle cx="142" cy="92" r="5" fill="' + B + '" opacity=".35"/><circle cx="150" cy="118" r="7" fill="' + B + '" opacity=".3"/>';
+  s += '<g class="ey">';
+  if (m[2] === 1) s += '<circle cx="100" cy="92" r="23" fill="#fff"' + st + '/><circle cx="100" cy="95" r="11" fill="' + ink + '"/><circle cx="95" cy="89" r="4" fill="#fff"/>';
+  else { s += '<circle cx="76" cy="92" r="17" fill="#fff"' + st + '/><circle cx="124" cy="92" r="17" fill="#fff"' + st + '/><circle cx="78" cy="95" r="8" fill="' + ink + '"/><circle cx="122" cy="95" r="8" fill="' + ink + '"/><circle cx="75" cy="91" r="3" fill="#fff"/><circle cx="119" cy="91" r="3" fill="#fff"/>';
+    if (m[2] === 3) s += '<circle cx="100" cy="66" r="10" fill="#fff"' + st + '/><circle cx="100" cy="68" r="5" fill="' + ink + '"/>';
+    s += '<path d="M54,70 L92,80 M146,70 L108,80" stroke="' + ink + '" stroke-width="5" stroke-linecap="round"/>'; }
+  s += '</g><ellipse cx="58" cy="118" rx="9" ry="6" fill="#ff8aa0" opacity=".5"/><ellipse cx="142" cy="118" rx="9" ry="6" fill="#ff8aa0" opacity=".5"/>';
+  s += '<g class="mo"><path d="M64,124 Q100,178 136,124 Q100,136 64,124 Z" fill="#5a1530"' + st + '/><ellipse cx="100" cy="150" rx="15" ry="7" fill="#ff7a9a"/><polygon points="74,127 82,141 90,130" fill="#fff"/><polygon points="94,131 100,144 106,131" fill="#fff"/><polygon points="110,130 118,141 126,127" fill="#fff"/></g></svg>';
+  return s;
+}
 function setupBoss(R) {
   const L = R.L, count = [3, 3, 3, 4, 4, 4, 4, 4, 5, 2][R.lv - 1];
   R.sentences = shuffle(L.sentences).slice(0, count); R.si = 0; R.i = 0; R.hearts = 3; R.power = 0; R.hpMax = R.sentences.reduce(function (a, s) { return a + s.length; }, 0); R.dmg = 0;
-  R.factor = 0.45 + 0.045 * R.lv; R.cps = target() * 5 / 60 * R.factor; R.boss = BOSSES[R.lv - 1];
-  const b = el('div', 'ty-boss'); R.ui.boss = el('div', 'face', R.boss); const hpw = el('div', 'bar hp'); R.ui.hp = el('i'); hpw.appendChild(R.ui.hp); const pw = el('div', 'bar pw'); R.ui.pw = el('i'); pw.appendChild(R.ui.pw);
+  R.factor = 0.45 + 0.045 * R.lv; R.cps = target() * 5 / 60 * R.factor;
+  const b = el('div', 'ty-boss'); R.ui.boss = el('div', 'face'); R.ui.boss.innerHTML = monsterSvg(R.lv); const hpw = el('div', 'bar hp'); R.ui.hp = el('i'); hpw.appendChild(R.ui.hp); const pw = el('div', 'bar pw'); R.ui.pw = el('i'); pw.appendChild(R.ui.pw);
   const lab1 = el('div', 'lab', 'Boss health'), lab2 = el('div', 'lab', 'Boss power: type before it fills!');
   b.appendChild(R.ui.boss); b.appendChild(lab1); b.appendChild(hpw); b.appendChild(lab2); b.appendChild(pw); R.ui.main.appendChild(b);
   R.ui.num = el('div', 'ty-snum'); R.ui.main.appendChild(R.ui.num);
@@ -464,7 +537,7 @@ CC.modes.typing = {
   makey: false,
   enter: function () {
     CC.audio.init(); CC.watchStage($stage()); stopRun();
-    if (!S.loop) S.loop = CC.createLoop(update, function () { });
+    if (!S.loop) S.loop = CC.createLoop(update, function () { const pl = document.querySelector('#ty-root .ty-play'); if (pl) pl.classList.toggle('still', CC.paused || !S.run || S.run.phase !== 'play'); });
     S.loop.start(); showHome();
   },
   exit: function () { stopRun(); if (S.loop) S.loop.stop(); S.view = 'home'; },
