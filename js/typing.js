@@ -1,4 +1,4 @@
-/* typing.js - Typing Club (Session 2, FULL keyboard). Three games that all train the same thing: accurate, steady typing.
+/* typing.js - Typing Club (Years 4-6, FULL keyboard). Three games that all train the same thing: accurate, steady typing.
      Typing Racer    - race a car by typing a passage; beat your own best "ghost"
      Word Pop        - pop floating balloons by typing the word
      Boss Sentences  - type sentences to beat a friendly boss
@@ -88,7 +88,7 @@ function showHome() {
   const setup = el('div', 'ty-setup');
   const yrs = el('div', 'ty-years'); yrs.appendChild(el('span', '', 'I am in Year'));
   [4, 5, 6].forEach(function (y) { const b = el('button', 'btn yr' + (S.year === y ? ' on' : ''), String(y)); b.type = 'button'; b.addEventListener('click', function () { b.blur(); S.year = y; yrs.querySelectorAll('.yr').forEach(function (x, i) { x.classList.toggle('on', i + 4 === y); }); }); yrs.appendChild(b); });
-  setup.appendChild(yrs);
+  if (!S.fixedYear) setup.appendChild(yrs);
   const nm = el('input', 'ty-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name'); nm.addEventListener('input', function () { S.name = nm.value; });
   setup.appendChild(nm); h.appendChild(setup);
   const cards = el('div', 'ty-games');
@@ -535,9 +535,10 @@ function showCertificate() {
 /* ---------- plug into the Computer Club hub ---------- */
 CC.modes.typing = {
   makey: false,
-  enter: function () {
+  enter: function (a) {
     CC.audio.init(); CC.watchStage($stage()); stopRun();
     if (!S.loop) S.loop = CC.createLoop(update, function () { const pl = document.querySelector('#ty-root .ty-play'); if (pl) pl.classList.toggle('still', CC.paused || !S.run || S.run.phase !== 'play'); });
+    S.fixedYear = !!(a && a.year >= 4 && a.year <= 6); if (S.fixedYear) S.year = a.year;
     S.loop.start(); showHome();
   },
   exit: function () { stopRun(); if (S.loop) S.loop.stop(); S.view = 'home'; },

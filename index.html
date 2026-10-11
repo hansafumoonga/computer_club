@@ -5,58 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tech Explorers · Keyboard &amp; Mouse Skills</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%8C%A8%EF%B8%8F%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/style.css?v=48">
-<link rel="stylesheet" href="css/skills.css?v=48">
-<link rel="stylesheet" href="css/typing.css?v=48">
-<link rel="stylesheet" href="css/builder.css?v=48">
+<link rel="stylesheet" href="css/style.css?v=51">
+<link rel="stylesheet" href="css/skills.css?v=51">
+<link rel="stylesheet" href="css/typing.css?v=51">
+<link rel="stylesheet" href="css/builder.css?v=51">
 </head>
 <body>
 
-<!-- ============ SCREEN 1: pick a session ============ -->
+<!-- ============ SCREEN 1: pick a year ============ -->
 <section class="screen landing" id="screen-session">
   <div class="drift" id="drift" aria-hidden="true"></div>
   <h1 class="logo" aria-label="Tech Explorers">
     <span class="logo-row" id="logo1"></span>
     <span class="logo-row" id="logo2"></span>
   </h1>
-  <div class="session-cards">
-    <button class="session-card s1" data-session="1" aria-label="Session 1, Year 1 2 3">
-      <span class="card-art"><span class="mini-kb" id="mini-kb" aria-hidden="true"></span></span>
-      <span class="card-title">Session 1</span>
-      <span class="card-sub">Year 1 · 2 · 3</span>
-      <span class="card-go">▶</span>
-    </button>
-    <button class="session-card s2" data-session="2" aria-label="Session 2, Year 4 5 6, Makey Makey">
-      <span class="card-art">
-        <svg class="mk" viewBox="0 0 260 150" aria-hidden="true">
-          <rect x="4" y="4" width="252" height="86" rx="16" fill="#1a1b3f" stroke="#3a3e8a" stroke-width="4"/>
-          <g font-family="Trebuchet MS,sans-serif" font-weight="bold" font-size="20" text-anchor="middle">
-            <circle cx="34" cy="47" r="21" fill="#ff5c72"/><text x="34" y="54" fill="#fff">←</text>
-            <circle cx="80" cy="47" r="21" fill="#ff9f45"/><text x="80" y="54" fill="#fff">↑</text>
-            <circle cx="126" cy="47" r="21" fill="#ffd23f"/><text x="126" y="54" fill="#1a1b3f">↓</text>
-            <circle cx="172" cy="47" r="21" fill="#6bcb77"/><text x="172" y="54" fill="#fff">→</text>
-            <rect x="198" y="26" width="50" height="42" rx="14" fill="#22c6c6"/><text x="223" y="52" font-size="13" fill="#fff">Space</text>
-          </g>
-          <g fill="none" stroke-width="4" stroke-linecap="round">
-            <path d="M34 90 C34 112 22 116 22 128" stroke="#ff5c72"/><path d="M80 90 C80 112 74 116 74 128" stroke="#ff9f45"/>
-            <path d="M126 90 C126 112 128 116 128 128" stroke="#ffd23f"/><path d="M172 90 C172 112 182 116 182 128" stroke="#6bcb77"/><path d="M223 90 C223 112 234 116 234 128" stroke="#22c6c6"/>
-          </g>
-          <g font-size="26" text-anchor="middle"><text x="22" y="148">🍌</text><text x="74" y="148">🍊</text><text x="128" y="148">🍎</text><text x="182" y="148">🍓</text><text x="234" y="148">🍇</text></g>
-        </svg>
-      </span>
-      <span class="card-title">Session 2</span>
-      <span class="card-sub">Year 4 · 5 · 6</span>
-      <span class="card-go">▶</span>
-    </button>
-  </div>
+  <div class="year-cards" id="year-cards"></div>
   <p class="foot">🔊 ⌨️ 🎮</p>
 </section>
 
-<!-- ============ SCREEN 2: pick a mode ============ -->
+<!-- ============ SCREEN 2: pick a game ============ -->
 <section class="screen" id="screen-menu" hidden>
   <div class="topbar">
     <button class="btn" id="btn-change-session">🏠</button>
-    <h2 id="menu-title">Session</h2>
+    <h2 id="menu-title">Year</h2>
     <span></span>
   </div>
   
@@ -185,23 +156,23 @@
   </div>
 </section>
 
-<script src="js/core.js?v=48"></script>
-<script src="js/music.js?v=48"></script>
-<script src="js/sprites.js?v=48"></script>
-<script src="js/sprites_world.js?v=48"></script>
-<script src="js/piano.js?v=48"></script>
-<script src="js/jump.js?v=48"></script>
-<script src="js/blaster.js?v=48"></script>
-<script src="js/commando.js?v=48"></script>
-<script src="js/pattern.js?v=48"></script>
-<script src="js/fruit.js?v=48"></script>
-<script src="js/words.js?v=48"></script>
-<script src="js/skills_levels.js?v=48"></script>
-<script src="js/skills.js?v=48"></script>
-<script src="js/typing_data.js?v=48"></script>
-<script src="js/typing.js?v=48"></script>
-<script src="js/builder_data.js?v=48"></script>
-<script src="js/builder.js?v=48"></script>
-<script src="js/main.js?v=48"></script>
+<script src="js/core.js?v=51"></script>
+<script src="js/music.js?v=51"></script>
+<script src="js/sprites.js?v=51"></script>
+<script src="js/sprites_world.js?v=51"></script>
+<script src="js/piano.js?v=51"></script>
+<script src="js/jump.js?v=51"></script>
+<script src="js/blaster.js?v=51"></script>
+<script src="js/commando.js?v=51"></script>
+<script src="js/pattern.js?v=51"></script>
+<script src="js/fruit.js?v=51"></script>
+<script src="js/words.js?v=51"></script>
+<script src="js/skills_levels.js?v=51"></script>
+<script src="js/skills.js?v=51"></script>
+<script src="js/typing_data.js?v=51"></script>
+<script src="js/typing.js?v=51"></script>
+<script src="js/builder_data.js?v=51"></script>
+<script src="js/builder.js?v=51"></script>
+<script src="js/main.js?v=51"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@ A set of free browser games for a school computer club, to help children learn t
 
 **Play it:** https://hansafumoonga.github.io/computer_club/
 
-> **Please use it on a computer.** Tech Explorers is made for a **desktop or laptop computer with a keyboard and a mouse** (or a Makey Makey for Session 2). **iPads, phones and other tablets may not work, or may not give the results you expect**: touch screens have no physical keyboard, so the typing and keyboard games do not work properly, and some mouse actions (such as right-click and drag) can behave differently. It has been tested on a computer in Chrome.
+> **Please use it on a computer.** Tech Explorers is made for a **desktop or laptop computer with a keyboard and a mouse** (or a Makey Makey for the arrow-key games). **iPads, phones and other tablets may not work, or may not give the results you expect**: touch screens have no physical keyboard, so the typing and keyboard games do not work properly, and some mouse actions (such as right-click and drag) can behave differently. It has been tested on a computer in Chrome.
 
 It runs entirely in the browser. No install, no accounts, no server and no internet needed after the page has loaded. Nothing about the children is collected or saved.
 
@@ -33,20 +33,27 @@ What that means for you:
 
 ## What is in it
 
-### Session 1: Year 1, 2 and 3 (normal keyboard and mouse)
-- **Click & Type Quest**: a guided adventure of 10 levels that teaches the mouse (moving, clicking, choosing, drag and drop, connecting, double-click, right-click) and the keyboard (finding letters, small and BIG letters, Caps Lock, words, Space, Backspace, Enter). A friendly guide called Buddy shows each action first, then the learner tries, with gentle hints and stars. Finishing all 10 levels unlocks a printable **certificate**.
-- **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. In **Type & Build** the child types each word to add a piece; in **Click & Build** they use the mouse (click, drag, double-click and right-click). Bo, a friendly bear guide with an optional spoken voice, explains what to do and cheers each piece. Very gentle: hints and help appear by themselves, and every picture earns at least one star. Finishing all 10 pictures in one game unlocks a printable certificate.
+Pick a **year** on the first screen (Year 1 to Year 6) and you see the games and learning tools that suit that year. **Jump Over!** is in every year.
+
+| Year | Games and tools |
+|------|-----------------|
+| **Year 1** | Click & Build, Click & Type Quest, Slice & Pop, Jump Over!, Piano |
+| **Year 2** | Type & Build, Click & Type Quest, Slice & Pop, Word Hunt, Jump Over!, Star Blaster, Piano |
+| **Year 3** | Click & Type Quest, Word Hunt, Slice & Pop, Star Blaster, Jump Over!, Pattern Pop!, Piano |
+| **Year 4 and 5** | Typing Club, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Word Hunt, Piano |
+| **Year 6** | Typing Club, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Piano |
+
+Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a Makey Makey can also press). The choice of years is a starting suggestion and can be changed in `js/main.js` (the `YEARS` list).
+
+- **Click & Type Quest** (Year 1 to 3): a guided adventure of 10 levels that teaches the mouse (moving, clicking, choosing, drag and drop, connecting, double-click, right-click) and the keyboard (finding letters, small and BIG letters, Caps Lock, words, Space, Backspace, Enter). A friendly guide called Buddy shows each action first, then the learner tries, with gentle hints and stars. Finishing all 10 levels unlocks a printable **certificate**.
+- **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. **Click & Build** (Year 1) uses the mouse: click, drag, double-click and right-click. **Type & Build** (Year 2) has the child type each word to add a piece. Bo, a friendly bear guide with an optional spoken voice, explains what to do and cheers each piece. Very gentle: hints and help appear by themselves, and every picture earns at least one star. Finishing all 10 pictures unlocks a printable certificate.
 - **Slice & Pop**: press the right letter to slice or pop.
 - **Word Hunt**: a computer-words word search with 10 levels.
-- **Jump Over!** and **Star Blaster**: simple arcade games with many levels.
-
-### Session 2: Year 4, 5 and 6 (Makey Makey)
-These games use only the five Makey Makey keys: Left, Up, Down, Right and Space.
+- **Jump Over!** and **Star Blaster**: arcade games with many levels, played with the arrow keys and Space (or a Makey Makey).
 - **Piano**: play, listen to and learn songs, including Christmas songs (Jingle Bells, Silent Night, Merry Christmas), with a backing beat and a recorder.
-- **Jump Over!**, **Star Blaster**
 - **Commando Run**: 15 stages with big creatures, ending with a dragon king.
 - **Pattern Pop!**: watch, listen and copy.
-- **Typing Club** (needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing all 10 levels of any one game unlocks a printable **certificate** with a speed medal.
+- **Typing Club** (Year 4 to 6, needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing all 10 levels of any one game unlocks a printable **certificate** with a speed medal.
 
 ### For teachers
 - A **pause** button in every game (the Escape key also works in the arrow-key games).
@@ -58,7 +65,7 @@ These games use only the five Makey Makey keys: Left, Up, Down, Right and Space.
 
 ## Run it
 - Visit the link above, or open `index.html` on your computer (double-click).
-- Click a session, then a game. Press **F11** for full screen. Sound starts after the first click.
+- Click your year, then a game. Press **F11** for full screen. Sound starts after the first click.
 
 ## Put your own copy on GitHub Pages
 1. Push this folder to a GitHub repository.

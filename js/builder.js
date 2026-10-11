@@ -1,4 +1,4 @@
-/* builder.js - Builder Club (Session 1, Year 1-3).
+/* builder.js - Builder Club (Years 1 and 2).
      Type & Build   - type the word and a piece of the picture appears (a car, a house ... a whole city)
      Click & Build  - build the same pictures with the mouse: click, drag, double-click and right-click
    Very gentle: a wrong key is never a mistake, hints appear by themselves, and the game even helps if a child is stuck.
@@ -11,7 +11,7 @@ const $root = function () { return document.getElementById('bd-root'); };
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-const S = { year: 2, name: '', door: 'type', level: 1, best: {}, run: null, timers: [], loop: null, view: 'home', voice: true, kindSeen: {}, howSeen: {} };
+const S = { year: 2, name: '', door: 'type', level: 1, best: {}, run: null, timers: [], loop: null, view: 'home', voice: true, kindSeen: {}, howSeen: {}, fixed: false };
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
 function bestOf(door, lv) { return S.best[door + ':' + lv] || null; }
@@ -104,8 +104,9 @@ function showHome() {
 function showMap() {
   stopRun(); CC.ui.close();
   const m = el('div', 'bd-map'), top = el('div', 'bd-maptop');
-  const back = el('button', 'btn ico', '🏠'); back.type = 'button'; back.setAttribute('aria-label', 'back'); back.addEventListener('click', function () { back.blur(); showHome(); });
-  top.appendChild(back); top.appendChild(el('h3', '', S.door === 'type' ? '⌨️ Type & Build' : '🖱️ Click & Build')); top.appendChild(el('span', 'bd-spacer')); m.appendChild(top);
+  const back = el('button', 'btn ico', '🏠'); back.type = 'button'; back.setAttribute('aria-label', 'back'); back.addEventListener('click', function () { back.blur(); if (S.fixed) CC.goMenu(); else showHome(); });
+  top.appendChild(back); top.appendChild(el('h3', '', S.door === 'type' ? '⌨️ Type & Build' : '🖱️ Click & Build'));
+  if (certEarned()) { const cb = el('button', 'btn primary', '🎓'); cb.type = 'button'; cb.setAttribute('aria-label', 'my certificate'); cb.title = 'My certificate'; cb.addEventListener('click', function () { cb.blur(); showCertificate(); }); top.appendChild(cb); } else top.appendChild(el('span', 'bd-spacer')); m.appendChild(top);
   const grid = el('div', 'bd-levels');
   BUILDS.forEach(function (b) {
     const x = bestOf(S.door, b.id), t = el('button', 'bd-tile' + (x && x.stars ? ' done' : '')); t.type = 'button';
@@ -332,7 +333,7 @@ function showCertificate() {
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(certSvg(S.name));
   });
   const pr = el('button', 'btn', '🖨 Print'); pr.type = 'button'; pr.addEventListener('click', function () { pr.blur(); window.print(); });
-  const bk = el('button', 'btn', '🏠 Back'); bk.type = 'button'; bk.addEventListener('click', function () { bk.blur(); showHome(); });
+  const bk = el('button', 'btn', '🏠 Back'); bk.type = 'button'; bk.addEventListener('click', function () { bk.blur(); if (S.fixed) showMap(); else showHome(); });
   [dl, pr, bk].forEach(function (x) { row.appendChild(x); });
   w.appendChild(top); w.appendChild(paper); w.appendChild(row); w.appendChild(el('p', 'bd-note', 'Tip: print on A4, landscape. Leave the name empty to write it by hand.'));
   setView('cert', w);
@@ -341,7 +342,9 @@ function showCertificate() {
 /* ---------- plug into the hub ---------- */
 CC.modes.builder = {
   makey: false,
-  enter: function () { CC.audio.init(); CC.watchStage($stage()); stopRun(); if (!S.loop) S.loop = CC.createLoop(update, function () { if (CC.paused && !S.hushed) { hush(); S.hushed = true; } else if (!CC.paused) S.hushed = false; }); S.loop.start(); showHome(); },
+  enter: function (a) { CC.audio.init(); CC.watchStage($stage()); stopRun(); if (!S.loop) S.loop = CC.createLoop(update, function () { if (CC.paused && !S.hushed) { hush(); S.hushed = true; } else if (!CC.paused) S.hushed = false; }); S.loop.start();
+    if (a && a.door) { S.fixed = true; S.door = a.door; if (a.year >= 1 && a.year <= 3) S.year = a.year; showMap(); } else { S.fixed = false; showHome(); }
+  },
   exit: function () { stopRun(); hush(); if (S.loop) S.loop.stop(); S.view = 'home'; },
   onKeyDown: function (e) {
     const R = S.run; if (S.view !== 'play' || !R || R.door !== 'type') return;

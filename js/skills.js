@@ -796,7 +796,7 @@ function showHome() {
   const yrs = el('div', 'sk-years', '<span>I am in Year</span>');
   [1, 2, 3].forEach(function (y) { const b = el('button', 'btn yr' + (S.year === y ? ' on' : ''), String(y)); b.type = 'button'; b.setAttribute('aria-label', 'Year ' + y);
     b.addEventListener('click', function () { b.blur(); S.year = y; yrs.querySelectorAll('.yr').forEach(function (x, i) { x.classList.toggle('on', i + 1 === y); }); }); yrs.appendChild(b); });
-  bar.appendChild(yrs);
+  if (!S.fixedYear) bar.appendChild(yrs);
   const nm = el('input', 'sk-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name');
   nm.addEventListener('input', function () { S.name = nm.value; }); bar.appendChild(nm);
   home.appendChild(bar);
@@ -1008,7 +1008,7 @@ function showCertificate() {
 /* ---------- plug into the Computer Club hub ---------- */
 CC.modes.skills = {
   makey: false,
-  enter: function () { applyTheme(); showHome(); },
+  enter: function (a) { S.fixedYear = !!(a && a.year >= 1 && a.year <= 3); if (S.fixedYear) S.year = a.year; applyTheme(); showHome(); },
   exit: function () { clearTimers(); stopVoice(); S.view = 'home'; S.act = null; if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } if (CC.audio.master) CC.audio.master.gain.value = 0.8; },
   onKeyDown: function (e) {
     if (S.view === 'home' && e.key === 'Enter' && !(e.target && /^(INPUT|BUTTON)$/.test(e.target.tagName))) { e.preventDefault(); CC.audio.init(); startLevel(nextLevel()); return; }
