@@ -120,7 +120,7 @@ document.addEventListener('visibilitychange', function () {
   if (CC.audio.ctx) { if (document.hidden) CC.audio.ctx.suspend(); else if (!CC.paused) CC.audio.ctx.resume(); }   // no music in a hidden tab
 });
 
-/* ---- landing page art: keycap logo, mini keyboard, drifting keys ---- */
+/* ---- landing page art: keycap logo and the drifting keys in the background ---- */
 (function buildLanding() {
   const pal = [['#ff5c72', '#d8334e'], ['#ff9f45', '#e07a1a'], ['#ffd23f', '#e0a800'], ['#6bcb77', '#3fa84f'], ['#22c6c6', '#139a9a']];
   function row(id, word, off) {
@@ -130,10 +130,6 @@ document.addEventListener('visibilitychange', function () {
     });
   }
   row('logo1', 'TECH', 0); row('logo2', 'EXPLORERS', 2);
-  const kb = $('mini-kb'), rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'], hi = 'ASDFJKL';
-  rows.forEach(function (r) { const d = document.createElement('div'); d.className = 'r'; r.split('').forEach(function (ch, i) { const k = document.createElement('span'); k.className = 'k'; k.textContent = ch;
-    if (hi.indexOf(ch) >= 0) { k.classList.add('h'); k.style.setProperty('--c', pal[hi.indexOf(ch) % 5][0]); k.style.setProperty('--i', (i * 0.2) + 's'); } d.appendChild(k); }); kb.appendChild(d); });
-  const sp = document.createElement('div'); sp.className = 'r'; const s2 = document.createElement('span'); s2.className = 'k sp'; sp.appendChild(s2); kb.appendChild(sp);
   const dr = $('drift'), chars = 'ABCDEFGHJKLMNOPRSTUW←↑↓→';
   for (let i = 0; i < 16; i++) { const e = document.createElement('i'); e.textContent = chars[(i * 7) % chars.length]; e.style.left = (i * 6.3 + (i % 3) * 2) + '%';
     e.style.setProperty('--c', pal[i % 5][0]); e.style.setProperty('--d', (16 + (i % 5) * 4) + 's'); e.style.setProperty('--w', (-i * 2.3) + 's'); dr.appendChild(e); }
