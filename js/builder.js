@@ -149,7 +149,7 @@ function startRun() {
   R.ui.tip = { set textContent(v) { bo(R, v); } };
   setView('play', p);
   R.pcs = Array.prototype.slice.call(R.svg.querySelectorAll('.pc')); R.hits = []; R.bb = [];
-  R.pcs.forEach(function (g) { const bb = g.getBBox(), h = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); h.setAttribute('class', 'hit'); h.setAttribute('x', bb.x - 6); h.setAttribute('y', bb.y - 6); h.setAttribute('width', bb.width + 12); h.setAttribute('height', bb.height + 12); h.setAttribute('fill', 'transparent'); g.appendChild(h); R.hits.push(h); R.bb.push(bb); });
+  R.pcs.forEach(function (g) { const bb = g.getBBox(), h = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); h.setAttribute('class', 'hit'); h.setAttribute('x', bb.x - 8); h.setAttribute('y', bb.y - 8); h.setAttribute('width', bb.width + 16); h.setAttribute('height', bb.height + 16); h.setAttribute('rx', 10); h.setAttribute('fill', 'transparent'); g.appendChild(h); R.hits.push(h); R.bb.push(bb); });
   if (S.door === 'type') {
     R.ui.word = el('div', 'bd-word'); R.ui.bottom.appendChild(R.ui.word);
     R.ui.kbwrap = el('div', 'bd-kbwrap'); R.ui.kbwrap.appendChild(buildKeyboard()); R.ui.bottom.appendChild(R.ui.kbwrap); R.ui.kbwrap.classList.toggle('faint', S.year === 3);

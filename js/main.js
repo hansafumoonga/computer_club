@@ -74,11 +74,18 @@ CC.goMenu = showMenu;
   const box = $('year-cards');
   Object.keys(YEARS).forEach(function (n, i) {
     const b = document.createElement('button'); b.className = 'year-card'; b.style.setProperty('--c', YEAR_COLORS[i]); b.dataset.year = n; b.setAttribute('aria-label', 'Year ' + n);
-    b.innerHTML = '<span class="yk">' + n + '</span><span class="yn">Year ' + n + '</span><span class="yi">' + YEARS[n].modes.slice(0, 5).map(function (id) { return MODES[id].icon; }).join('') + '</span>';
+    b.innerHTML = '<span class="yk">' + n + '</span><span class="yn">Year ' + n + '</span>';
     b.addEventListener('click', function () { CC.audio.init(); app.session = n; CC.sfx.good(); showMenu(); });
     box.appendChild(b);
   });
 })();
+/* the Home / About menu on the landing page */
+document.querySelectorAll('[data-nav]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    b.blur(); CC.audio.init();
+    if (b.dataset.nav === 'home') showSessions(); else { leaveMode(); app.session = null; showOnly($('screen-' + b.dataset.nav)); }
+  });
+});
 $('btn-change-session').addEventListener('click', function () { this.blur(); showSessions(); });
 document.querySelectorAll('[data-action="menu"]').forEach(function (b) { b.addEventListener('click', function () { b.blur(); showMenu(); }); });
 

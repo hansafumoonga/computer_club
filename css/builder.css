@@ -196,3 +196,10 @@
 .bd-word .lt.next{border-color:#ff9f45;animation:bdNextD .8s ease-in-out infinite alternate}
 @keyframes bdNextD{to{transform:translateY(-4px);background:#3a418a}}
 .bd-trayhint{color:var(--accent,#ffd23f)}
+
+/* the piece to click is outlined with a moving dashed line so children can see where to click */
+.bd-svg .pc.cur.act .hit{stroke:#ff7a45;stroke-width:4;stroke-dasharray:9 7;stroke-linecap:round;fill:rgba(255,255,255,.22);filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 2px #fff);animation:bdMarch .8s linear infinite}
+@keyframes bdMarch{to{stroke-dashoffset:-32}}
+/* only the piece glows and fades; its outline stays fully bright */
+.bd-svg .pc.cur{opacity:1;filter:none;animation:none}
+.bd-svg .pc.cur>:not(.hit){animation:bdGlow .9s ease-in-out infinite alternate}

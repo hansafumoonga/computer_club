@@ -270,3 +270,60 @@ button{font:inherit;color:inherit;cursor:pointer}
 .mode-card .tg{margin-top:4px;font-size:.72rem;font-weight:bold;padding:.15em .8em;border-radius:99px;background:rgba(255,255,255,.1);color:var(--ink-dim);text-align:center}
 @media (max-width:700px){.year-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}}
 @media (max-height:720px){.year-card{padding:10px 10px 8px;gap:4px}.year-card .yk{width:52px;height:52px;font-size:2rem;border-radius:14px}.year-card .yn{font-size:1.2rem}.year-card .yi{font-size:1.15rem}.year-cards{gap:14px}}
+
+/* ---- Home / About menu and the About page ---- */
+.top-nav{display:flex;gap:10px;z-index:3}
+.landing .top-nav{position:absolute;top:12px;right:16px}
+.top-nav .btn{font-size:1rem;padding:.45em 1em}
+.top-nav .btn.on{background:var(--accent);color:#1a1b3f;border-color:#fff3b0}
+.about{align-items:center;gap:14px;padding-top:12px}
+.about .top-nav{align-self:flex-end}
+.about-card{width:min(760px,100%);background:var(--panel);border:4px solid #3a3e8a;border-radius:24px;padding:24px 28px 28px;line-height:1.55;font-size:1.08rem}
+.about-card h2{margin:0 0 6px;font-size:clamp(1.6rem,4vw,2.3rem);color:var(--accent);text-shadow:0 3px 0 #0c0d26}
+.about-card h3{margin:20px 0 6px;font-size:1.25rem}
+.about-card p{margin:.4em 0;color:var(--ink)}
+.about-me{display:flex;gap:18px;align-items:flex-start}
+.about-me .avatar{flex:none;width:76px;height:76px;border-radius:20px;background:linear-gradient(135deg,#ff5c72,#ff9f45);box-shadow:0 7px 0 rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff}
+.about-me .who{margin-top:0;font-size:1.2rem}
+.about-me .who span{color:var(--ink-dim);font-size:.95rem}
+.about-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px !important}
+.about-links .btn{font-size:1.05rem}
+@media (max-width:600px){.about-me{flex-direction:column}.landing .top-nav{position:static;margin:6px 0 -4px}}
+
+.landing .logo{margin-top:70px}
+.about-card .contact{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.about-card .contact a{color:var(--accent);font-weight:bold;word-break:break-all}
+@media (max-height:700px){.landing .logo{margin-top:62px}}
+@media (max-width:600px){.landing .logo{margin-top:10px}}
+a.btn{color:var(--ink);text-decoration:none}
+a.btn.primary{color:#1a1b3f}
+
+.top-nav{flex-wrap:wrap;justify-content:flex-end}
+.about-card ul,.about-card ol{margin:.4em 0;padding-left:1.4em}
+.about-card li{margin:.35em 0}
+.landing .foot{font-size:1.05rem;opacity:.85;text-align:center;padding:0 12px 8px}
+
+/* ---- site header: small logo at the left, menu at the right ---- */
+.site-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;width:100%;position:relative;z-index:3}
+.landing .site-head{position:absolute;top:12px;left:16px;right:16px;width:auto}
+.landing .top-nav,.about .top-nav{position:static;align-self:auto}
+.brand{display:flex;align-items:center;gap:6px;background:none;border:0;padding:4px;color:var(--ink);cursor:pointer}
+.brand .bkey{width:30px;height:30px;border-radius:8px;background:var(--c);box-shadow:0 4px 0 var(--d);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.05rem;color:#fff}
+.brand .bkey+.bkey{color:#1a1b3f}
+.brand .bname{margin-left:8px;font-size:1.15rem;font-weight:900;letter-spacing:.02em}
+.brand:hover .bkey{transform:translateY(-2px)}
+@media (max-width:600px){.landing .site-head{position:static;margin-top:6px}.brand .bname{font-size:1rem}}
+@media (max-width:860px){.landing .site-head{position:static;margin-top:6px}.landing .logo{margin-top:14px}}
+
+/* cleaner year cards: just the number and the year; and more room above the note */
+.year-card{padding:22px 14px 20px;gap:10px}
+.year-card .yk{width:92px;height:92px;font-size:3.6rem;border-radius:24px}
+.year-card .yn{font-size:1.7rem}
+.landing .foot{margin-top:auto;padding-top:34px;padding-bottom:18px}
+@media (max-height:720px){.year-card{padding:12px 10px 10px}.year-card .yk{width:56px;height:56px;font-size:2.2rem;border-radius:16px}.year-card .yn{font-size:1.25rem}.landing .foot{padding-top:20px}}
+
+/* the small Tech Explorers mark sits in a round badge */
+.brand .bcircle{display:flex;align-items:center;justify-content:center;gap:3px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a3e8a,#1b1d4d);border:3px solid #6a6fd0;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.brand .bcircle .bkey{width:19px;height:19px;border-radius:5px;font-size:.78rem;box-shadow:0 3px 0 var(--d)}
+.brand:hover .bcircle{border-color:var(--accent)}
+.brand:hover .bkey{transform:none}
