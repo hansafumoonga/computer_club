@@ -143,7 +143,7 @@ async function step(line, action) {
 /* ---------- level flow ---------- */
 const ACT = {};
 function tasksFor(lv) { return lv.tasks.filter(function (t) { return !t.min || S.year >= t.min; }); }
-function isOpen(id) { return S.unlockAll || id === 1 || S.done[id - 1]; }
+function isOpen() { return true; }      // progress is not saved, so every level is open: a learner can start where they stopped
 
 function startLevel(id) {
   clearTimers(); CC.ui.close();
@@ -813,11 +813,10 @@ function showHome() {
   opts.appendChild(toggleBtn('Sound', 'sound', '🔊')); opts.appendChild(toggleBtn('Voice', 'voice', '🗣️')); opts.appendChild(toggleBtn('High contrast', 'contrast', '🌓'));
   opts.appendChild(toggleBtn('Slow', 'slow', '🐢')); opts.appendChild(toggleBtn('Click to place', 'clickPlace', '♿'));
   const rep = el('button', 'btn', '📋 Teacher report'); rep.type = 'button'; rep.addEventListener('click', function () { rep.blur(); showReport(); });
-  const un = el('button', 'btn', S.unlockAll ? '🔒 Lock levels' : '🔓 Unlock all'); un.type = 'button'; un.addEventListener('click', function () { un.blur(); S.unlockAll = !S.unlockAll; showHome(); });
-  const all = LEVELS.every(function (lv) { return S.done[lv.id]; });
-  const cert = el('button', 'btn' + (all ? ' primary' : ''), '🎓 Certificate'); cert.type = 'button'; cert.disabled = !all; cert.title = all ? 'Print my certificate' : 'Finish all 10 levels to unlock';
+  const all = !!S.done[LEVELS.length];
+  const cert = el('button', 'btn' + (all ? ' primary' : ''), '🎓 Certificate'); cert.type = 'button'; cert.disabled = !all; cert.title = all ? 'Print my certificate' : 'Finish the last level (level 10) to unlock';
   cert.addEventListener('click', function () { cert.blur(); showCertificate(); });
-  opts.appendChild(cert); opts.appendChild(rep); opts.appendChild(un);
+  opts.appendChild(cert); opts.appendChild(rep);
   home.appendChild(opts);
   const go = el('button', 'btn big primary sk-go', '<span class="bi">▶</span><span class="bl">Play</span>'); go.type = 'button';
   go.addEventListener('click', function () { go.blur(); CC.audio.init(); setSfxGain(); startLevel(nextLevel()); });
@@ -920,7 +919,7 @@ function showReport() {
   r.appendChild(w);
 }
 
-/* ---------- certificate (unlocked when all 10 levels are done): A4 landscape, printable, downloadable as a picture ---------- */
+/* ---------- certificate (unlocked when the last level is done): A4 landscape, printable, downloadable as a picture ---------- */
 const KEYC = [['#ff5c72', '#d8334e'], ['#ff9f45', '#e07a1a'], ['#ffd23f', '#e0a800'], ['#6bcb77', '#3fa84f'], ['#22c6c6', '#139a9a']];
 function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function starPath(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
@@ -952,7 +951,7 @@ function certSvg(name) {
   const fsz = n.length <= 14 ? 62 : n.length <= 20 ? 50 : 40;
   g += '<text x="' + mid + '" y="340" font-family="' + hand + '" font-size="' + fsz + '" fill="#d8334e" text-anchor="middle">' + esc(n) + '</text>';
   g += '<line x1="250" y1="356" x2="873" y2="356" stroke="#e0a800" stroke-width="3"/>';
-  g += '<text x="' + mid + '" y="398" font-family="' + sans + '" font-size="23" fill="#333" text-anchor="middle">for completing all ' + LEVELS.length + ' levels of</text>';
+  g += '<text x="' + mid + '" y="398" font-family="' + sans + '" font-size="23" fill="#333" text-anchor="middle">for completing</text>';
   g += '<text x="' + mid + '" y="448" font-family="' + sans + '" font-size="42" font-weight="bold" fill="#e07a1a" text-anchor="middle">' + esc(DATA.NAME) + '</text>';
   g += '<text x="' + mid + '" y="482" font-family="' + sans + '" font-size="21" fill="#333" text-anchor="middle">Mouse and keyboard skills · Year ' + S.year + '</text>';
   const sk = certSkills(), half = Math.ceil(sk.length / 2);

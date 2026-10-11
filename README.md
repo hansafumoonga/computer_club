@@ -45,15 +45,15 @@ Pick a **year** on the first screen (Year 1 to Year 6) and you see the games and
 
 Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a Makey Makey can also press). The choice of years is a starting suggestion and can be changed in `js/main.js` (the `YEARS` list).
 
-- **Click & Type Quest** (Year 1 to 3): a guided adventure of 10 levels that teaches the mouse (moving, clicking, choosing, drag and drop, connecting, double-click, right-click) and the keyboard (finding letters, small and BIG letters, Caps Lock, words, Space, Backspace, Enter). A friendly guide called Buddy shows each action first, then the learner tries, with gentle hints and stars. Finishing all 10 levels unlocks a printable **certificate**.
-- **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. **Click & Build** (Year 1) uses the mouse: click, drag, double-click and right-click. **Type & Build** (Year 2) has the child type each word to add a piece. Bo, a friendly bear guide with an optional spoken voice, explains what to do and cheers each piece. Very gentle: hints and help appear by themselves, and every picture earns at least one star. Finishing all 10 pictures unlocks a printable certificate.
+- **Click & Type Quest** (Year 1 to 3): a guided adventure of 10 levels that teaches the mouse (moving, clicking, choosing, drag and drop, connecting, double-click, right-click) and the keyboard (finding letters, small and BIG letters, Caps Lock, words, Space, Backspace, Enter). A friendly guide called Buddy shows each action first, then the learner tries, with gentle hints and stars. Finishing the last level unlocks a printable **certificate**.
+- **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. **Click & Build** (Year 1) uses the mouse: click, drag, double-click and right-click. **Type & Build** (Year 2) has the child type each word to add a piece. Bo, a friendly bear guide with an optional spoken voice, explains what to do and cheers each piece. Very gentle: hints and help appear by themselves, and every picture earns at least one star. Every picture is open, and building the last one (the city) unlocks a printable certificate.
 - **Slice & Pop**: press the right letter to slice or pop.
 - **Word Hunt**: a computer-words word search with 10 levels.
 - **Jump Over!** and **Star Blaster**: arcade games with many levels, played with the arrow keys and Space (or a Makey Makey).
 - **Piano**: play, listen to and learn songs, including Christmas songs (Jingle Bells, Silent Night, Merry Christmas), with a backing beat and a recorder.
 - **Commando Run**: 15 stages with big creatures, ending with a dragon king.
 - **Pattern Pop!**: watch, listen and copy.
-- **Typing Club** (Year 4 to 6, needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing all 10 levels of any one game unlocks a printable **certificate** with a speed medal.
+- **Typing Club** (Year 4 to 6, needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing level 10 of any one game unlocks a printable **certificate** with a speed medal.
 
 ### For teachers
 - A **pause** button in every game (the Escape key also works in the arrow-key games).
@@ -87,7 +87,7 @@ Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a 
 Plain HTML, CSS and JavaScript only. No libraries and no build step.
 
 ## Known limits
-- **Progress is not saved.** It lasts only while the page is open, so download the teacher report or print the certificate before closing the tab.
+- **Progress is not saved, so every level is open** and a learner can start where they stopped. It lasts only while the page is open, so download the teacher report or print the certificate before closing the tab.
 - **The spoken voice** uses a voice already installed on the device. If a device has no English voice, the lessons still work with the words on screen.
 - **Computers only:** use a desktop or laptop with a keyboard and mouse. iPads, phones and tablets may not work or may not produce the results you expect.
 - **Browsers:** it has been tested in Chrome. Other modern browsers should work but have not been checked as carefully.

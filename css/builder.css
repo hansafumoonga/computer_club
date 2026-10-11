@@ -203,3 +203,6 @@
 /* only the piece glows and fades; its outline stays fully bright */
 .bd-svg .pc.cur{opacity:1;filter:none;animation:none}
 .bd-svg .pc.cur>:not(.hit){animation:bdGlow .9s ease-in-out infinite alternate}
+
+.bd-note{margin:0;color:var(--ink-dim);font-size:.95rem;text-align:center}
+.bd-maptop .btn:disabled{background:#1f2358;color:#8a90c8;border-color:#3a3e8a;opacity:1}

@@ -342,3 +342,5 @@ a.btn.primary{color:#1a1b3f}
 
 .top-nav .qr-btn{background:var(--accent);color:#1a1b3f;border-color:#fff3b0}
 .top-nav .qr-btn:hover{background:#ffe27a}
+
+.mode-card .tg.cert{background:rgba(255,210,63,.18);color:var(--accent)}

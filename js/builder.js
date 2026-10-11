@@ -17,7 +17,9 @@ function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
 function bestOf(door, lv) { return S.best[door + ':' + lv] || null; }
 function doorDone(door) { return BUILDS.every(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }); }
 function doneCount(door) { return BUILDS.filter(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }).length; }
-function certEarned() { return doorDone('type') || doorDone('click'); }
+/* progress is not saved, so every picture is open and a learner can start where they stopped; the certificate comes with the last picture (the city) */
+function finalDone(door) { const x = bestOf(door, BUILDS.length); return !!(x && x.stars >= 1); }
+function certEarned() { return finalDone('type') || finalDone('click'); }
 function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
 
 /* ---------- Bo, the building bear: a gentle guide with a slow, friendly voice. The voice is one already on this computer; nothing is sent anywhere. ---------- */
@@ -96,7 +98,7 @@ function showHome() {
   });
   h.appendChild(doors);
   const row = el('div', 'bd-opts');
-  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 My certificate' : '🔒 Certificate: build all 10'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Build all 10 pictures in one game to unlock';
+  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 My certificate' : '🔒 Certificate: build the city'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Build the last picture, the city, to unlock';
   ce.addEventListener('click', function () { ce.blur(); showCertificate(); }); const vc = el('button', 'btn' + (S.voice ? ' on' : ''), '🗣️ Voice'); vc.type = 'button'; vc.addEventListener('click', function () { vc.blur(); S.voice = !S.voice; vc.classList.toggle('on', S.voice); if (S.voice) speak('Hello! I am Bo. Let us build something!'); else hush(); });
   row.appendChild(vc); row.appendChild(ce); h.appendChild(row);
   setView('home', h);
@@ -106,7 +108,8 @@ function showMap() {
   const m = el('div', 'bd-map'), top = el('div', 'bd-maptop');
   const back = el('button', 'btn ico', '🏠'); back.type = 'button'; back.setAttribute('aria-label', 'back'); back.addEventListener('click', function () { back.blur(); if (S.fixed) CC.goMenu(); else showHome(); });
   top.appendChild(back); top.appendChild(el('h3', '', S.door === 'type' ? '⌨️ Type & Build' : '🖱️ Click & Build'));
-  if (certEarned()) { const cb = el('button', 'btn primary', '🎓'); cb.type = 'button'; cb.setAttribute('aria-label', 'my certificate'); cb.title = 'My certificate'; cb.addEventListener('click', function () { cb.blur(); showCertificate(); }); top.appendChild(cb); } else top.appendChild(el('span', 'bd-spacer')); m.appendChild(top);
+  const cb = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate'); cb.type = 'button'; cb.disabled = !certEarned(); cb.setAttribute('aria-label', 'certificate'); cb.title = certEarned() ? 'My certificate' : 'Build the last picture, the city, to unlock the certificate';
+  cb.addEventListener('click', function () { cb.blur(); showCertificate(); }); top.appendChild(cb); m.appendChild(top);
   const grid = el('div', 'bd-levels');
   BUILDS.forEach(function (b) {
     const x = bestOf(S.door, b.id), t = el('button', 'bd-tile' + (x && x.stars ? ' done' : '')); t.type = 'button';
@@ -115,7 +118,7 @@ function showMap() {
     t.setAttribute('aria-label', 'Level ' + b.id + ' ' + b.name);
     t.addEventListener('click', function () { t.blur(); CC.audio.init(); S.level = b.id; intro(); }); grid.appendChild(t);
   });
-  m.appendChild(grid); setView('map', m);
+  m.appendChild(grid); m.appendChild(el('p', 'bd-note', '🎓 Start on any picture. Build the last one, the city, to get your certificate.')); setView('map', m);
 }
 function intro() {
   const b = BUILDS[S.level - 1];
@@ -285,10 +288,10 @@ function update(dt) {
   if (R.idle > autoAt) assist(R);
 }
 
-/* ---------- certificate (all 10 pictures of one game): A4 landscape, teal and sunshine ---------- */
+/* ---------- certificate (the last picture, the city): A4 landscape, teal and sunshine ---------- */
 function certSvg(name) {
   const W = 1123, H = 794, n = (name || '').trim(), dt = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
-  const both = doorDone('type') && doorDone('click'), what = both ? 'the keyboard and the mouse' : doorDone('type') ? 'typing words' : 'the mouse';
+  const both = finalDone('type') && finalDone('click'), what = both ? 'Click & Build and Type & Build' : finalDone('type') ? 'Type & Build, by typing words' : 'Click & Build, using the mouse';
   const stars = ['type', 'click'].reduce(function (t, d) { return t + BUILDS.reduce(function (u, b) { const x = bestOf(d, b.id); return u + (x ? x.stars : 0); }, 0); }, 0);
   const rnd = "'Comic Sans MS','Chalkboard SE','Trebuchet MS',sans-serif", sans = "'Trebuchet MS','Segoe UI',Arial,sans-serif", mid = W / 2, city = BUILDS[9];
   let g = '<style>.bdc rect,.bdc circle,.bdc ellipse,.bdc polygon,.bdc path{stroke:#3a2f5a;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.bdc .ns{stroke:none}.bdc .bg *{stroke:none}</style>';
@@ -304,7 +307,7 @@ function certSvg(name) {
   const fsz = n.length <= 14 ? 64 : n.length <= 20 ? 52 : 42;
   g += '<text x="' + mid + '" y="324" font-family="' + rnd + '" font-size="' + fsz + '" font-weight="bold" fill="#ff5c72" text-anchor="middle">' + esc(n) + '</text>';
   g += '<line x1="260" y1="342" x2="863" y2="342" stroke="#ffc92e" stroke-width="4" stroke-linecap="round"/>';
-  g += '<text x="' + mid + '" y="382" font-family="' + sans + '" font-size="22" fill="#333" text-anchor="middle">for building 10 amazing things with ' + esc(what) + ':</text>';
+  g += '<text x="' + mid + '" y="382" font-family="' + sans + '" font-size="22" fill="#333" text-anchor="middle">for completing ' + esc(what) + ':</text>';
   g += '<text x="' + mid + '" y="414" font-family="' + sans + '" font-size="19" fill="#1d8f8f" font-weight="bold" text-anchor="middle">a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and a whole city!</text>';
   /* the finished city, drawn from the game's own pieces */
   g += '<rect x="' + (mid - 181) + '" y="452" width="362" height="231" rx="22" fill="#fff" stroke="#1fb6a6" stroke-width="5"/>';

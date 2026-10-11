@@ -25,7 +25,7 @@ function target() { return D.TARGET_WPM[S.year]; }
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
 function bestOf(g, lv) { return S.best[g + ':' + lv] || null; }
-function isOpen(g, lv) { return S.unlockAll || lv === 1 || (bestOf(g, lv - 1) && bestOf(g, lv - 1).stars >= 1); }
+function isOpen() { return true; }      // progress is not saved, so every level is open: a learner can start where they stopped
 
 /* ---------- the on-screen keyboard (finger guide) ---------- */
 const FMAP = { LP: '1qaz', LR: '2wsx', LM: '3edc', LI: '4rfv5tgb', RI: '6yhn7ujm', RM: '8ik,', RR: '9ol.', RP: '0p;/-' };
@@ -103,9 +103,8 @@ function showHome() {
   const row = el('div', 'ty-opts');
   const gd = el('button', 'btn' + (S.guide ? ' on' : ''), '🖐️ Finger guide'); gd.type = 'button'; gd.addEventListener('click', function () { gd.blur(); S.guide = !S.guide; gd.classList.toggle('on', S.guide); });
   const rp = el('button', 'btn', '📋 Teacher report'); rp.type = 'button'; rp.addEventListener('click', function () { rp.blur(); showReport(); });
-  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Finish all 10 levels of one game to unlock'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
-  const un = el('button', 'btn', S.unlockAll ? '🔒 Lock levels' : '🔓 Unlock all'); un.type = 'button'; un.addEventListener('click', function () { un.blur(); S.unlockAll = !S.unlockAll; showHome(); });
-  [gd, ce, rp, un].forEach(function (b) { row.appendChild(b); }); h.appendChild(row);
+  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate: finish level 10'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Finish level 10 of one game to unlock'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
+  [gd, ce, rp].forEach(function (b) { row.appendChild(b); }); h.appendChild(row);
   setView('home', h);
 }
 function showMap() {
@@ -440,11 +439,11 @@ function showReport() {
   setView('report', w);
 }
 
-/* ---------- certificate: earned by finishing all 10 levels of any one game. A4 landscape, printable, downloadable as a picture ---------- */
+/* ---------- certificate: earned by finishing level 10 of any one game. A4 landscape, printable, downloadable as a picture ---------- */
 function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function starPath(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
 function finishedGame() {
-  return GAMES.filter(function (g) { return LEVELS.every(function (l) { const b = bestOf(g.id, l.id); return b && b.stars >= 1; }); })[0] || null;
+  return GAMES.filter(function (g) { const b = bestOf(g.id, LEVELS.length); return b && b.stars >= 1; })[0] || null;
 }
 function certEarned() { return !!finishedGame(); }
 function certFacts() {
@@ -476,7 +475,7 @@ function certSvg(name) {
   const fsz = n.length <= 14 ? 64 : n.length <= 20 ? 52 : 42;
   g += '<text x="' + mid + '" y="384" font-family="' + sans + '" font-size="' + fsz + '" font-weight="bold" fill="' + INK + '" text-anchor="middle">' + esc(n) + '</text>';
   g += '<rect x="' + (mid - 170) + '" y="398" width="340" height="5" rx="2.5" fill="url(#ac)"/>';
-  g += '<text x="' + mid + '" y="440" font-family="' + sans + '" font-size="20" fill="#44486b" text-anchor="middle">for finishing all ' + LEVELS.length + ' levels of <tspan font-weight="bold">' + esc(f.game ? f.game.name : 'Typing Club') + '</tspan> with speed, focus and accuracy</text>';
+  g += '<text x="' + mid + '" y="440" font-family="' + sans + '" font-size="20" fill="#44486b" text-anchor="middle">for finishing the last level of <tspan font-weight="bold">' + esc(f.game ? f.game.name : 'Typing Club') + '</tspan> with speed, focus and accuracy</text>';
   g += '<text x="' + mid + '" y="468" font-family="' + sans + '" font-size="17" fill="' + SOFT + '" text-anchor="middle">Year ' + S.year + '  ·  Typing goal ' + T + ' words a minute</text>';
   /* speedometer */
   const gx = 215, gy = 600, gr = 104;

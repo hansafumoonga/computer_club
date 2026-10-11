@@ -4,7 +4,7 @@
 const app = CC.app;
 
 const MODES = {
-  skills:   { icon: '🖱️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', tag: 'Mouse + keyboard', color: '#ff7ac8' },
+  skills:   { icon: '🖱️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', tag: 'Mouse + keyboard', color: '#ff7ac8', cert: true },
   fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', tag: 'Keyboard', color: '#ff6b86' },
   words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Computer words crossword',        tag: 'Mouse', color: '#22c6c6' },
   jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', tag: 'Arrow keys or Makey Makey', color: '#ffd23f' },
@@ -13,9 +13,9 @@ const MODES = {
   commando: { icon: '🤖', name: 'Commando Run',  desc: 'Run, jump and blast the bots',    tag: 'Arrow keys or Makey Makey', color: '#a77bff' },
   pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy',          tag: 'Arrow keys or Makey Makey', color: '#22c6c6' },
   /* Builder Club has two doors; each year gets the one that suits it (the same game, opened on the right door) */
-  buildclick: { icon: '🏗️', name: 'Click & Build', desc: 'Click, drag and build a car, a house, a city!', tag: 'Mouse', color: '#22b8cf', mode: 'builder', args: { door: 'click' } },
-  buildtype:  { icon: '🏗️', name: 'Type & Build',  desc: 'Type the word to build a car, a house, a city!', tag: 'Keyboard', color: '#ff7a45', mode: 'builder', args: { door: 'type' } },
-  typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss', tag: 'Full keyboard', color: '#5ac8ff' }
+  buildclick: { icon: '🏗️', name: 'Click & Build', desc: 'Click, drag and build a car, a house, a city!', tag: 'Mouse', color: '#22b8cf', cert: true, mode: 'builder', args: { door: 'click' } },
+  buildtype:  { icon: '🏗️', name: 'Type & Build',  desc: 'Type the word to build a car, a house, a city!', tag: 'Keyboard', color: '#ff7a45', cert: true, mode: 'builder', args: { door: 'type' } },
+  typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss', tag: 'Full keyboard', color: '#5ac8ff', cert: true }
 };
 /* what each year can play, easiest and most suitable first. Jump Over! is for everyone. */
 const YEARS = {
@@ -51,7 +51,7 @@ function showMenu() {
   y.modes.forEach(function (id) {
     const m = MODES[id], b = document.createElement('button');
     b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;
-    b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span><span class="tg">' + m.tag + '</span>';
+    b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span><span class="tg">' + m.tag + '</span>' + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
     b.addEventListener('click', function () { startMode(id); });
     box.appendChild(b);
   });
