@@ -312,7 +312,7 @@ function certSvg(name) {
   [[200, 560], [880, 560]].forEach(function (p, i) { g += '<polygon points="' + starPts(p[0], p[1], 38, 16) + '" fill="#ffd23f" stroke="#e0a800" stroke-width="3"/>'; });
   g += '<text x="200" y="660" font-family="' + sans + '" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">' + stars + ' stars</text><text x="880" y="660" font-family="' + sans + '" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">Well done!</text>';
   g += '<text x="190" y="728" font-family="' + sans + '" font-size="19" fill="#15163a" text-anchor="middle">' + esc(dt) + '</text><line x1="80" y1="736" x2="300" y2="736" stroke="#15163a" stroke-width="1.5"/><text x="190" y="758" font-family="' + sans + '" font-size="14" fill="#555" text-anchor="middle">Date</text>';
-  g += '<line x1="823" y1="736" x2="1043" y2="736" stroke="#15163a" stroke-width="1.5"/><text x="933" y="758" font-family="' + sans + '" font-size="14" fill="#555" text-anchor="middle">Teacher, ' + esc(CC.APP_NAME) + '</text>';
+  g += '<line x1="823" y1="736" x2="1043" y2="736" stroke="#15163a" stroke-width="1.5"/><text x="933" y="758" font-family="' + sans + '" font-size="14" fill="#555" text-anchor="middle">Teacher</text>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 function starPts(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }

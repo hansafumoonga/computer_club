@@ -67,6 +67,9 @@ Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a 
 - Visit the link above, or open `index.html` on your computer (double-click).
 - Click your year, then a game. Press **F11** for full screen. Sound starts after the first click.
 
+## QR code for quick access
+`tech-explorers-qr.pdf` is a one-page printable QR code with clear camera instructions (it is also linked from the How to use page). If you host your own copy, make a new QR code for your own address.
+
 ## Put your own copy on GitHub Pages
 1. Push this folder to a GitHub repository.
 2. In the repository go to **Settings, then Pages**, choose the `main` branch and the `/ (root)` folder, then Save.

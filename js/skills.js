@@ -975,7 +975,7 @@ function certSvg(name) {
   g += '<circle cx="561" cy="668" r="46" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="668" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPath(561, 668, 24, 10) + '" fill="#e07a1a"/>';
   /* date + signature */
   g += '<text x="240" y="702" font-family="' + sans + '" font-size="20" fill="#15163a" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="710" x2="360" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="240" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
-  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="883" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher, ' + esc(CC.APP_NAME) + '</text>';
+  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="883" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher</text>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 function showCertificate() {
