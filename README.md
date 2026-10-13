@@ -2,7 +2,7 @@
 
 A set of free browser games for a school computer club, to help children learn the keyboard, the mouse and Makey Makey.
 
-**Play it:** https://hansafumoonga.github.io/computer_club/
+**Play it:** https://techexplorers.pages.dev/
 
 > **Please use it on a computer.** Tech Explorers is made for a **desktop or laptop computer with a keyboard and a mouse** (or a Makey Makey for the arrow-key games). **iPads, phones and other tablets may not work, or may not give the results you expect**: touch screens have no physical keyboard, so the typing and keyboard games do not work properly, and some mouse actions (such as right-click and drag) can behave differently. It has been tested on a computer in Chrome.
 
