@@ -15,13 +15,13 @@ const MODES = {
   /* Builder Club has two doors; each year gets the one that suits it (the same game, opened on the right door) */
   buildclick: { icon: '🏗️', name: 'Click & Build', desc: 'Click, drag and build a car, a house, a city!', group: 'kb', color: '#22b8cf', cert: true, mode: 'builder', args: { door: 'click' } },
   buildtype:  { icon: '🏗️', name: 'Type & Build',  desc: 'Type the word to build a car, a house, a city!', group: 'kb', color: '#ff7a45', cert: true, mode: 'builder', args: { door: 'type' } },
-  magic:    { icon: '✨', name: 'Magic Mix',     desc: 'Watch colours mix and paint a picture', group: 'kb', color: '#ffb52e' },
-  art:      { icon: '🖌️', name: 'Art Studio',    desc: 'Brushes, shapes, stamps and more', group: 'kb', color: '#ff7a45' },
-  scene:    { icon: '🖼️', name: 'Scene Maker',   desc: 'Drag, arrange and paint a scene', group: 'kb', color: '#22b8cf' },
-  design:   { icon: '🎛️', name: 'Design Studio', desc: 'Layers, text, symmetry and more tools', group: 'kb', color: '#ff7a45' },
-  magiclab: { icon: '🔮', name: 'Magic Lab',     desc: 'Kaleidoscopes, spirals and colour harmony', group: 'kb', color: '#a77bff' },
+  magic:    { icon: '✨', name: 'Magic Mix',     desc: 'Watch colours mix and paint a picture', group: 'design', color: '#ffb52e' },
+  art:      { icon: '🖌️', name: 'Art Studio',    desc: 'Brushes, shapes, stamps and more', group: 'design', color: '#ff7a45' },
+  scene:    { icon: '🖼️', name: 'Scene Maker',   desc: 'Drag, arrange and paint a scene', group: 'design', color: '#22b8cf' },
+  design:   { icon: '🎛️', name: 'Design Studio', desc: 'Layers, text, symmetry and more tools', group: 'design', color: '#ff7a45' },
+  magiclab: { icon: '🔮', name: 'Magic Lab',     desc: 'Kaleidoscopes, spirals and colour harmony', group: 'design', color: '#a77bff' },
   shortcuts:{ icon: '⚡', name: 'Shortcut Lab',  desc: 'Learn keyboard shortcuts that really work', group: 'kb', color: '#a77bff' },
-  paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', group: 'kb', color: '#ff7ac8' },
+  paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', group: 'design', color: '#ff7ac8' },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss', group: 'kb', color: '#5ac8ff', cert: true }
 };
 /* what each year can play, easiest and most suitable first. Jump Over! is for everyone. */
@@ -33,8 +33,8 @@ const YEARS = {
   '5': { modes: ['typing', 'shortcuts', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
   '6': { modes: ['typing', 'shortcuts', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'piano'] }
 };
-/* the two groups in every year menu: what the child uses */
-const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
+/* the three groups in every year menu: learning with keyboard and mouse, painting and design, and the arrow-key / Makey Makey games */
+const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */

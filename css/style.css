@@ -315,4 +315,5 @@ a.btn.primary{color:#1a1b3f}
 .group-tab .gc{min-width:1.6em;padding:.05em .45em;border-radius:99px;background:rgba(255,255,255,.18);font-size:.85em;text-align:center}
 .group-tab.on{background:var(--accent);border-color:#fff3b0;color:#1a1b3f}
 .group-tab.on .gc{background:rgba(26,27,63,.2)}
-@media (max-width:600px){.group-tab{font-size:.95rem;padding:.5em .9em}}
+@media (max-width:760px){.group-tab{font-size:.95rem;padding:.5em .9em}.group-tabs{gap:8px}}
+@media (max-width:600px){.group-tabs{flex-direction:column;align-items:stretch;width:100%;max-width:420px}.group-tab{justify-content:center}}
