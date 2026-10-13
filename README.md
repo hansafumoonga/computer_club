@@ -37,16 +37,21 @@ Pick a **year** on the first screen (Year 1 to Year 6) and you see the games and
 
 | Year | Games and tools |
 |------|-----------------|
-| **Year 1** | Click & Build, Click & Type Quest, Slice & Pop, Jump Over!, Piano |
-| **Year 2** | Type & Build, Click & Type Quest, Slice & Pop, Word Hunt, Jump Over!, Star Blaster, Piano |
-| **Year 3** | Click & Type Quest, Word Hunt, Slice & Pop, Star Blaster, Jump Over!, Pattern Pop!, Piano |
-| **Year 4 and 5** | Typing Club, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Word Hunt, Piano |
-| **Year 6** | Typing Club, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Piano |
+| **Year 1** | Click & Build, Paint Studio, Magic Mix, Click & Type Quest, Slice & Pop, Jump Over!, Piano |
+| **Year 2** | Type & Build, Art Studio, Magic Mix, Click & Type Quest, Slice & Pop, Word Hunt, Jump Over!, Star Blaster, Piano |
+| **Year 3** | Scene Maker, Magic Mix, Art Studio, Click & Type Quest, Word Hunt, Slice & Pop, Star Blaster, Jump Over!, Pattern Pop!, Piano |
+| **Year 4 and 5** | Typing Club, Shortcut Lab, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Word Hunt, Piano |
+| **Year 6** | Typing Club, Shortcut Lab, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Piano |
 
 Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a Makey Makey can also press). The choice of years is a starting suggestion and can be changed in `js/main.js` (the `YEARS` list).
 
 - **Click & Type Quest** (Year 1 to 3): a guided adventure of 10 levels that teaches the mouse (moving, clicking, choosing, drag and drop, connecting, double-click, right-click) and the keyboard (finding letters, small and BIG letters, Caps Lock, words, Space, Backspace, Enter). A friendly guide called Buddy shows each action first, then the learner tries, with gentle hints and stars. Finishing the last level unlocks a printable **certificate**.
 - **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. **Click & Build** (Year 1) uses the mouse: click, drag, double-click and right-click. **Type & Build** (Year 2) has the child type each word to add a piece. Bo, a friendly bear guide with an optional spoken voice, explains what to do and cheers each piece. Very gentle: hints and help appear by themselves, and every picture earns at least one star. Every picture is open, and building the last one (the city) unlocks a printable certificate.
+- **Paint Studio** (Year 1): a painting program with no levels. Choose something to paint from a menu of animals, farm, houses, vehicles and fun pictures, pick a colour and click a part of the picture to colour it. There is also blank paper with a brush, a rubber and a paper fill. You can choose and change the background (sky, sunset, night, sea, space and more). Paintings can be undone, saved as a picture and printed.
+- **Art Studio** (Years 2 and 3): a fuller painting program with pencil, marker, spray and rainbow brushes, shapes, stamps, a paint bucket, a mirror mode, undo and redo, any colour, and a background you can choose and change.
+- **Scene Maker** (Year 3): a canvas with 22 things down the left side (animals, houses, cars, trees, the sun ...). Drag them onto the picture, move and arrange them, make them bigger or smaller, turn, flip and layer them, paint them any colour, choose a background, and draw freehand on top.
+- **Magic Mix** (Years 1 to 3): press the magic button and watch a painting make itself. Pools of colour grow and overlap so you can see them mix (blue and yellow make green), then a shape is drawn and filled with mixing colours. The child can then paint on it, undo, save or print.
+- **Shortcut Lab** (Years 4 to 6): a small notes program where keyboard shortcuts really work. Ctrl+A selects, Ctrl+C and Ctrl+V copy and paste (the clipboard is shown), Ctrl+Z and Ctrl+Y undo and redo, Ctrl+B, I and U format, Ctrl+F finds, Ctrl+S saves and Ctrl+P shows a print preview. Each challenge is ticked when the real shortcut is used.
 - **Slice & Pop**: press the right letter to slice or pop.
 - **Word Hunt**: a computer-words word search with 10 levels.
 - **Jump Over!** and **Star Blaster**: arcade games with many levels, played with the arrow keys and Space (or a Makey Makey).
@@ -76,6 +81,8 @@ Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a 
 3. Share `https://<your-name>.github.io/<repo-name>/`.
 
 ## Files
+- `css/paint.css`, `js/paint_common.js`, `js/paint_data.js`, `js/paint.js`, `js/magic.js`, `js/art.js`, `js/scene_items.js`, `js/scene.js`: Paint Studio, Magic Mix, Art Studio and Scene Maker (shared colours and backgrounds, the pictures and things to drag, and one engine each)
+- `css/shortcuts.css`, `js/shortcuts.js`: Shortcut Lab
 - `css/builder.css`, `js/builder_data.js`, `js/builder.js`: Builder Club (styling, the drawn pictures and their words, engine)
 - `css/typing.css`, `js/typing_data.js`, `js/typing.js`: Typing Club (styling, levels and sentences, engine)
 - `index.html`: the page

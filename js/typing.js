@@ -20,12 +20,11 @@ const GAMES = [
 ];
 
 /* ---------- state for the whole visit (nothing is stored on disk) ---------- */
-const S = { year: 4, name: '', view: 'home', game: 'racer', level: 1, guide: true, unlockAll: false, best: {}, ghost: {}, keys: {}, rounds: [], run: null, timers: [], loop: null, view2: null };
+const S = { year: 4, name: '', view: 'home', game: 'racer', level: 1, guide: true, best: {}, ghost: {}, keys: {}, rounds: [], run: null, timers: [], loop: null };
 function target() { return D.TARGET_WPM[S.year]; }
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
 function bestOf(g, lv) { return S.best[g + ':' + lv] || null; }
-function isOpen() { return true; }      // progress is not saved, so every level is open: a learner can start where they stopped
 
 /* ---------- the on-screen keyboard (finger guide) ---------- */
 const FMAP = { LP: '1qaz', LR: '2wsx', LM: '3edc', LI: '4rfv5tgb', RI: '6yhn7ujm', RM: '8ik,', RR: '9ol.', RP: '0p;/-' };
@@ -73,10 +72,9 @@ function noteKey(ch, ok, R) {
 }
 function practiceKeys(max) {
   return Object.keys(S.keys).map(function (c) { const k = S.keys[c]; return { c: c, n: k.n, err: k.err, rate: k.n ? k.err / k.n : 0, slow: k.c ? k.ms / k.c : 0 }; })
-    .filter(function (k) { return k.n >= 3 && c0(k.c) && (k.rate >= 0.12 || k.slow > 700); })
+    .filter(function (k) { return k.n >= 3 && k.c !== ' ' && (k.rate >= 0.12 || k.slow > 700); })
     .sort(function (a, b) { return (b.rate * 100 + b.slow / 40) - (a.rate * 100 + a.slow / 40); }).slice(0, max || 3);
 }
-function c0(c) { return c !== ' '; }
 function medal(w) { const T = target(); return w >= T * 1.3 ? '🥇 Gold speed' : w >= T ? '🥈 Silver speed' : w >= T * 0.7 ? '🥉 Bronze speed' : ''; }
 
 /* ---------- screens ---------- */
@@ -117,10 +115,10 @@ function showMap() {
   m.appendChild(top);
   const grid = el('div', 'ty-levels');
   LEVELS.forEach(function (lv) {
-    const open = isOpen(g.id, lv.id), b = bestOf(g.id, lv.id);
-    const t = el('button', 'ty-tile' + (open ? '' : ' locked') + (b && b.stars ? ' done' : '')); t.type = 'button'; t.disabled = !open; t.dataset.theme = lv.theme;
+    const b = bestOf(g.id, lv.id);
+    const t = el('button', 'ty-tile' + (b && b.stars ? ' done' : '')); t.type = 'button'; t.dataset.theme = lv.theme;
     t.innerHTML = '<span class="n"></span><span class="ic"></span><span class="nm"></span><span class="st"></span>';
-    t.querySelector('.n').textContent = lv.id; t.querySelector('.ic').textContent = open ? lv.icon : '🔒'; t.querySelector('.nm').textContent = lv.name;
+    t.querySelector('.n').textContent = lv.id; t.querySelector('.ic').textContent = lv.icon; t.querySelector('.nm').textContent = lv.name;
     t.querySelector('.st').textContent = b ? (b.stars ? '⭐'.repeat(b.stars) : '·') + '  ' + b.wpm + ' wpm' : '';
     t.setAttribute('aria-label', 'Level ' + lv.id + ' ' + lv.name);
     t.addEventListener('click', function () { t.blur(); CC.audio.init(); S.level = lv.id; intro(); }); grid.appendChild(t);
@@ -128,12 +126,11 @@ function showMap() {
   m.appendChild(grid); setView('map', m);
 }
 function intro() {
-  const lv = LEVELS[S.level - 1], g = GAMES.filter(function (x) { return x.id === S.game; })[0];
+  const lv = LEVELS[S.level - 1];
   CC.sfx.letsGo && CC.sfx.letsGo();
   CC.ui.show($stage(), { emoji: lv.icon, title: 'Level ' + lv.id + ': ' + lv.name, text: (lv.newKeys ? 'New keys: ' + lv.newKeys + '. ' : '') + lv.tip, buttons: [
     { icon: '▶', label: 'Go!', primary: true, keys: ['Enter', 'Space'], fn: function () { startRun(); } },
     { icon: '🗺️', label: '', fn: showMap }] });
-  void g;
 }
 
 /* ---------- running a round ---------- */

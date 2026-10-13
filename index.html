@@ -28,10 +28,12 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Tech Explorers","alternateName":"Tech Explorers Computer Club","url":"https://hansafumoonga.github.io/computer_club/","description":"Tech Explorers is a free set of browser games for school computer clubs. Learners in Years 1 to 6 practise the mouse, the keyboard and typing, with Makey Makey games, certificates and teacher reports. No sign-in, no data collected.","applicationCategory":"EducationalApplication","operatingSystem":"Any desktop or laptop with a web browser","browserRequirements":"Requires a computer with a keyboard and mouse (a Makey Makey also works for the arrow-key games)","isAccessibleForFree":true,"inLanguage":"en","typicalAgeRange":"5-12","audience":{"@type":"EducationalAudience","educationalRole":"student"},"license":"https://opensource.org/licenses/MIT","image":"https://hansafumoonga.github.io/computer_club/og-image.png","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Moonga Hansafu","url":"https://www.linkedin.com/in/moonga-hansafu-946077187","sameAs":["https://www.linkedin.com/in/moonga-hansafu-946077187","https://hansafumoonga.github.io/portfolio/"]}}
 </script>
-<link rel="stylesheet" href="css/style.css?v=71">
-<link rel="stylesheet" href="css/skills.css?v=71">
-<link rel="stylesheet" href="css/typing.css?v=71">
-<link rel="stylesheet" href="css/builder.css?v=71">
+<link rel="stylesheet" href="css/style.css?v=82">
+<link rel="stylesheet" href="css/skills.css?v=82">
+<link rel="stylesheet" href="css/typing.css?v=82">
+<link rel="stylesheet" href="css/builder.css?v=82">
+<link rel="stylesheet" href="css/paint.css?v=82">
+<link rel="stylesheet" href="css/shortcuts.css?v=82">
 </head>
 <body>
 <noscript><p style="padding:20px;color:#fff;font-family:sans-serif">Tech Explorers is a free set of browser games that teach the mouse, the keyboard and typing to learners in Years 1 to 6. Please turn on JavaScript to play. Use a computer with a keyboard and mouse; a Makey Makey works too.</p></noscript>
@@ -92,8 +94,8 @@
 
     <h3>⌨️ Which games need what</h3>
     <ul>
-      <li><strong>Full keyboard:</strong> Typing Club (Years 4 to 6), Slice & Pop, Type & Build.</li>
-      <li><strong>Mouse:</strong> Click & Build, Word Hunt. Click & Type Quest uses both the mouse and the keyboard.</li>
+      <li><strong>Full keyboard:</strong> Typing Club and Shortcut Lab (Years 4 to 6), Slice & Pop, Type & Build.</li>
+      <li><strong>Mouse:</strong> Click & Build, Paint Studio, Art Studio, Scene Maker, Magic Mix, Word Hunt. Click & Type Quest uses both the mouse and the keyboard.</li>
       <li><strong>Arrow keys or Makey Makey:</strong> Jump Over!, Star Blaster, Piano, Commando Run, Pattern Pop! They only use Left, Up, Down, Right and Space.</li>
     </ul>
 
@@ -180,6 +182,56 @@
     <span></span>
   </div>
   <div class="bd-stage" id="stage-builder"><div class="bd-root" id="bd-root"></div><div class="overlay-root"></div></div>
+</section>
+
+<!-- ============ PAINT STUDIO (Year 1) ============ -->
+<section class="mode" id="mode-paint" hidden>
+  <div class="topbar">
+    <button class="btn" data-action="menu">🏠</button>
+    <h2>🎨 Paint Studio</h2>
+    <span></span>
+  </div>
+  <div class="pt-stage" id="stage-paint"><div class="pt-root" id="pt-root"></div><div class="overlay-root"></div></div>
+</section>
+
+<!-- ============ MAGIC MIX (Years 1-3) ============ -->
+<section class="mode" id="mode-magic" hidden>
+  <div class="topbar">
+    <button class="btn" data-action="menu">🏠</button>
+    <h2>✨ Magic Mix</h2>
+    <span></span>
+  </div>
+  <div class="pt-stage" id="stage-magic"><div class="pt-root" id="mg-root"></div><div class="overlay-root"></div></div>
+</section>
+
+<!-- ============ ART STUDIO (Years 2-3) ============ -->
+<section class="mode" id="mode-art" hidden>
+  <div class="topbar">
+    <button class="btn" data-action="menu">🏠</button>
+    <h2>🖌️ Art Studio</h2>
+    <span></span>
+  </div>
+  <div class="pt-stage" id="stage-art"><div class="pt-root" id="art-root"></div><div class="overlay-root"></div></div>
+</section>
+
+<!-- ============ SCENE MAKER (Year 3) ============ -->
+<section class="mode" id="mode-scene" hidden>
+  <div class="topbar">
+    <button class="btn" data-action="menu">🏠</button>
+    <h2>🖼️ Scene Maker</h2>
+    <span></span>
+  </div>
+  <div class="pt-stage" id="stage-scene"><div class="pt-root" id="scene-root"></div><div class="overlay-root"></div></div>
+</section>
+
+<!-- ============ SHORTCUT LAB (Years 4-6) ============ -->
+<section class="mode" id="mode-shortcuts" hidden>
+  <div class="topbar">
+    <button class="btn" data-action="menu">🏠</button>
+    <h2>⚡ Shortcut Lab</h2>
+    <span></span>
+  </div>
+  <div class="pt-stage" id="stage-shortcuts"><div class="pt-root" id="sh-root"></div><div class="overlay-root"></div></div>
 </section>
 
 <!-- ============ PIANO ============ -->
@@ -284,23 +336,31 @@
   </div>
 </section>
 
-<script src="js/core.js?v=71"></script>
-<script src="js/music.js?v=71"></script>
-<script src="js/sprites.js?v=71"></script>
-<script src="js/sprites_world.js?v=71"></script>
-<script src="js/piano.js?v=71"></script>
-<script src="js/jump.js?v=71"></script>
-<script src="js/blaster.js?v=71"></script>
-<script src="js/commando.js?v=71"></script>
-<script src="js/pattern.js?v=71"></script>
-<script src="js/fruit.js?v=71"></script>
-<script src="js/words.js?v=71"></script>
-<script src="js/skills_levels.js?v=71"></script>
-<script src="js/skills.js?v=71"></script>
-<script src="js/typing_data.js?v=71"></script>
-<script src="js/typing.js?v=71"></script>
-<script src="js/builder_data.js?v=71"></script>
-<script src="js/builder.js?v=71"></script>
-<script src="js/main.js?v=71"></script>
+<script src="js/core.js?v=82"></script>
+<script src="js/music.js?v=82"></script>
+<script src="js/sprites.js?v=82"></script>
+<script src="js/sprites_world.js?v=82"></script>
+<script src="js/piano.js?v=82"></script>
+<script src="js/jump.js?v=82"></script>
+<script src="js/blaster.js?v=82"></script>
+<script src="js/commando.js?v=82"></script>
+<script src="js/pattern.js?v=82"></script>
+<script src="js/fruit.js?v=82"></script>
+<script src="js/words.js?v=82"></script>
+<script src="js/skills_levels.js?v=82"></script>
+<script src="js/skills.js?v=82"></script>
+<script src="js/typing_data.js?v=82"></script>
+<script src="js/typing.js?v=82"></script>
+<script src="js/builder_data.js?v=82"></script>
+<script src="js/builder.js?v=82"></script>
+<script src="js/paint_data.js?v=82"></script>
+<script src="js/paint_common.js?v=82"></script>
+<script src="js/paint.js?v=82"></script>
+<script src="js/magic.js?v=82"></script>
+<script src="js/art.js?v=82"></script>
+<script src="js/scene_items.js?v=82"></script>
+<script src="js/scene.js?v=82"></script>
+<script src="js/shortcuts.js?v=82"></script>
+<script src="js/main.js?v=82"></script>
 </body>
 </html>

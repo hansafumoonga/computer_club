@@ -179,7 +179,6 @@ CC.watchStage = function (stage) {
 
 /* ---------- Overlays: the shared level-complete / try-again / intro screens (icons first, very few words) ---------- */
 const UI = CC.ui = { active: null };
-const KEYHINT = { Space: 'Space', Enter: 'Enter', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' };
 
 /* opts = {emoji, title, text, stars:n, controls:[{keys:[..], icon}], buttons:[{icon, label, keys:[codes], primary, fn}], levels:{count,current,onPick}} */
 UI.show = function (stage, opts) {

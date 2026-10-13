@@ -15,21 +15,26 @@ const MODES = {
   /* Builder Club has two doors; each year gets the one that suits it (the same game, opened on the right door) */
   buildclick: { icon: '🏗️', name: 'Click & Build', desc: 'Click, drag and build a car, a house, a city!', tag: 'Mouse', color: '#22b8cf', cert: true, mode: 'builder', args: { door: 'click' } },
   buildtype:  { icon: '🏗️', name: 'Type & Build',  desc: 'Type the word to build a car, a house, a city!', tag: 'Keyboard', color: '#ff7a45', cert: true, mode: 'builder', args: { door: 'type' } },
+  magic:    { icon: '✨', name: 'Magic Mix',     desc: 'Watch colours mix and paint a picture', tag: 'Mouse', color: '#ffb52e' },
+  art:      { icon: '🖌️', name: 'Art Studio',    desc: 'Brushes, shapes, stamps and more', tag: 'Mouse', color: '#ff7a45' },
+  scene:    { icon: '🖼️', name: 'Scene Maker',   desc: 'Drag, arrange and paint a scene', tag: 'Mouse', color: '#22b8cf' },
+  shortcuts:{ icon: '⚡', name: 'Shortcut Lab',  desc: 'Learn keyboard shortcuts that really work', tag: 'Full keyboard', color: '#a77bff' },
+  paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', tag: 'Mouse', color: '#ff7ac8' },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss', tag: 'Full keyboard', color: '#5ac8ff', cert: true }
 };
 /* what each year can play, easiest and most suitable first. Jump Over! is for everyone. */
 const YEARS = {
-  '1': { modes: ['buildclick', 'skills', 'fruit', 'jump', 'piano'] },
-  '2': { modes: ['buildtype', 'skills', 'fruit', 'words', 'jump', 'blaster', 'piano'] },
-  '3': { modes: ['skills', 'words', 'fruit', 'blaster', 'jump', 'pattern', 'piano'] },
-  '4': { modes: ['typing', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
-  '5': { modes: ['typing', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
-  '6': { modes: ['typing', 'commando', 'jump', 'blaster', 'pattern', 'piano'] }
+  '1': { modes: ['buildclick', 'paint', 'magic', 'skills', 'fruit', 'jump', 'piano'] },
+  '2': { modes: ['buildtype', 'art', 'magic', 'skills', 'fruit', 'words', 'jump', 'blaster', 'piano'] },
+  '3': { modes: ['scene', 'magic', 'art', 'skills', 'words', 'fruit', 'blaster', 'jump', 'pattern', 'piano'] },
+  '4': { modes: ['typing', 'shortcuts', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
+  '5': { modes: ['typing', 'shortcuts', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
+  '6': { modes: ['typing', 'shortcuts', 'commando', 'jump', 'blaster', 'pattern', 'piano'] }
 };
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
-const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, buildclick: 'words', buildtype: 'words' };
+const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, shortcuts: null, magic: 'words', art: 'words', scene: 'words', paint: 'words', buildclick: 'words', buildtype: 'words' };
 
 function showOnly(el) {
   document.querySelectorAll('.screen, .mode').forEach(function (s) { s.hidden = true; });

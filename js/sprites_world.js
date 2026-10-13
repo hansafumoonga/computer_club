@@ -131,7 +131,6 @@ function cloudSprite(i) {
     k.globalCompositeOperation = 'source-atop'; const sh = k.createLinearGradient(0, 55, 0, 110); sh.addColorStop(0, 'rgba(120,140,190,0)'); sh.addColorStop(1, 'rgba(120,140,190,.3)'); k.fillStyle = sh; k.fillRect(0, 55, 260, 55);
   });
 }
-const SUNX = { 0: 120, 1: 650, 2: 600, 3: 140, 5: 640, 8: 650, 9: 600, 10: 130, 11: 640, 13: 140, 14: 640 };
 
 /* background for a stage: graded sky, sun and light rays, drifting clouds, two mountain ranges, haze, parallax decoration */
 SP.world = function (c, W, Hh, gy, cam, ti, t) {

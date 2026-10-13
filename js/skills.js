@@ -25,7 +25,7 @@ const DEFAULT_SKILL = { move: 'move', pick: 'click', drag: 'drag', connect: 'con
 const S = {
   year: 2, name: '', view: 'home',
   opt: { sound: true, voice: true, contrast: false, slow: false, clickPlace: false },
-  done: {}, stars: {}, unlockAll: false,
+  done: {}, stars: {},
   stats: {}, seen: {}, badges: {},
   level: null, tasks: [], ti: 0, t: null, act: null,
   mistakes: 0, fails: 0, adaptK: 1, slowA: false,
@@ -143,7 +143,6 @@ async function step(line, action) {
 /* ---------- level flow ---------- */
 const ACT = {};
 function tasksFor(lv) { return lv.tasks.filter(function (t) { return !t.min || S.year >= t.min; }); }
-function isOpen() { return true; }      // progress is not saved, so every level is open: a learner can start where they stopped
 
 function startLevel(id) {
   clearTimers(); CC.ui.close();
@@ -802,9 +801,9 @@ function showHome() {
   home.appendChild(bar);
   const map = el('div', 'sk-map');
   LEVELS.forEach(function (lv) {
-    const open = isOpen(lv.id), w = WORLD[lv.world];
-    const b = el('button', 'sk-tile' + (open ? '' : ' locked') + (S.done[lv.id] ? ' done' : ''), '<span class="n">' + lv.id + '</span><span class="ic">' + (open ? w.icon : '🔒') + '</span><span class="nm">' + lv.title + '</span><span class="st">' + (S.done[lv.id] ? '⭐'.repeat(S.stars[lv.id]) : '') + '</span>');
-    b.type = 'button'; b.dataset.world = lv.world; b.disabled = !open; b.setAttribute('aria-label', 'Level ' + lv.id + ' ' + lv.title);
+    const w = WORLD[lv.world];
+    const b = el('button', 'sk-tile' + (S.done[lv.id] ? ' done' : ''), '<span class="n">' + lv.id + '</span><span class="ic">' + w.icon + '</span><span class="nm">' + lv.title + '</span><span class="st">' + (S.done[lv.id] ? '⭐'.repeat(S.stars[lv.id]) : '') + '</span>');
+    b.type = 'button'; b.dataset.world = lv.world; b.setAttribute('aria-label', 'Level ' + lv.id + ' ' + lv.title);
     b.addEventListener('click', function () { b.blur(); CC.audio.init(); setSfxGain(); startLevel(lv.id); });
     map.appendChild(b);
   });

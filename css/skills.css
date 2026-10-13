@@ -30,7 +30,6 @@
 .sk-tile .nm{font-weight:bold;font-size:1rem;text-align:center;line-height:1.1}
 .sk-tile .st{min-height:1.2em;font-size:.95rem}
 .sk-tile.done{border-color:var(--good)}
-.sk-tile.locked{opacity:.45;cursor:default}
 .sk-tile[data-world=playground]{background:linear-gradient(#2c6fb7,#1f4f86)} .sk-tile[data-world=classroom]{background:linear-gradient(#b4562c,#7d3a1c)}
 .sk-tile[data-world=animalpark]{background:linear-gradient(#3f9a52,#26683a)} .sk-tile[data-world=building]{background:linear-gradient(#c78b1d,#8a5f10)}
 .sk-tile[data-world=road]{background:linear-gradient(#4a5a78,#2c3650)} .sk-tile[data-world=village]{background:linear-gradient(#6a8f3c,#496a24)}
@@ -41,8 +40,8 @@
 .sk-go{margin-top:2px;font-size:2rem !important;padding:.3em 1.4em !important}
 
 /* ---------- play ---------- */
-.sk-play{width:min(100%,calc((100vh - 230px) * 16 / 9));min-width:min(100%,560px);display:flex;flex-direction:column;align-items:center;gap:8px}
-.sk-play.typing{width:min(100%,calc((100vh - 430px) * 16 / 6));min-width:min(100%,520px)}
+.sk-play{width:min(100%,calc((100vh - 242px) * 16 / 9));min-width:min(100%,560px);display:flex;flex-direction:column;align-items:center;gap:8px}
+.sk-play.typing{width:min(100%,calc((100vh - 442px) * 16 / 6));min-width:min(100%,520px)}
 .sk-bar{width:100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 .sk-chip{background:var(--panel);border:3px solid #3a3e8a;border-radius:14px;padding:.3em .8em;font-weight:bold;font-size:1.05rem;white-space:nowrap}
 .sk-chip b{color:var(--accent);margin-right:.2em}

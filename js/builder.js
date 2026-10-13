@@ -15,7 +15,6 @@ const S = { year: 2, name: '', door: 'type', level: 1, best: {}, run: null, time
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
 function bestOf(door, lv) { return S.best[door + ':' + lv] || null; }
-function doorDone(door) { return BUILDS.every(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }); }
 function doneCount(door) { return BUILDS.filter(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }).length; }
 /* progress is not saved, so every picture is open and a learner can start where they stopped; the certificate comes with the last picture (the city) */
 function finalDone(door) { const x = bestOf(door, BUILDS.length); return !!(x && x.stars >= 1); }

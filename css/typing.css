@@ -1,5 +1,5 @@
 /* typing.css - Typing Club (all rules start with ty- so nothing else is touched) */
-.ty-stage{position:relative;width:min(100%,1100px);flex:1 1 auto;min-height:0;height:calc(100vh - 80px);max-height:calc(100vh - 80px);border-radius:16px;overflow:hidden;
+.ty-stage{position:relative;width:min(100%,1100px);flex:1 1 auto;min-height:0;height:calc(100vh - 96px);max-height:calc(100vh - 96px);border-radius:16px;overflow:hidden;
   background:#15163a;box-shadow:0 0 0 4px #3a3e8a,0 14px 30px rgba(0,0,0,.4);--u:8px;margin:4px 0}
 .ty-stage .overlay-root{z-index:50}
 .ty-root{position:absolute;inset:0;overflow:auto;display:flex;flex-direction:column}
@@ -9,7 +9,6 @@
 /* ---------- home ---------- */
 .ty-home,.ty-map,.ty-report{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 20px;text-align:center;width:100%}
 .ty-title{font-size:clamp(1.8rem,5vw,3rem);font-weight:bold;color:var(--accent);text-shadow:0 3px 0 #0c0d26}
-.ty-sub{margin:0;color:var(--ink-dim);font-size:clamp(.95rem,2vw,1.2rem)}
 .ty-setup{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
 .ty-years{display:flex;gap:8px;align-items:center;font-weight:bold}
 .ty-years .yr{min-width:2.6em;font-size:1.3rem}
@@ -37,8 +36,6 @@
 .ty-tile .nm{font-size:.9rem;font-weight:bold;line-height:1.15;min-height:2.3em;display:flex;align-items:center}
 .ty-tile .st{font-size:.8rem;color:var(--accent);min-height:1.2em}
 .ty-tile.done{border-color:#6bcb77}
-.ty-tile.locked{opacity:.5}
-.ty-tile:disabled{cursor:default}
 
 /* ---------- playing ---------- */
 .ty-play{display:flex;flex-direction:column;gap:8px;padding:10px 14px;height:100%;min-height:0;background:linear-gradient(#2a3b7a,#15163a);--k:clamp(22px,min(4.2vw,6.2vh),46px)}
