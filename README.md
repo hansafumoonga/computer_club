@@ -40,8 +40,8 @@ Pick a **year** on the first screen (Year 1 to Year 6) and you see the games and
 | **Year 1** | Click & Build, Paint Studio, Magic Mix, Click & Type Quest, Slice & Pop, Jump Over!, Piano |
 | **Year 2** | Type & Build, Art Studio, Magic Mix, Click & Type Quest, Slice & Pop, Word Hunt, Jump Over!, Star Blaster, Piano |
 | **Year 3** | Scene Maker, Magic Mix, Art Studio, Click & Type Quest, Word Hunt, Slice & Pop, Star Blaster, Jump Over!, Pattern Pop!, Piano |
-| **Year 4 and 5** | Typing Club, Shortcut Lab, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Word Hunt, Piano |
-| **Year 6** | Typing Club, Shortcut Lab, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Piano |
+| **Year 4 and 5** | Typing Club, Shortcut Lab, Magic Lab, Design Studio, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Word Hunt, Piano |
+| **Year 6** | Typing Club, Shortcut Lab, Magic Lab, Design Studio, Commando Run, Jump Over!, Star Blaster, Pattern Pop!, Piano |
 
 Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a Makey Makey can also press). The choice of years is a starting suggestion and can be changed in `js/main.js` (the `YEARS` list).
 
@@ -49,8 +49,10 @@ Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a 
 - **Builder Club**: build a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and finally a whole city. **Click & Build** (Year 1) uses the mouse: click, drag, double-click and right-click. **Type & Build** (Year 2) has the child type each word to add a piece. Bo, a friendly bear guide with an optional spoken voice, explains what to do and cheers each piece. Very gentle: hints and help appear by themselves, and every picture earns at least one star. Every picture is open, and building the last one (the city) unlocks a printable certificate.
 - **Paint Studio** (Year 1): a painting program with no levels. Choose something to paint from a menu of animals, farm, houses, vehicles and fun pictures, pick a colour and click a part of the picture to colour it. There is also blank paper with a brush, a rubber and a paper fill. You can choose and change the background (sky, sunset, night, sea, space and more). Paintings can be undone, saved as a picture and printed.
 - **Art Studio** (Years 2 and 3): a fuller painting program with pencil, marker, spray and rainbow brushes, shapes, stamps, a paint bucket, a mirror mode, undo and redo, any colour, and a background you can choose and change.
+- **Design Studio** (Years 4 to 6): the same program with more tools: a soft brush, a calligraphy pen, a colour picker, text, opacity, symmetry (mirror, four-way and radial) and up to four **layers** that can be shown, hidden, reordered and faded.
 - **Scene Maker** (Year 3): a canvas with 22 things down the left side (animals, houses, cars, trees, the sun ...). Drag them onto the picture, move and arrange them, make them bigger or smaller, turn, flip and layer them, paint them any colour, choose a background, and draw freehand on top.
 - **Magic Mix** (Years 1 to 3): press the magic button and watch a painting make itself. Pools of colour grow and overlap so you can see them mix (blue and yellow make green), then a shape is drawn and filled with mixing colours. The child can then paint on it, undo, save or print.
+- **Magic Lab** (Years 4 to 6): the advanced magic painter. Choose a style (Kaleidoscope, Spirograph, Flow Waves or Colour Pools), a colour harmony (complementary, analogous, triad or mono) and a base colour, then set the symmetry, detail and speed and watch the picture draw itself. Then paint on it, undo, save or print.
 - **Shortcut Lab** (Years 4 to 6): a small notes program where keyboard shortcuts really work. Ctrl+A selects, Ctrl+C and Ctrl+V copy and paste (the clipboard is shown), Ctrl+Z and Ctrl+Y undo and redo, Ctrl+B, I and U format, Ctrl+F finds, Ctrl+S saves and Ctrl+P shows a print preview. Each challenge is ticked when the real shortcut is used.
 - **Slice & Pop**: press the right letter to slice or pop.
 - **Word Hunt**: a computer-words word search with 10 levels.
@@ -59,6 +61,8 @@ Each card shows what it needs (mouse, keyboard, or the five arrow keys, which a 
 - **Commando Run**: 15 stages with big creatures, ending with a dragon king.
 - **Pattern Pop!**: watch, listen and copy.
 - **Typing Club** (Year 4 to 6, needs a full keyboard): 10 levels from the home row to capitals, punctuation and numbers, in three games: **Typing Racer** (race your own best time), **Word Pop** (pop floating balloons by typing the word) and **Boss Sentences** (type sentences to beat a friendly boss). A finger-guide keyboard shows which finger to use. Stars reward accuracy first; speed earns a separate medal. A teacher report shows words per minute, accuracy and the keys to practise. Finishing level 10 of any one game unlocks a printable **certificate** with a speed medal.
+
+**One look for every painting program.** Paint Studio, Magic Mix, Art Studio, Scene Maker, Magic Lab and Design Studio all share the same layout: an action bar on top, tools on the left, the paper in the middle and colour, size and background on the right. Only what the tools can do grows from year to year.
 
 ### For teachers
 - A **pause** button in every game (the Escape key also works in the arrow-key games).

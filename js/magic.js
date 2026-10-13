@@ -3,10 +3,9 @@
    paint on it, undo, save or print. Nothing is stored or sent anywhere. */
 (function () {
 'use strict';
-const CC = window.CC, PC = CC.PCOM, W = 960, H = 600;
+const CC = window.CC, PC = CC.PCOM, ST = CC.ST, el = ST.el, W = 960, H = 600;
 const $stage = function () { return document.getElementById('stage-magic'); };
 const $root = function () { return document.getElementById('mg-root'); };
-function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function rnd(a, b) { return a + Math.random() * (b - a); }
 function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
 function clamp(v) { return Math.max(0, Math.min(1, v)); }
@@ -34,7 +33,7 @@ const SHAPES = {
 };
 const SHAPE_NAMES = { star: 'a star', heart: 'a heart', flower: 'a flower', sun: 'a sun', moon: 'a moon' };
 
-const M = { colour: '#ff3b4e', size: 14, tool: 'brush', undo: [], running: false, G: null, raf: 0, cv: null, ctx: null, ui: {} };
+const M = { colour: '#ff3b4e', size: 14, tool: 'brush', hist: ST.history(20), running: false, G: null, raf: 0, cv: null, ctx: null, ui: {} };
 const DUR = { pools: 4.6, outline: 3.0, fill: 3.2, spark: 1.2 };
 
 /* ---------- build a new random painting plan ---------- */
@@ -87,7 +86,7 @@ function render(t) {
   }
 }
 /* the sentence under the picture while colours mix */
-function say(html, mood) { M.ui.say.innerHTML = html; M.ui.say.className = 'mg-say' + (mood ? ' ' + mood : ''); }
+function say(html, mood) { M.ui.say.innerHTML = html; M.ui.say.className = 'st-say' + (mood ? ' ' + mood : ''); }
 function swatch(c) { return '<span class="sw" style="background:' + c + '"></span>'; }
 function announce(G, t) {
   const T1 = DUR.pools, T2 = T1 + DUR.outline, T3 = T2 + DUR.fill;
@@ -108,7 +107,7 @@ function announce(G, t) {
 /* ---------- run the magic ---------- */
 function start() {
   if (M.running) return;
-  const d = M.ctx.getImageData(0, 0, W, H); M.undo.push(function () { M.ctx.putImageData(d, 0, 0); }); if (M.undo.length > 12) M.undo.shift();
+  M.hist.push(ST.canvasEntry(M.ctx, W, H));
   M.G = plan(); M.G.sparks = M.G.pts.filter(function (p, i) { return i % Math.max(1, Math.floor(M.G.pts.length / 18)) === 0; });
   M.running = true; M.t0 = performance.now(); M.t = 0; setRunning(true); CC.sfx.letsGo && CC.sfx.letsGo();
   announce(M.G, 0); render(0); loop();
@@ -142,46 +141,35 @@ function setRunning(on) {
   M.ui.magic.hidden = on; M.ui.skip.hidden = !on; M.ui.canvas.style.pointerEvents = on ? 'none' : '';
 }
 
-/* ---------- the screen ---------- */
+/* ---------- the screen: the same layout as every painting program ---------- */
 function show() {
-  CC.ui.close(); const w = el('div', 'mg-wrap'); M.ui.root = w;
-  const bar = el('div', 'mg-bar');
-  function btn(icon, label, fn, cls) { const b = el('button', 'btn' + (cls ? ' ' + cls : ''), icon + ' ' + label); b.type = 'button'; b.addEventListener('click', function () { b.blur(); fn(); }); bar.appendChild(b); return b; }
-  M.ui.magic = btn('✨', 'Magic!', start, 'primary magic'); M.ui.skip = btn('⏩', 'Finish now', skip); M.ui.skip.hidden = true;
-  btn('↩️', 'Undo', undo); btn('💾', 'Save', save); btn('🖨️', 'Print', function () { window.print(); });
-  w.appendChild(bar);
-  const paper = el('div', 'mg-paper'); w.appendChild(paper);
-  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'mg-canvas'; paper.appendChild(cv); M.cv = cv; M.ctx = cv.getContext('2d'); M.ui.canvas = cv;
-  M.ctx.fillStyle = '#fff'; M.ctx.fillRect(0, 0, W, H);
-  M.ui.say = el('div', 'mg-say', ''); paper.appendChild(M.ui.say); say('Press ✨ Magic! to make a painting. Watch the colours mix!');
-  const pg = el('div', 'mg-prog'); M.ui.prog = el('i'); pg.appendChild(M.ui.prog); w.appendChild(pg);
-  const tools = el('div', 'pt-tools'); w.appendChild(tools);
-  const tbs = {};
-  function tb(id, icon, label) { const b = el('button', 'btn tool' + (M.tool === id ? ' on' : ''), icon + ' ' + label); b.type = 'button'; b.addEventListener('click', function () { b.blur(); M.tool = id; Object.keys(tbs).forEach(function (k) { tbs[k].classList.toggle('on', k === id); }); }); tools.appendChild(b); tbs[id] = b; }
-  tb('brush', '🖌️', 'Brush'); tb('eraser', '🩹', 'Rubber');
-  const sizes = el('div', 'pt-sizes'); [[6, 'Thin'], [14, 'Medium'], [30, 'Thick']].forEach(function (z) {
-    const b = el('button', 'pt-size' + (M.size === z[0] ? ' on' : '')); b.type = 'button'; b.setAttribute('aria-label', z[1] + ' brush'); const d = el('i'); d.style.width = d.style.height = (6 + z[0] * 0.7) + 'px'; b.appendChild(d);
-    b.addEventListener('click', function () { b.blur(); M.size = z[0]; sizes.querySelectorAll('.pt-size').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); }); sizes.appendChild(b);
-  });
-  tools.appendChild(sizes);
-  w.appendChild(PC.palette(M.colour, function (c) { M.colour = c; M.tool = 'brush'; Object.keys(tbs).forEach(function (k) { tbs[k].classList.toggle('on', k === 'brush'); }); }));
-  const ctx = M.ctx; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  let drawing = false, last = null;
-  function pos(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
-  function stroke(a, b) { ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = M.tool === 'eraser' ? '#ffffff' : M.colour; ctx.lineWidth = M.tool === 'eraser' ? M.size * 1.6 : M.size; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0] + 0.01, b[1]); ctx.stroke(); }
-  cv.addEventListener('pointerdown', function (e) { if (M.running) return; e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) { } const d = ctx.getImageData(0, 0, W, H); M.undo.push(function () { ctx.putImageData(d, 0, 0); }); if (M.undo.length > 12) M.undo.shift(); drawing = true; last = pos(e); stroke(last, last); });
-  cv.addEventListener('pointermove', function (e) { if (!drawing) return; const p = pos(e); stroke(last, p); last = p; });
-  const end = function () { drawing = false; last = null; }; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
-  const r = $root(); r.innerHTML = ''; r.appendChild(w);
+  CC.ui.close(); M.hist.clear();
+  const s = ST.shell($root(), { hint: 'Press Magic! and watch the colours mix. Then paint on it if you like.' }); M.ui.root = s.wrap;
+  ST.action(s.left, '↩️', 'Undo', function () { if (!M.running && M.hist.undo()) CC.sfx.tick(); });
+  ST.action(s.left, '↪️', 'Redo', function () { if (!M.running && M.hist.redo()) CC.sfx.tick(); });
+  ST.action(s.left, '🧹', 'Start again', function () { if (!M.running) ST.confirm($stage(), 'Start again?', 'This clears your painting.', function () { M.hist.push(ST.canvasEntry(M.ctx, W, H)); M.ctx.fillStyle = '#fff'; M.ctx.fillRect(0, 0, W, H); say('Press Magic! to make a painting. Watch the colours mix!'); }); });
+  ST.action(s.right, '💾', 'Save', save, 'primary'); ST.action(s.right, '🖨️', 'Print', function () { window.print(); });
+  ST.tool(s.rail, 'brush', '🖌️', 'Brush', function (id) { M.tool = id; }, true); ST.tool(s.rail, 'eraser', '🩹', 'Rubber', function (id) { M.tool = id; }, false);
+  const mk = ST.section(s.side, 'Make magic');
+  M.ui.magic = ST.action(mk, '✨', 'Magic!', start, 'primary magic'); M.ui.skip = ST.action(mk, '⏩', 'Finish now', skip); M.ui.skip.hidden = true;
+  const pg = el('div', 'st-prog'); M.ui.prog = el('i'); pg.appendChild(M.ui.prog); mk.appendChild(pg);
+  mk.appendChild(el('p', 'st-note', 'Pools of colour grow and mix, then a shape is drawn and filled.'));
+  const col = ST.section(s.side, 'Colour'); col.classList.add('st-lockable'); ST.palette(col, M.colour, function (c) { M.colour = c; M.tool = 'brush'; ST.setTool(s.rail, 'brush'); });
+  const sz = ST.section(s.side, 'Size'); ST.slider(sz, 'Brush size', 4, 50, M.size, function (v) { M.size = v; }, true);
+  const stk = ST.stack(s.paper); const cv = ST.canvas(stk, W, H, 'solid'); M.cv = cv; M.ctx = cv.getContext('2d'); M.ui.canvas = cv; M.ctx.fillStyle = '#fff'; M.ctx.fillRect(0, 0, W, H);
+  M.ui.say = el('div', 'st-say', ''); stk.appendChild(M.ui.say); say('Press Magic! to make a painting. Watch the colours mix!');
+  ST.freehand(cv, { state: function () { return { colour: M.colour, size: M.size, tool: M.tool }; }, enabled: function () { return !M.running; }, before: function () { M.hist.push(ST.canvasEntry(M.ctx, W, H)); }, eraserPaints: '#ffffff' });
 }
-function undo() { if (M.running) return; if (!M.undo.length) { CC.sfx.step && CC.sfx.step(); return; } M.undo.pop()(); CC.sfx.tick(); }
 function save() { M.cv.toBlob(function (b) { PC.download(b, 'my-magic-painting.png'); }, 'image/png'); }
 
 CC.modes.magic = {
   makey: false,
-  enter: function () { CC.audio.init(); CC.watchStage($stage()); M.undo = []; M.running = false; show(); },
+  enter: function () { CC.audio.init(); CC.watchStage($stage()); M.running = false; show(); },
   exit: function () { M.running = false; cancelAnimationFrame(M.raf); clearTimeout(M.timer); CC.ui.close(); },
-  onKeyDown: function (e) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); } else if ((e.key === 'Enter' || e.key === ' ') && !M.running && e.target === document.body) { e.preventDefault(); start(); } },
+  onKeyDown: function (e) {
+    if (e.ctrlKey || e.metaKey) { const k = e.key.toLowerCase(); if (k === 'z' && !M.running) { e.preventDefault(); if (e.shiftKey) M.hist.redo(); else M.hist.undo(); } else if (k === 'y' && !M.running) { e.preventDefault(); M.hist.redo(); } }
+    else if ((e.key === 'Enter' || e.key === ' ') && !M.running && e.target === document.body) { e.preventDefault(); start(); }
+  },
   /* test hooks */
   _M: M, _start: start, _finish: skip, _at: function (t) { if (!M.G) { M.G = plan(); M.G.sparks = []; } announce(M.G, t); render(t); }
 };

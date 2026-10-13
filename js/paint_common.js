@@ -1,5 +1,5 @@
 /* paint_common.js - pieces shared by the painting games (Paint Studio, Magic Mix, Art Studio, Scene Maker):
-   the colour palette, the choosable backgrounds and the save-as-picture helpers. Plain data and small functions. */
+   the colours, the choosable backgrounds and the save-as-picture helpers. Plain data and small functions. */
 (function () {
 'use strict';
 const CC = window.CC;
@@ -25,7 +25,9 @@ const BACKGROUNDS = [
   { id: 'rainbow', name: 'Rainbow', svg: '<defs><linearGradient id="bg_rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd1dc"/><stop offset=".25" stop-color="#ffe9b3"/><stop offset=".5" stop-color="#d4f5c9"/><stop offset=".75" stop-color="#c9e8ff"/><stop offset="1" stop-color="#e3d1ff"/></linearGradient></defs><rect width="480" height="300" fill="url(#bg_rb)"/>' },
   { id: 'dots', name: 'Dots', svg: '<rect width="480" height="300" fill="#fff0f6"/>' + (function () { let s = ''; for (let y = 20; y < 300; y += 40) for (let x = ((y / 40) % 2) * 20 + 20; x < 480; x += 40) s += '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#ffc2dc"/>'; return s; })() }
 ];
-function bgInner(id, solid) { if (solid) return '<rect width="480" height="300" fill="' + solid + '"/>'; const b = BACKGROUNDS.filter(function (x) { return x.id === id; })[0] || BACKGROUNDS[0]; return b.svg; }
+let bgSeq = 0;
+/* every use gets its own gradient names, so a hidden copy of a background elsewhere on the page can never break the visible one */
+function bgInner(id, solid) { if (solid) return '<rect width="480" height="300" fill="' + solid + '"/>'; const b = BACKGROUNDS.filter(function (x) { return x.id === id; })[0] || BACKGROUNDS[0]; return b.svg.replace(/bg_/g, 'bg' + (++bgSeq) + '_'); }
 function bgSvg(id, solid) { return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" preserveAspectRatio="none">' + bgInner(id, solid) + '</svg>'; }
 
 function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); }
@@ -37,32 +39,5 @@ function svgToBlob(svgText, w, h) {
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
   });
 }
-/* a row of backgrounds to choose from; onPick(id) is called when one is chosen */
-function backgroundPicker(current, onPick) {
-  const wrap = document.createElement('div'); wrap.className = 'pc-bgs';
-  BACKGROUNDS.forEach(function (b) {
-    const t = document.createElement('button'); t.type = 'button'; t.className = 'pc-bg' + (b.id === current ? ' on' : ''); t.title = b.name; t.setAttribute('aria-label', b.name + ' background');
-    t.innerHTML = bgSvg(b.id).replace(/bg_/g, 'th_') + '<span>' + b.name + '</span>';       // own gradient names, so a hidden picker can never break the real background
-    t.addEventListener('click', function () { t.blur(); wrap.querySelectorAll('.pc-bg').forEach(function (x) { x.classList.remove('on'); }); t.classList.add('on'); onPick(b.id); });
-    wrap.appendChild(t);
-  });
-  return wrap;
-}
-/* the colour palette; returns the element. onPick(hex) */
-function palette(current, onPick, withCustom) {
-  const pal = document.createElement('div'); pal.className = 'pt-palette';
-  COLOURS.forEach(function (c) {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'pt-col' + (c[1] === current ? ' on' : ''); b.style.setProperty('--c', c[1]); b.setAttribute('aria-label', c[0]); b.title = c[0];
-    b.addEventListener('click', function () { b.blur(); pal.querySelectorAll('.pt-col').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); onPick(c[1]); CC.sfx.tick(); });
-    pal.appendChild(b);
-  });
-  if (withCustom) {
-    const l = document.createElement('label'); l.className = 'pt-col custom'; l.title = 'Pick any colour'; l.innerHTML = '<span>＋</span>';
-    const i = document.createElement('input'); i.type = 'color'; i.value = '#ff3b4e'; i.setAttribute('aria-label', 'choose any colour');
-    i.addEventListener('input', function () { pal.querySelectorAll('.pt-col').forEach(function (x) { x.classList.remove('on'); }); l.classList.add('on'); l.style.setProperty('--c', i.value); onPick(i.value); });
-    l.appendChild(i); pal.appendChild(l);
-  }
-  return pal;
-}
-CC.PCOM = { COLOURS: COLOURS, BACKGROUNDS: BACKGROUNDS, bgInner: bgInner, bgSvg: bgSvg, download: download, svgToBlob: svgToBlob, backgroundPicker: backgroundPicker, palette: palette };
+CC.PCOM = { COLOURS: COLOURS, BACKGROUNDS: BACKGROUNDS, bgInner: bgInner, bgSvg: bgSvg, download: download, svgToBlob: svgToBlob };
 })();

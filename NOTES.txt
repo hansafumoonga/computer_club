@@ -101,6 +101,9 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
   Star Blaster  js/blaster.js
     BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, BLASTER_WEAPON_SECONDS, FIRE_DELAY,
     ENEMIES (size/speed/hits), BLASTER_LEVELS: count, gap, types, speedMul, rockHp, boss (hit points).
+  Studio look   js/studio.js + css/studio.css: the shared layout and helpers (shell, tool rail, side-panel sections, palette, sliders, history for undo and redo).
+                Every painting program is built from these, so they look the same; to change the look for all of them, change these two files.
+                js/magiclab.js (STYLES, HARMONIES: add a style by adding a painter function), js/art.js (BASIC and ADVANCED tool lists; Design Studio is the same file with more tools).
   Painting games js/paint_common.js (COLOURS and BACKGROUNDS shared by Paint Studio, Art Studio, Scene Maker and Magic Mix: add a background by adding one entry),
                 js/magic.js (PALS = the base colours that mix; DUR = how long each stage takes), js/art.js (TOOLS, STAMPS), js/scene_items.js (ITEMS = the things to drag: add one entry),
                 js/shortcuts.js (TASKS = the challenges, CHEAT = the extra shortcuts list; shortcuts that a web page cannot safely capture are only listed).
