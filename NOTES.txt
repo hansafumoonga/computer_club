@@ -3,7 +3,7 @@ COMPUTER CLUB & KEYBOARD SKILLS SUITE - teacher notes (version 2)
 
 HOW TO USE
   Open index.html (double-click), or upload this whole folder to GitHub Pages as-is
-  (index.html + the css and js folders; the old jump-game/shoot-game/memory-game files and files.zip are not used).
+  (index.html + the css and js folders and the small files next to index.html).
   No server, no install, no network calls, nothing is saved anywhere.
 
 WORD HUNT + SLICE & POP (version 8)
