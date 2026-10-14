@@ -206,11 +206,11 @@
 .sk-cert svg{width:100%;height:auto;display:block}
 @media print{
   @page{size:A4 landscape;margin:0}
-  html,body{height:auto;overflow:visible}
+  html,body{height:209mm !important;max-height:209mm !important;overflow:hidden !important;margin:0 !important}
   #mode-skills{height:auto;padding:0;display:block}
   .sk-cert-wrap{width:297mm;gap:0;padding:0}
-  .sk-cert{width:297mm;height:210mm;box-shadow:none;border-radius:0}
-  .sk-cert svg{width:297mm;height:210mm}
+  .sk-cert{width:297mm;height:209mm;box-shadow:none;border-radius:0}
+  .sk-cert svg{width:297mm;height:209mm}
   .sk-cert-bar,.rep-note,.topbar{display:none !important}
 }
 
