@@ -126,14 +126,37 @@ S.pickup = function () { A.tone(660, { dur: .12, vol: .16 }); A.tone(990, { dela
 S.slice = function () { A.noise({ dur: .14, type: 'highpass', freq: 3000, vol: .13 }); A.tone(700, { dur: .18, type: 'triangle', slideTo: 1200, vol: .2 }); A.tone(1050, { delay: .08, dur: .18, vol: .12 }); };
 /* storm sounds for Word Rain: a lightning crack, a rumble of thunder (level 0 = distant, 1 = normal, 2 = big) and a steady rain loop */
 S.zap = function (big) { A.noise({ dur: .18, type: 'highpass', freq: 2600, q: .7, vol: big ? .3 : .2 }); A.tone(950, { dur: .14, type: 'sawtooth', slideTo: 110, vol: big ? .09 : .06 }); };
-S.thunder = function (level) {   // 0 = distant; 2 to 5 = a combo of that many balloons (bigger combo, bigger thunder)
-  level = level == null ? 1 : level;
+/* real recordings (optional): loaded once from the site's own sounds folder. If a file cannot be loaded (for example when index.html is opened
+   straight from the disk) the game quietly uses the sounds it makes itself. */
+A.sample = {};
+A.loadSample = function (name, url) {
+  if (!A.ctx || A.sample[name] !== undefined) return;
+  A.sample[name] = null;
+  try { fetch(url).then(function (r) { return r.ok ? r.arrayBuffer() : Promise.reject(); }).then(function (ab) { return A.ctx.decodeAudioData(ab); }).then(function (b) { A.sample[name] = b; }).catch(function () { A.sample[name] = null; }); } catch (e) {}
+};
+/* play a slice of a loaded recording: o = {offset, dur, vol, rate, delay, key}; a new sound with the same key fades the old one out */
+A.playSlice = function (name, o) {
+  const b = A.sample[name]; if (!b || !A.ctx) return false;
+  const t0 = A.ctx.currentTime + (o.delay || 0), rate = o.rate || 1, dur = Math.min(o.dur, (b.duration - (o.offset || 0)) / rate), fade = Math.min(0.9, dur * 0.35);
+  const src = A.ctx.createBufferSource(); src.buffer = b; src.playbackRate.value = rate;
+  const g = A.ctx.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(o.vol, t0 + 0.04); g.gain.setValueAtTime(o.vol, t0 + dur - fade); g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(g); g.connect(A._out || A.master); src.start(t0, o.offset || 0, dur * rate + 0.05); src.stop(t0 + dur + 0.05);
+  if (o.key) { const prev = A['_k' + o.key]; if (prev) { try { prev.g.gain.cancelScheduledValues(A.ctx.currentTime); prev.g.gain.setValueAtTime(prev.g.gain.value, A.ctx.currentTime); prev.g.gain.linearRampToValueAtTime(0.0001, A.ctx.currentTime + 0.35); } catch (e) {} } A['_k' + o.key] = { g: g }; }
+  return true;
+};
+function thunderSynth(level) {
   const v = level === 0 ? .22 : Math.min(.85, .28 + .12 * level), d = level === 0 ? 1.5 : 0.9 + .35 * level;
   A.noise({ dur: d, type: 'lowpass', freq: 230, q: .8, vol: v, delay: .1 });
   A.noise({ dur: d * .7, type: 'lowpass', freq: 90, q: 1, vol: v * .9, delay: .18 });
   if (level >= 3) A.noise({ dur: d * .6, type: 'lowpass', freq: 150, q: 1, vol: v * .8, delay: .55 });          // a second roll
   if (level >= 4) { A.noise({ dur: .5, type: 'lowpass', freq: 110, q: 1, vol: v, delay: .9 }); A.tone(55, { dur: 1.1, type: 'sine', vol: .12, delay: .1 }); }   // a deep boom
   if (level >= 5) A.noise({ dur: d * .8, type: 'lowpass', freq: 200, q: .8, vol: v, delay: 1.25 });             // and it keeps rolling
+}
+S.thunder = function (level) {   // 0 = distant; 2 to 5 = a combo of that many balloons (bigger combo, bigger and longer thunder)
+  level = level == null ? 1 : level;
+  const cfg = level === 0 ? { offset: 3.6, dur: 2.6, vol: .2, rate: 1 } : { 2: { offset: 0, dur: 2.7, vol: .5, rate: 1 }, 3: { offset: 0, dur: 3.9, vol: .65, rate: .97 }, 4: { offset: 0, dur: 5.6, vol: .8, rate: .94 }, 5: { offset: 0, dur: 8.8, vol: .95, rate: .9 } }[level] || { offset: 0, dur: 2.7, vol: .5, rate: 1 };
+  cfg.delay = .12; cfg.key = 'thunder';
+  if (!A.playSlice('thunder', cfg)) thunderSynth(level);
 };
 A.rainStart = function () {
   if (!A.ctx) return null;

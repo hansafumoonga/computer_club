@@ -303,3 +303,16 @@
 .ty-play.g-rain{--k:clamp(15px,min(2.6vw,4.1vh),30px);gap:6px}
 @media (prefers-reduced-motion:reduce){.rain-streaks,.rain-clouds,.rain-water::before{animation:none}.rain-flash{display:none}}
 @media print{.rain-sky{display:none}}
+
+/* Word Rain set-up: visible tabs for speed and time */
+.ty-rainset{gap:14px}
+.ty-sub{max-width:34em;margin:0;color:#cfd4ff;font-size:clamp(1rem,2.2vw,1.25rem);line-height:1.4}
+.ty-tabrow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:center}
+.ty-tablabel{font-weight:bold;color:#cfd4ff;min-width:3.6em;text-align:right}
+.ty-tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.ty-tab{font:inherit;font-weight:bold;display:inline-flex;align-items:center;gap:7px;padding:.5em 1.05em;border-radius:99px;border:3px solid #5a60b8;background:#2b3170;color:#e6e8ff;cursor:pointer;transition:transform .1s,background .12s}
+.ty-tab:hover{background:#3a418a;transform:translateY(-2px)}
+.ty-tab.on{background:var(--accent);border-color:#fff3b0;color:#1a1b3f;box-shadow:0 0 0 3px rgba(255,210,63,.25)}
+.ty-goalline{margin:0;color:var(--accent);font-weight:bold;letter-spacing:.02em}
+.ty-go{font-size:1.3rem;padding:.55em 1.6em}
+@media (max-width:640px){.ty-tablabel{text-align:center;width:100%}}

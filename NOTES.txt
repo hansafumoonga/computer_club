@@ -114,7 +114,8 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
   Typing Club   js/typing_data.js (TARGET_WPM per year: 4=12, 5=18, 6=24; every level's words and sentences) and js/typing.js
                 (stars: 90% accuracy = 2, 95% = 3; Word Pop/Boss pace come from the year's target). Full keyboard, Years 4-6.
                 Word Rain (a timed challenge, no levels): the words per year are RAIN in js/typing_data.js (letters only; the game keeps falling words on different
-                first letters). The five speeds are RAIN_SPEEDS (fall time, gap between balloons, score factor). Pace, spawn rate, and the combo bonus (2 to 5 copies fall together; bonus = number of balloons) are in the rain* functions in js/typing.js; bronze/silver/gold need 50%/80%/110% of
+                first letters). Thunder: sounds/thunder.mp3 (a recording, 8.8 s; credit: Friendly Free Sounds, https://youtu.be/xK_m77VZYnc - keep the credit in the About page and README) is played in slices by S.thunder in js/core.js; bigger combos play longer, louder and lower. If it cannot load the game falls back to a synthesized thunder. The rain hiss and the lightning crack are synthesized.
+                The five speeds are RAIN_SPEEDS (fall time, gap between balloons, score factor). Pace, spawn rate, and the combo bonus (2 to 5 copies fall together; bonus = number of balloons) are in the rain* functions in js/typing.js; bronze/silver/gold need 50%/80%/110% of
                 the year's target wpm x minutes (rainNeeds).
   Pattern Pop!  js/pattern.js   PATTERN_START_LENGTH, PATTERN_LIT_SECONDS, PATTERN_GAP_SECONDS, PATTERN_GRACE_RETRIES.
   Fruit Slice   js/fruit.js     FRUIT_FALL_SECONDS (BIGGER = SLOWER), FRUIT_LETTERS, FRUIT_SPAWN_SECONDS, FRUIT_MAX_ON_SCREEN.
