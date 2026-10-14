@@ -59,5 +59,13 @@ LEVELS.forEach(function (lv) {
   }
 });
 
-CC.TYPING = { TARGET_WPM: TARGET_WPM, LEVELS: LEVELS };
+/* Word Rain: the words that fall, by year. All short enough for a primary learner: up to 5 letters for Year 4, 6 for Year 5 and 7 for Year 6
+   (Year 6 adds computer words and a few capitals). Teachers can add or remove words freely (letters only; the game makes sure falling words start with different letters). */
+const RAIN = {
+  4: 'sun moon star cloud rain wind snow tree leaf bird fish frog duck cake milk bread apple grape lemon pizza beach river lake hill road bike kite ball game book desk chair shoe sock coat hat house door room bed lamp clock phone robot space earth magic jump swim walk play read draw paint sing dance laugh smile happy funny quick brave kind green pink black white blue juice zebra king queen goat hen ice jam key nut owl pig ant cat dog egg fan gem hop mud net oak pen rug van web yak zip'.split(' '),
+  5: 'window garden forest island jungle desert ocean planet rocket castle dragon wizard pirate camera puzzle monkey sunset market flower butter cheese pencil ruler jacket button zipper bridge silver golden orange purple yellow school friend family summer winter spring basket bottle candle circle comet cookie cotton dinner doctor engine farmer finger guitar hammer helmet jelly kitten ladder lemon magnet marble mirror number pepper pillow pocket potato rabbit ribbon shadow signal spider spoon sticker table tennis ticket tiger tunnel turtle valley violin wallet farm fork gift iron lion nest pond ramp tent vase wolf yard zero moth cave dust'.split(' '),
+  6: 'laptop screen mouse cursor folder window button browser program network website desktop monitor printer battery coding click drag type email file link menu code data icon pixel robot jungle Africa Zambia Lusaka Monday Friday picture answer zigzag puzzle spider bridge planet rocket garden wizard castle dragon pirate camera silver orange'.split(' ')
+};
+
+CC.TYPING = { TARGET_WPM: TARGET_WPM, LEVELS: LEVELS, RAIN: RAIN };
 })();

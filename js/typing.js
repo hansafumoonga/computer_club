@@ -2,6 +2,7 @@
      Typing Racer    - race a car by typing a passage; beat your own best "ghost"
      Word Pop        - pop floating balloons by typing the word
      Boss Sentences  - type sentences to beat a friendly boss
+     Word Rain       - a timed challenge: balloon words rain down, type them to pop them (2 to 5 of the same word together is a combo bonus)
    Stars reward ACCURACY first (finish = 1, 90% = 2, 95% = 3); speed earns a separate medal. Nothing is saved or sent anywhere. */
 (function () {
 'use strict';
@@ -16,11 +17,13 @@ function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { co
 const GAMES = [
   { id: 'racer', icon: '🏎️', name: 'Typing Racer', desc: 'Race your own best time', color: '#ff7a8a' },
   { id: 'blaster', icon: '🎈', name: 'Word Pop', desc: 'Pop the floating balloons', color: '#5ac8ff' },
-  { id: 'boss', icon: '🐲', name: 'Boss Sentences', desc: 'Type sentences to beat the boss', color: '#ffd23f' }
+  { id: 'boss', icon: '🐲', name: 'Boss Sentences', desc: 'Type sentences to beat the boss', color: '#ffd23f' },
+  { id: 'rain', icon: '🌧️', name: 'Word Rain', desc: 'Catch as many words as you can', color: '#6bd6c6' }
 ];
+const LEVEL_GAMES = GAMES.filter(function (g) { return g.id !== 'rain'; });   // the games that have the 10 levels
 
 /* ---------- state for the whole visit (nothing is stored on disk) ---------- */
-const S = { year: 4, name: '', view: 'home', game: 'racer', level: 1, guide: true, best: {}, ghost: {}, keys: {}, rounds: [], run: null, timers: [], loop: null };
+const S = { year: 4, rainMin: 2, rainSpeed: 2, name: '', view: 'home', game: 'racer', level: 1, guide: true, best: {}, ghost: {}, keys: {}, rounds: [], run: null, timers: [], loop: null };
 function target() { return D.TARGET_WPM[S.year]; }
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
@@ -93,11 +96,11 @@ function showHome() {
   setup.appendChild(nm); h.appendChild(setup);
   const cards = el('div', 'ty-games');
   GAMES.forEach(function (g) {
-    const done = LEVELS.filter(function (l) { const b = bestOf(g.id, l.id); return b && b.stars >= 1; }).length;
+    const rain = g.id === 'rain', done = rain ? 0 : LEVELS.filter(function (l) { const b = bestOf(g.id, l.id); return b && b.stars >= 1; }).length;
     const c = el('button', 'ty-gcard'); c.type = 'button'; c.style.setProperty('--c', g.color);
     c.innerHTML = '<span class="gi">' + g.icon + '</span><span class="gn"></span><span class="gp"></span>';
-    c.querySelector('.gn').textContent = g.name; c.querySelector('.gp').textContent = done + ' / 10 levels';
-    c.addEventListener('click', function () { c.blur(); CC.audio.init(); S.game = g.id; showMap(); }); cards.appendChild(c);
+    c.querySelector('.gn').textContent = g.name; c.querySelector('.gp').textContent = rain ? (rainBest() ? 'Best: ' + rainBest() : 'A 2 minute challenge') : done + ' / 10 levels';
+    c.addEventListener('click', function () { c.blur(); CC.audio.init(); S.game = g.id; if (rain) showRainIntro(); else showMap(); }); cards.appendChild(c);
   });
   h.appendChild(cards);
   const row = el('div', 'ty-opts');
@@ -136,7 +139,7 @@ function intro() {
 }
 
 /* ---------- running a round ---------- */
-function stopRun() { clearTimers(); if (S.run) S.run.phase = 'off'; S.run = null; }
+function stopRun() { clearTimers(); if (S.run) { S.run.phase = 'off'; if (S.run.snd) { S.run.snd.stop(); S.run.snd = null; } } S.run = null; }
 function passageFor(lv) {
   const L = LEVELS[lv - 1], goal = [40, 50, 60, 75, 90, 100, 110, 120, 125, 0][lv - 1];
   if (lv === 10) return rnd(L.sentences);
@@ -146,8 +149,8 @@ function passageFor(lv) {
 }
 function startRun() {
   clearTimers(); CC.ui.close();
-  const lv = LEVELS[S.level - 1];
-  const R = { game: S.game, lv: S.level, L: lv, t: 0, started: false, correct: 0, errors: 0, lastT: 0, times: [], phase: 'count', ui: {} };
+  const rain = S.game === 'rain', lv = rain ? RAIN_L : LEVELS[S.level - 1];
+  const R = { game: S.game, lv: rain ? 0 : S.level, L: lv, t: 0, started: false, correct: 0, errors: 0, lastT: 0, times: [], phase: 'count', ui: {} };
   S.run = R; buildPlay(R);
   const nums = ['3', '2', '1', 'GO!']; let i = 0;
   (function tick() { if (S.run !== R) return; R.ui.count.textContent = nums[i]; R.ui.count.classList.remove('pop'); void R.ui.count.offsetWidth; R.ui.count.classList.add('pop'); CC.sfx.tick && CC.sfx.tick();
@@ -155,8 +158,8 @@ function startRun() {
 }
 function hud(R) {
   const bar = el('div', 'ty-hud');
-  const map = el('button', 'btn ico', '🗺️'); map.type = 'button'; map.setAttribute('aria-label', 'level map'); map.addEventListener('click', function () { map.blur(); showMap(); });
-  const chip = el('div', 'ty-chip'); chip.innerHTML = '<b></b> <span></span>'; chip.querySelector('b').textContent = R.lv; chip.querySelector('span').textContent = R.L.name;
+  const map = el('button', 'btn ico', '🗺️'); map.type = 'button'; map.setAttribute('aria-label', 'level map'); map.addEventListener('click', function () { map.blur(); if (R.game === 'rain') showHome(); else showMap(); });
+  const chip = el('div', 'ty-chip'); chip.innerHTML = '<b></b> <span></span>'; chip.querySelector('b').textContent = R.game === 'rain' ? '🌧️' : R.lv; chip.querySelector('span').textContent = R.L.name;
   R.ui.wpm = el('div', 'ty-stat', '⚡ 0 wpm'); R.ui.acc = el('div', 'ty-stat', '🎯 100%'); R.ui.extra = el('div', 'ty-stat ty-extra');
   const gd = el('button', 'btn ico' + (S.guide ? '' : ' off'), '🖐️'); gd.type = 'button'; gd.setAttribute('aria-label', 'finger guide on or off'); gd.title = 'Finger guide';
   gd.addEventListener('click', function () { gd.blur(); S.guide = !S.guide; gd.classList.toggle('off', !S.guide); R.ui.kbwrap.hidden = !S.guide; });
@@ -166,14 +169,14 @@ function hud(R) {
 function refresh(R) { if (!R.ui.wpm) return; R.ui.wpm.textContent = '⚡ ' + Math.round(wpm(R)) + ' wpm'; R.ui.acc.textContent = '🎯 ' + Math.round(acc(R)) + '%'; }
 function buildPlay(R) {
   const p = el('div', 'ty-play ty-t-' + R.L.theme + ' g-' + R.game);
-  addBg(p, R.L.theme, R.game === 'blaster' ? 4 : 12);
+  addBg(p, R.L.theme, R.game === 'blaster' || R.game === 'rain' ? 4 : 12);
   p.appendChild(hud(R));
   const main = el('div', 'ty-main'); p.appendChild(main); R.ui.main = main;
   R.ui.count = el('div', 'ty-count', ''); main.appendChild(R.ui.count);
   R.ui.finger = el('div', 'ty-finger'); p.appendChild(R.ui.finger);
   R.ui.kbwrap = el('div', 'ty-kbwrap'); R.ui.kbwrap.appendChild(buildKeyboard()); R.ui.kbwrap.hidden = !S.guide; p.appendChild(R.ui.kbwrap);
   setView('play', p);
-  ({ racer: setupRacer, blaster: setupBlaster, boss: setupBoss })[R.game](R);
+  ({ racer: setupRacer, blaster: setupBlaster, boss: setupBoss, rain: setupRain })[R.game](R);
 }
 function lineEl(text) { const d = el('div', 'ty-line'); text.split('').forEach(function (ch) { d.appendChild(el('span', 'c', ch)); }); return d; }
 function markLine(line, i, bad) {
@@ -182,7 +185,7 @@ function markLine(line, i, bad) {
 }
 
 /* ---------- animated backgrounds: clouds, bubbles, snow, embers ... drift behind every game ---------- */
-const BGK = { jungle: ['🍃', '🦋', 'fall'], beach: ['☁️', '🐦', 'drift'], volcano: ['🔥', '✨', 'rise'], ocean: ['🫧', '🐟', 'rise'], desert: ['☁️', '🌵', 'drift'], snow: ['❄️', '❄️', 'fall'], city: ['☁️', '🌟', 'drift'], lab: ['💾', '✨', 'rise'], candy: ['🍬', '🍭', 'fall'], sky: ['☁️', '🎈', 'drift'], clouds: ['☁️', '☁️', 'drift'] };
+const BGK = { storm: ['💧', '☁️', 'fall'], jungle: ['🍃', '🦋', 'fall'], beach: ['☁️', '🐦', 'drift'], volcano: ['🔥', '✨', 'rise'], ocean: ['🫧', '🐟', 'rise'], desert: ['☁️', '🌵', 'drift'], snow: ['❄️', '❄️', 'fall'], city: ['☁️', '🌟', 'drift'], lab: ['💾', '✨', 'rise'], candy: ['🍬', '🍭', 'fall'], sky: ['☁️', '🎈', 'drift'], clouds: ['☁️', '☁️', 'drift'] };
 function addBg(host, theme, n) {
   const k = BGK[theme] || BGK.sky, bg = el('div', 'ty-bg');
   for (let i = 0; i < (n || 12); i++) {
@@ -313,6 +316,173 @@ function blasterUpdate(R, dt) {
   refresh(R);
 }
 
+/* ================= game 4: Word Rain ================= */
+/* A timed challenge, not a level. Balloon words fall like rain (a gentle drizzle at first, a little heavier later). Type a word to pop it.
+   Now and then TWO TO FIVE copies of the same word fall together: type it once and they all pop, for a bonus equal to the number of balloons. */
+const RAIN_L = { id: 0, theme: 'storm', name: 'Word Rain' };
+const BADGES = ['No badge yet', '🥉 Bronze rain-catcher', '🥈 Silver rain-catcher', '🥇 Gold rain-catcher'];
+const RAIN_SPEEDS = [   // how fast the balloons fall (seconds to cross the screen, at the start and the end), how often they come, and a score factor
+  { name: 'Very slow', ico: '🐌', fall: [16, 13], gap: [2.8, 1.8], f: 0.6 }, { name: 'Slow', ico: '🐢', fall: [13.5, 10.5], gap: [2.4, 1.5], f: 0.8 },
+  { name: 'Medium', ico: '🚶', fall: [11, 8], gap: [2.0, 1.1], f: 1 }, { name: 'Fast', ico: '🏃', fall: [9, 6.5], gap: [1.6, 0.85], f: 1.2 },
+  { name: 'Fastest', ico: '⚡', fall: [7, 5], gap: [1.3, 0.65], f: 1.4 }];
+function rainSp() { return RAIN_SPEEDS[S.rainSpeed] || RAIN_SPEEDS[2]; }
+function rainKey(m, sp) { return 'rain:' + m + ':' + sp; }
+function rainEntries() {   // every saved best score: { min, sp, ...score }
+  return Object.keys(S.best).filter(function (k) { return k.indexOf('rain:') === 0; }).map(function (k) { const q = k.split(':'), b = S.best[k]; return { min: +q[1], sp: q.length > 2 ? +q[2] : 2, score: b.score, badge: b.badge, wpm: b.wpm, acc: b.acc }; });
+}
+function rainNeeds(min) { const T = target() * min * rainSp().f; return [Math.round(T * 0.5), Math.round(T * 0.8), Math.round(T * 1.1)]; }   // points for bronze, silver, gold
+function rainBadge(score, min) { const n = rainNeeds(min); return score >= n[2] ? 3 : score >= n[1] ? 2 : score >= n[0] ? 1 : 0; }
+function rainBest() { let b = 0; rainEntries().forEach(function (x) { if (x.score > b) b = x.score; }); return b; }
+function clock(secs) { secs = Math.max(0, Math.ceil(secs)); return Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2); }
+function showRainIntro() {
+  CC.ui.close(); const m = S.rainMin, n = rainNeeds(m);
+  CC.sfx.letsGo && CC.sfx.letsGo();
+  const btns = [{ icon: '▶', label: 'Go!', primary: true, keys: ['Enter', 'Space'], fn: function () { startRun(); } }];
+  btns.push({ icon: rainSp().ico, label: rainSp().name, fn: function () { S.rainSpeed = (S.rainSpeed + 1) % RAIN_SPEEDS.length; showRainIntro(); } });
+  [1, 2, 3].forEach(function (x) { btns.push({ icon: x === m ? '✅' : '⏱️', label: x + ' min', fn: function () { S.rainMin = x; showRainIntro(); } }); });
+  btns.push({ icon: '🏠', label: '', fn: showHome });
+  CC.ui.show($stage(), { emoji: '🌧️', title: 'Word Rain: ' + m + (m === 1 ? ' minute' : ' minutes'), text: 'Balloons with words fall in a thunderstorm; your typing calls down the lightning. Type a word to pop it! Two to five of the same word together? Type it once to pop them all for a combo bonus. Speed: ' + rainSp().name + ' (tap the speed button to change it). Bronze at ' + n[0] + ', silver at ' + n[1] + ', gold at ' + n[2] + '.', buttons: btns });
+}
+function setupRain(R) {
+  R.dur = S.rainMin * 60; R.sp = rainSp(); R.words = []; R.caught = 0; R.bonus = 0; R.missed = 0; R.combos = 0; R.streak = 0; R.target = null; R.started = true; R.spawnT = 0.5; R.comboT = 12 + Math.random() * 5; R.comboWait = 0; R.lastLane = -1;
+  const f = el('div', 'ty-field rain-sky'); R.ui.field = f; R.ui.main.appendChild(f);
+  f.appendChild(el('div', 'rain-streaks')); addBg(f, 'storm', 5); f.appendChild(el('div', 'rain-clouds'));
+  R.ui.tbar = el('div', 'rain-time'); R.ui.tbar.appendChild(el('i')); f.appendChild(R.ui.tbar);
+  f.appendChild(el('div', 'rain-water'));
+  R.ui.banner = el('div', 'rain-banner'); R.ui.banner.hidden = true; f.appendChild(R.ui.banner);
+  R.begin = function () { R.spawnT = 0.2; R.skyT = 6 + Math.random() * 4; R.lastFlash = -9; R.snd = CC.audio.rainStart && CC.audio.rainStart(); };
+  rainUI(R); hlKey(null);
+}
+function rainScore(R) { return R.caught + R.bonus; }
+function rainUI(R) { R.ui.extra.textContent = '⏱ ' + clock(R.dur - R.t) + '  ·  🌧️ ' + rainScore(R) + (R.streak >= 3 ? '  🔥 ' + R.streak : ''); }
+function rainBanner(R, text) {
+  const b = R.ui.banner; b.textContent = text; b.hidden = false; b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  later(function () { if (S.run === R) b.hidden = true; }, 1700);
+}
+function rainFloat(R, x, y, text) { const s = el('div', 'rain-plus', text); s.style.left = x + 'px'; s.style.top = y + 'px'; R.ui.field.appendChild(s); later(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 950); }
+function rainLanes(R) { return clamp(Math.floor((R.ui.field.clientWidth || 700) / 185), 3, 6); }
+function rainFree(R, lanes) { const out = []; for (let l = 0; l < lanes; l++) { if (!R.words.some(function (w) { return w.lanes.indexOf(l) >= 0 && w.y < 130; })) out.push(l); } return out; }
+function rainWord(R, maxLen) {
+  const used = {}, act = {}; R.words.forEach(function (w) { used[w.text[0]] = 1; act[w.text] = 1; });
+  const all = shuffle(D.RAIN[S.year] || D.RAIN[4]).filter(function (w) { return !used[w[0]] && !act[w]; });
+  /* prefer short words early on; if none fit (the older years have fewer short words) take the shortest available */
+  const cap = { 4: 5, 5: 6, 6: 7 }[S.year] || 6, fit = all.filter(function (w) { return w.length <= Math.min(cap, maxLen + (S.year - 4)); });
+  return fit[0] || all.sort(function (x, y) { return x.length - y.length; })[0] || null;
+}
+const COMBO_NAME = ['', '', 'DOUBLE', 'TRIPLE', 'QUAD', 'MEGA x5'];
+function shade(hex, f) {   // f > 0 lightens, f < 0 darkens
+  const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(function (v) { return Math.round(f > 0 ? v + (255 - v) * f : v * (1 + f)); });
+  return 'rgb(' + c.join(',') + ')';
+}
+function makeDrop(text, color, n) {
+  const d = el('div', 'ty-drop' + (n > 1 ? ' combo' : '')), sw = el('div', 'sw'), bb = el('div', 'bb');
+  d.style.setProperty('--c', color); d.style.setProperty('--l', shade(color, 0.55)); d.style.setProperty('--d', shade(color, -0.32)); d.col = color;
+  text.split('').forEach(function (ch) { bb.appendChild(el('span', 'c', ch)); });
+  if (n > 1) bb.appendChild(el('span', 'xn', 'x' + n));
+  sw.appendChild(bb); sw.insertAdjacentHTML('beforeend', '<svg class="bs" viewBox="0 0 16 50" aria-hidden="true"><path d="M8 0 C 1 11, 15 20, 8 31 S 3 44, 9 50" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1.7" stroke-linecap="round"/></svg>');
+  d.appendChild(sw); d.bb = bb; return d;
+}
+function rainSpawn(R, n) {   // n = how many copies fall together (1 for a single balloon, 2 to 5 for a combo)
+  const lanes = rainLanes(R), free = rainFree(R, lanes), p = R.t / R.dur;
+  if (free.length < n) return false;
+  const text = rainWord(R, n > 1 ? 5 : p < 0.3 ? 4 : p < 0.65 ? 5 : 7); if (!text) return false;
+  let chosen; if (n > 1) chosen = shuffle(free).slice(0, n); else { const opts = free.filter(function (l) { return Math.abs(l - R.lastLane) > 1; }); chosen = [rnd(opts.length ? opts : free)]; R.lastLane = chosen[0]; }
+  const col = BAL[Math.floor(Math.random() * BAL.length)], W = R.ui.field.clientWidth || 700, e = { text: text, i: 0, y: -130, lanes: chosen, n: chosen.length, els: [] };
+  chosen.forEach(function (l) { const d = makeDrop(text, col, n); d.style.left = ((l + 0.5) * W / lanes) + 'px'; d.style.top = '-130px'; R.ui.field.appendChild(d); e.els.push(d); });
+  R.words.push(e); return true;
+}
+function comboSize(R, lanes) {   // bigger combos appear later in the round
+  const p = R.t / R.dur, r = Math.random(); let n;
+  if (p < 0.3) n = r < 0.75 ? 2 : 3; else if (p < 0.65) n = r < 0.3 ? 2 : r < 0.75 ? 3 : 4; else n = r < 0.3 ? 3 : r < 0.7 ? 4 : 5;
+  return Math.min(n, lanes);
+}
+function rainSetTarget(R, e) { if (R.target) R.target.els.forEach(function (d) { d.classList.remove('locked'); }); R.target = e; if (e) { e.els.forEach(function (d) { d.classList.add('locked'); }); hlKey(e.text[e.i]); } else hlKey(null); }
+function rainPaint(e) { e.els.forEach(function (d) { const cs = d.bb.children; for (let k = 0; k < cs.length; k++) cs[k].className = 'c' + (k < e.i ? ' ok' : ''); }); }
+function rainChar(R, ch) {
+  let e = R.target;
+  if (!e) {
+    const c = R.words.filter(function (x) { return x.text[0] === ch; }).sort(function (a, b) { return b.y - a.y; });
+    if (!c.length) { noteKey(ch, false, R); R.errors++; R.streak = 0; CC.sfx.softMiss && CC.sfx.softMiss(); refresh(R); rainUI(R); return; }
+    e = c[0]; rainSetTarget(R, e);
+  }
+  const exp = e.text[e.i];
+  if (ch === exp) { noteKey(exp, true, R); R.correct++; e.i++; rainPaint(e); CC.sfx.tick && CC.sfx.tick(); if (e.i >= e.text.length) { R.correct++; rainPop(R, e); } else hlKey(e.text[e.i]); }
+  else { noteKey(exp, false, R); R.errors++; R.streak = 0; CC.sfx.softMiss && CC.sfx.softMiss(); e.els.forEach(function (d) { d.bb.classList.remove('shake'); void d.bb.offsetWidth; d.bb.classList.add('shake'); }); }
+  refresh(R); rainUI(R);
+}
+function rainFlash(R, soft) {   // a quick pale flash of the sky (never more than about two a second)
+  if (R.t - R.lastFlash < 0.5) return; R.lastFlash = R.t;
+  const s = el('div', 'rain-flash' + (soft ? ' soft' : '')); R.ui.field.appendChild(s); later(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 320);
+}
+function rainBolt(R, x, y) {   // a jagged bolt from the clouds down to the balloon, with one small fork
+  const f = R.ui.field, W = f.clientWidth || 700, H = f.clientHeight || 340, pts = [[x + (Math.random() - 0.5) * 170, 0]], n = 7;
+  for (let i = 1; i < n; i++) { const k = i / n; pts.push([pts[0][0] + (x - pts[0][0]) * k + (Math.random() - 0.5) * 64, y * k + (Math.random() - 0.5) * 12]); }
+  pts.push([x, y]);
+  const path = function (a) { return 'M' + a.map(function (p) { return Math.round(p[0]) + ' ' + Math.round(p[1]); }).join(' L'); }, m = pts[3], dir = Math.random() < 0.5 ? -1 : 1;
+  const fork = [m, [m[0] + dir * 34, m[1] + y * 0.12], [m[0] + dir * 62, m[1] + y * 0.26]];
+  const d = path(pts) + ' ' + path(fork), s = el('div', 'rain-bolt');
+  s.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path class="g" d="' + d + '"/><path class="c" d="' + d + '"/></svg>';
+  f.appendChild(s); later(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 420);
+}
+function balloonPop(f, x, y, col) {
+  const add = function (cls, css, ms) { const s = el('i', cls); s.style.cssText = css; f.appendChild(s); later(function () { if (s.parentNode) s.parentNode.removeChild(s); }, ms); };
+  add('rp-flash', 'left:' + x + 'px;top:' + y + 'px', 300); add('rp-ring', 'left:' + x + 'px;top:' + y + 'px', 400);
+  for (let k = 0; k < 11; k++) { const a = Math.random() * 6.283, r = 40 + Math.random() * 70; add('rp-shard', 'left:' + x + 'px;top:' + y + 'px;--c:' + col + ';--dx:' + (Math.cos(a) * r).toFixed(0) + 'px;--dy:' + (Math.sin(a) * r + 30).toFixed(0) + 'px;--r:' + Math.round(Math.random() * 540 - 270) + 'deg;width:' + (8 + Math.random() * 10).toFixed(0) + 'px', 800); }
+  for (let k = 0; k < 7; k++) { const a = -Math.PI * (0.15 + Math.random() * 0.7), r = 50 + Math.random() * 60; add('rp-drop', 'left:' + x + 'px;top:' + y + 'px;--dx:' + (Math.cos(a) * r).toFixed(0) + 'px;--dy:' + (Math.sin(a) * r + 55).toFixed(0) + 'px', 800); }
+}
+function rainPop(R, e) {
+  R.words.splice(R.words.indexOf(e), 1); if (R.target === e) R.target = null; hlKey(null);
+  R.caught += e.n; R.streak++;
+  const f = R.ui.field;
+  const big = e.n > 1; CC.sfx.zap && CC.sfx.zap(big); if (big && CC.sfx.thunder) CC.sfx.thunder(e.n); rainFlash(R, false);   // a single balloon gets a crack; a combo of 2 to 5 brings thunder, bigger for bigger combos
+  e.els.forEach(function (d, i) {   // lightning strikes each balloon (a combo one after another), then it bursts
+    later(function () { const x = parseFloat(d.style.left), y = e.y + 38; rainBolt(R, x, y); if (i) CC.sfx.zap && CC.sfx.zap(false); d.classList.add('zapped');
+      later(function () { balloonPop(f, x, y, d.col); d.style.visibility = 'hidden'; CC.sfx.pop && CC.sfx.pop(); later(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 60); }, 80); }, i * 110);
+  });
+  if (e.n > 1) { R.bonus += e.n; R.combos++; rainBanner(R, COMBO_NAME[e.n] + '! +' + e.n + ' BONUS'); CC.sfx.levelComplete && CC.sfx.levelComplete(); rainFloat(R, parseFloat(e.els[Math.floor(e.n / 2)].style.left), e.y, '+' + e.n * 2); }
+  else rainFloat(R, parseFloat(e.els[0].style.left), e.y, '+1');
+}
+function rainMiss(R, e, quiet) {
+  R.words.splice(R.words.indexOf(e), 1); if (R.target === e) { R.target = null; hlKey(null); }
+  if (!quiet) { R.missed++; R.streak = 0; CC.sfx.softMiss && CC.sfx.softMiss(); }
+  const f = R.ui.field;
+  e.els.forEach(function (d) { const s = el('div', 'rain-splash'); s.style.left = d.style.left; f.appendChild(s); later(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 650); d.classList.add('sink'); later(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 600); });
+}
+function rainUpdate(R, dt) {
+  if (R.phase !== 'play') return; R.t += dt;
+  const f = R.ui.field, H = f.clientHeight || 340, p = Math.min(1, R.t / R.dur), q = Math.pow(p, 1.2), sp = R.sp, v = (H - 60) / (sp.fall[0] - (sp.fall[0] - sp.fall[1]) * q);   // the rain speeds up only a little during the round
+  R.skyT -= dt; if (R.skyT <= 0) { R.skyT = 8 + Math.random() * 7; rainFlash(R, true); CC.sfx.thunder && CC.sfx.thunder(0); }
+  R.spawnT -= dt; if (R.spawnT <= 0 && R.dur - R.t > 3) { if (R.comboWait > 0) { R.spawnT = 0.15; } else R.spawnT = rainSpawn(R, 1) ? (sp.gap[0] - (sp.gap[0] - sp.gap[1]) * q) * (0.85 + Math.random() * 0.3) : 0.15; }
+  R.comboT -= dt; if (R.comboT <= 0 && R.dur - R.t > 12) {   // a combo is due: pause the single balloons for a moment so there is room for it
+    const n = R.comboN || (R.comboN = comboSize(R, rainLanes(R)));
+    if (rainSpawn(R, n)) { rainBanner(R, COMBO_NAME[n] + ' RAIN! Type it once'); R.comboT = 13 + Math.random() * 8; R.comboWait = 0; R.comboN = 0; }
+    else { R.comboT = 0.25; R.comboWait += 0.25; if (R.comboWait > 7) { R.comboN = Math.max(2, n - 1); R.comboWait = 0; } }
+  }
+  for (let i = R.words.length - 1; i >= 0; i--) {
+    const e = R.words[i]; e.y += v * dt; e.els.forEach(function (d) { d.style.top = e.y + 'px'; });
+    if (e.y > H - 122) rainMiss(R, e, false);
+  }
+  const left = R.dur - R.t; R.ui.tbar.firstChild.style.width = Math.max(0, left / R.dur * 100) + '%'; R.ui.tbar.classList.toggle('low', left <= 10);
+  rainUI(R); refresh(R);
+  if (left <= 0) rainFinish(R);
+}
+function rainFinish(R) {
+  if (R.phase !== 'play') return; R.phase = 'done'; hlKey(null); if (R.snd) { R.snd.stop(); R.snd = null; }
+  R.words.slice().forEach(function (e) { rainMiss(R, e, true); });
+  const total = rainScore(R), w = wpm(R), a = acc(R), badge = rainBadge(total, S.rainMin), key = rainKey(S.rainMin, S.rainSpeed), old = S.best[key], isBest = !old || total > old.score;
+  S.best[key] = { score: Math.max(old ? old.score : 0, total), badge: Math.max(old ? old.badge : 0, badge), wpm: Math.max(old ? old.wpm : 0, w), acc: Math.max(old ? old.acc : 0, a) };
+  S.rounds.push({ game: 'rain', lv: 0, wpm: w, acc: a, stars: badge, won: true, secs: Math.round(R.t) }); keepProgress();
+  const need = rainNeeds(S.rainMin), nxt = badge < 3 ? need[badge] - total : 0;
+  const bits = [R.sp.name + ' speed', 'Caught ' + total + ' (' + R.caught + ' words' + (R.bonus ? ' + ' + R.bonus + ' combo bonus' : '') + ')', R.missed + ' missed', Math.round(w) + ' words a minute', Math.round(a) + '% accurate'];
+  bits.push(BADGES[badge]); if (isBest && old) bits.push('New personal best!'); if (nxt > 0) bits.push(nxt + ' more for ' + ['bronze', 'silver', 'gold'][badge]);
+  CC.sfx.levelComplete && CC.sfx.levelComplete();
+  later(function () {
+    CC.ui.show($stage(), { emoji: ['🌧️', '🥉', '🥈', '🥇'][badge], stars: badge, title: "Time's up!", text: bits.join(' · '), buttons: [
+      { icon: '🔁', label: 'Again', primary: true, keys: ['Enter'], fn: function () { startRun(); } },
+      { icon: '📋', label: '', fn: showReport }, { icon: '🏠', label: '', fn: showHome }] });
+  }, 900);
+}
+
 /* ================= game 3: Boss Sentences ================= */
 /* each level has its own monster: [body colour, shade, eyes, horns ('horn' | 'spike' | ''), wings, antenna, belly colour] */
 const MON = [['#6bcb77', '#2f9f4f', 2, 'horn', 0, 0, '#d9f7c9'], ['#ff9f45', '#d9701a', 1, '', 0, 1, '#ffe3b8'], ['#ff6b6b', '#c93a3a', 2, 'horn', 1, 0, '#ffd0c0'], ['#4f9bff', '#2a5fc0', 3, 'spike', 0, 0, '#cfe4ff'], ['#e0b060', '#b07a2a', 2, 'spike', 0, 0, '#fff0c8'],
@@ -372,11 +542,11 @@ function bossUpdate(R, dt) {
 /* ---------- shared: finishing, stars, results ---------- */
 function onChar(ch) {
   const R = S.run; if (!R || R.phase !== 'play') return;
-  if (R.game === 'racer') racerChar(R, ch); else if (R.game === 'blaster') blasterChar(R, ch); else bossChar(R, ch);
+  if (R.game === 'racer') racerChar(R, ch); else if (R.game === 'blaster') blasterChar(R, ch); else if (R.game === 'rain') rainChar(R, ch); else bossChar(R, ch);
 }
 function update(dt) {
   const R = S.run; if (!R) return;
-  if (R.game === 'racer') racerUpdate(R, dt); else if (R.game === 'blaster') blasterUpdate(R, dt); else bossUpdate(R, dt);
+  if (R.game === 'racer') racerUpdate(R, dt); else if (R.game === 'blaster') blasterUpdate(R, dt); else if (R.game === 'rain') rainUpdate(R, dt); else bossUpdate(R, dt);
 }
 function finishRun(R, won) {
   if (R.phase !== 'play') return; R.phase = 'done'; hlKey(null);
@@ -403,8 +573,9 @@ function finishRun(R, won) {
 /* ---------- teacher report ---------- */
 function reportText() {
   const L = ['Typing Club - learner report', 'Learner: ' + (S.name || '(no name)'), 'Year: ' + S.year + '   Goal: ' + target() + ' words per minute', 'Date: ' + new Date().toLocaleDateString(), ''];
-  GAMES.forEach(function (g) { L.push(g.name + ':'); LEVELS.forEach(function (lv) { const b = bestOf(g.id, lv.id); if (b) L.push('  Level ' + lv.id + ' ' + lv.name + ': ' + (b.stars ? b.stars + ' stars' : 'not finished') + ', best ' + b.wpm + ' wpm'); }); });
+  LEVEL_GAMES.forEach(function (g) { L.push(g.name + ':'); LEVELS.forEach(function (lv) { const b = bestOf(g.id, lv.id); if (b) L.push('  Level ' + lv.id + ' ' + lv.name + ': ' + (b.stars ? b.stars + ' stars' : 'not finished') + ', best ' + b.wpm + ' wpm'); }); });
   const r = S.rounds, won = r.filter(function (x) { return x.won; });
+  L.push('Word Rain (a timed challenge; the badge depends on the speed and the time chosen):'); rainEntries().sort(function (a, b) { return a.min - b.min || a.sp - b.sp; }).forEach(function (b) { L.push('  ' + b.min + ' minute, ' + RAIN_SPEEDS[b.sp].name + ' speed: ' + b.score + ' caught, ' + BADGES[b.badge] + ', best ' + b.wpm + ' wpm'); });
   L.push('', 'Rounds played: ' + r.length + ' (' + won.length + ' finished)');
   if (won.length) { const av = won.slice(-5).reduce(function (a, x) { return a + x.wpm; }, 0) / Math.min(5, won.length), ac = won.reduce(function (a, x) { return a + x.acc; }, 0) / won.length; L.push('Recent speed: ' + Math.round(av) + ' wpm   Average accuracy: ' + Math.round(ac) + '%   Best speed: ' + Math.max.apply(null, won.map(function (x) { return x.wpm; })) + ' wpm'); }
   L.push('Keys to practise: ' + (practiceKeys(5).map(function (k) { return k.c.toUpperCase() + ' (' + Math.round(k.rate * 100) + '% mistakes)'; }).join(', ') || 'none yet'));
@@ -422,11 +593,14 @@ function advice() {
 function showReport() {
   stopRun(); CC.ui.close();
   const w = el('div', 'ty-report'); w.appendChild(el('h3', '', '📋 ' + (S.name || 'Learner') + ' · Year ' + S.year + ' · goal ' + target() + ' wpm'));
-  GAMES.forEach(function (g) {
+  LEVEL_GAMES.forEach(function (g) {
     const card = el('div', 'rep-game'); card.appendChild(el('div', 'rg', g.icon + ' ' + g.name)); const row = el('div', 'rep-levels');
     LEVELS.forEach(function (lv) { const b = bestOf(g.id, lv.id), c = el('div', 'rl' + (b && b.stars ? ' ok' : b ? ' try' : ''), ''); c.innerHTML = '<b></b><span></span>'; c.querySelector('b').textContent = lv.id; c.querySelector('span').textContent = b ? (b.stars ? '⭐'.repeat(b.stars) : '·') + ' ' + b.wpm : '–'; row.appendChild(c); });
     card.appendChild(row); w.appendChild(card);
   });
+  const rc = el('div', 'rep-game'); rc.appendChild(el('div', 'rg', '🌧️ Word Rain')); const rr = el('div', 'rep-levels');
+  [1, 2, 3].forEach(function (m) { const es = rainEntries().filter(function (x) { return x.min === m; }).sort(function (a, b) { return b.score - a.score; }), b = es[0], c = el('div', 'rl' + (b && b.badge ? ' ok' : b ? ' try' : ''), ''); c.innerHTML = '<b></b><span></span>'; c.querySelector('b').textContent = m + 'm'; c.querySelector('span').textContent = b ? ['·', '🥉', '🥈', '🥇'][b.badge] + ' ' + b.score : '–'; rr.appendChild(c); });
+  rc.appendChild(rr); w.appendChild(rc);
   const pk = practiceKeys(5); const p = el('p', 'rep-p'); p.textContent = '🖐️ Keys to practise: ' + (pk.map(function (k) { return k.c.toUpperCase(); }).join('  ') || 'none yet'); w.appendChild(p);
   const a = el('p', 'rep-p'); a.textContent = '💡 ' + advice(); w.appendChild(a);
   const row = el('div', 'ty-opts');
@@ -544,7 +718,7 @@ CC.modes.typing = {
     const R = S.run; if (S.view !== 'play' || !R) return;
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key === 'Backspace') { e.preventDefault(); if (R.game === 'blaster' && R.target && R.phase === 'play') { R.target.i = 0; paintWord(R.target); hlKey(R.target.text[0]); setTarget(R, null); } return; }
+    if (e.key === 'Backspace') { e.preventDefault(); if (R.game === 'blaster' && R.target && R.phase === 'play') { R.target.i = 0; paintWord(R.target); hlKey(R.target.text[0]); setTarget(R, null); } else if (R.game === 'rain' && R.target && R.phase === 'play') { R.target.i = 0; rainPaint(R.target); rainSetTarget(R, null); } return; }
     if (e.key.length === 1) { e.preventDefault(); if (!e.repeat) onChar(e.key); }
   },
   /* test hooks (used only by the automated checks) */

@@ -124,6 +124,26 @@ S.pop = function () { A.noise({ dur: .12, freq: 1200, q: 1.2, vol: .14 }); A.ton
 S.clink = function () { A.tone(900, { dur: .06, type: 'triangle', vol: .08 }); };
 S.pickup = function () { A.tone(660, { dur: .12, vol: .16 }); A.tone(990, { delay: .09, dur: .18, vol: .16 }); A.tone(1320, { delay: .18, dur: .25, vol: .12 }); };
 S.slice = function () { A.noise({ dur: .14, type: 'highpass', freq: 3000, vol: .13 }); A.tone(700, { dur: .18, type: 'triangle', slideTo: 1200, vol: .2 }); A.tone(1050, { delay: .08, dur: .18, vol: .12 }); };
+/* storm sounds for Word Rain: a lightning crack, a rumble of thunder (level 0 = distant, 1 = normal, 2 = big) and a steady rain loop */
+S.zap = function (big) { A.noise({ dur: .18, type: 'highpass', freq: 2600, q: .7, vol: big ? .3 : .2 }); A.tone(950, { dur: .14, type: 'sawtooth', slideTo: 110, vol: big ? .09 : .06 }); };
+S.thunder = function (level) {   // 0 = distant; 2 to 5 = a combo of that many balloons (bigger combo, bigger thunder)
+  level = level == null ? 1 : level;
+  const v = level === 0 ? .22 : Math.min(.85, .28 + .12 * level), d = level === 0 ? 1.5 : 0.9 + .35 * level;
+  A.noise({ dur: d, type: 'lowpass', freq: 230, q: .8, vol: v, delay: .1 });
+  A.noise({ dur: d * .7, type: 'lowpass', freq: 90, q: 1, vol: v * .9, delay: .18 });
+  if (level >= 3) A.noise({ dur: d * .6, type: 'lowpass', freq: 150, q: 1, vol: v * .8, delay: .55 });          // a second roll
+  if (level >= 4) { A.noise({ dur: .5, type: 'lowpass', freq: 110, q: 1, vol: v, delay: .9 }); A.tone(55, { dur: 1.1, type: 'sine', vol: .12, delay: .1 }); }   // a deep boom
+  if (level >= 5) A.noise({ dur: d * .8, type: 'lowpass', freq: 200, q: .8, vol: v, delay: 1.25 });             // and it keeps rolling
+};
+A.rainStart = function () {
+  if (!A.ctx) return null;
+  const src = A.ctx.createBufferSource(); src.buffer = A.noiseBuf; src.loop = true;
+  const hp = A.ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 900;
+  const lp = A.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6500;
+  const g = A.ctx.createGain(); g.gain.value = 0; g.gain.setTargetAtTime(0.07, A.ctx.currentTime, 0.6);
+  src.connect(hp); hp.connect(lp); lp.connect(g); g.connect(A._out || A.master); src.start();
+  return { stop: function () { try { g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.12); } catch (e) {} setTimeout(function () { try { src.stop(); } catch (e) {} }, 700); } };
+};
 S.softMiss = function () { A.tone(330, { dur: .3, vol: .12 }); A.tone(262, { delay: .15, dur: .35, vol: .1 }); };
 S.step = function () { A.noise({ dur: .04, type: 'lowpass', freq: 500, vol: .07 }); };
 S.good = function () { A.tone(660, { dur: .15, vol: .15 }); A.tone(880, { delay: .1, dur: .2, vol: .15 }); };

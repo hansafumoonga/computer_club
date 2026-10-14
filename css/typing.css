@@ -39,6 +39,7 @@
 
 /* ---------- playing ---------- */
 .ty-play{display:flex;flex-direction:column;gap:8px;padding:10px 14px;height:100%;min-height:0;background:linear-gradient(#2a3b7a,#15163a);--k:clamp(22px,min(4.2vw,6.2vh),46px)}
+.ty-t-storm{background:linear-gradient(#26366e,#0f1738)}
 .ty-t-jungle{background:linear-gradient(#1d5a3a,#12283a)}
 .ty-t-beach{background:linear-gradient(#1c7fa8,#7a6a3a)}
 .ty-t-volcano{background:linear-gradient(#6a2020,#241024)}
@@ -244,3 +245,61 @@
   .ty-levels{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
   .ty-tile{padding:6px 4px 4px}.ty-tile .ic{font-size:1.6rem}.ty-tile .nm{font-size:.8rem;min-height:2em}.ty-tile .n{top:3px;left:6px;font-size:.7rem}
 }
+
+/* ================= Word Rain ================= */
+.rain-sky{background:linear-gradient(#2b4486,#1a2a66 55%,#12204a)}
+.rain-streaks{position:absolute;inset:0;z-index:0;opacity:.9;pointer-events:none;background:repeating-linear-gradient(100deg,transparent 0 26px,rgba(190,215,255,.13) 26px 27px,transparent 27px 52px);background-size:52px 52px;animation:rainStreak .5s linear infinite}
+@keyframes rainStreak{to{background-position:-14px 52px}}
+.rain-clouds{position:absolute;left:0;right:0;top:0;height:44px;z-index:1;pointer-events:none;background:radial-gradient(circle at 36px 0,#3c539f 0 38px,transparent 39px) 0 0/84px 52px repeat-x,radial-gradient(circle at 70px 0,#2f4488 0 32px,transparent 33px) 0 0/112px 44px repeat-x;filter:drop-shadow(0 4px 0 rgba(0,0,0,.2));animation:rainCloud 40s linear infinite}
+@keyframes rainCloud{to{background-position:-336px 0,-448px 0}}
+.rain-water{position:absolute;left:0;right:0;bottom:0;height:24px;z-index:3;background:linear-gradient(#3f94de,#1d5aa8);border-top:3px solid #a8dcff}
+.rain-water::before{content:"";position:absolute;left:0;right:0;top:-12px;height:10px;background:radial-gradient(circle at 10px 10px,#3f94de 9px,transparent 10px) 0 0/20px 10px repeat-x;animation:rainWave 2s linear infinite}
+@keyframes rainWave{to{background-position:-20px 0}}
+.rain-time{position:absolute;left:0;right:0;top:0;height:9px;z-index:5;background:rgba(0,0,0,.35)}
+.rain-time i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#6bcb77,#ffd23f);transition:width .25s linear}
+.rain-time.low i{background:#ff5c72;animation:rainPulse .5s ease-in-out infinite alternate}
+@keyframes rainPulse{to{opacity:.55}}
+.ty-drop{position:absolute;z-index:2;transform:translateX(-50%);will-change:top;filter:drop-shadow(0 7px 5px rgba(0,0,0,.28))}
+.ty-drop .sw{display:flex;flex-direction:column;align-items:center;animation:tySway 3s ease-in-out infinite alternate;transform-origin:50% 0}
+.ty-drop .bb{position:relative;display:flex;justify-content:center;align-items:center;padding:.95em 1.2em 1.2em;min-width:4.4em;font-family:"Courier New",Consolas,monospace;font-weight:bold;font-size:clamp(.95rem,2vw,1.35rem);letter-spacing:.03em;color:#fff;white-space:nowrap;
+  border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
+  background:radial-gradient(ellipse 24% 15% at 30% 19%,rgba(255,255,255,.92),rgba(255,255,255,0)),radial-gradient(circle at 34% 30%,var(--l) 0,var(--c) 44%,var(--d) 100%);
+  box-shadow:inset -10px -13px 22px rgba(0,0,0,.24),inset 8px 9px 16px rgba(255,255,255,.2);text-shadow:0 1px 2px rgba(0,0,0,.6),0 0 1px rgba(0,0,0,.7)}
+.ty-drop .bb::before{content:"";position:absolute;right:13%;bottom:15%;width:20%;height:11%;border-radius:50%;background:rgba(255,255,255,.22);transform:rotate(-32deg)}
+.ty-drop .bb::after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-8px;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:12px solid var(--d);border-radius:2px}
+.ty-drop .bs{display:block;width:16px;height:50px;margin-top:5px}
+.ty-drop .c{opacity:1}.ty-drop .c.ok{color:#1a1b3f;text-shadow:0 0 2px rgba(255,255,255,.7);opacity:.82}
+.ty-drop .xn{position:absolute;right:-12px;top:-4px;background:#ff3d6a;color:#fff;font:bold .78rem sans-serif;border-radius:99px;padding:.15em .55em;border:2px solid #fff;text-shadow:none;letter-spacing:0;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.ty-drop.combo .bb{box-shadow:inset -10px -13px 22px rgba(0,0,0,.24),inset 8px 9px 16px rgba(255,255,255,.2),0 0 0 3px #fff3b0,0 0 18px #ffd23f}
+.ty-drop.locked .bb{box-shadow:inset -10px -13px 22px rgba(0,0,0,.24),inset 8px 9px 16px rgba(255,255,255,.2),0 0 0 4px #fff,0 0 20px #ffd23f}
+.ty-drop .bb.shake{animation:tyShake .25s}
+.ty-drop.sink{animation:rainSink .6s ease-in forwards}
+@keyframes rainSink{to{transform:translateX(-50%) translateY(44px) scale(.6);opacity:0}}
+/* the pop: a flash, a ring, flying bits of balloon and droplets */
+.rain-flash{position:absolute;inset:0;z-index:4;background:rgba(215,232,255,.26);animation:rainFlash .3s ease-out forwards;pointer-events:none}
+.rain-flash.soft{background:rgba(215,232,255,.12)}
+@keyframes rainFlash{0%{opacity:1}35%{opacity:.35}50%{opacity:.8}100%{opacity:0}}
+.rain-bolt{position:absolute;inset:0;z-index:5;pointer-events:none;animation:rainBolt .4s linear forwards}
+.rain-bolt svg{width:100%;height:100%;display:block;overflow:visible}
+.rain-bolt path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.rain-bolt .g{stroke:#7fb8ff;stroke-width:11;opacity:.6;filter:blur(4px)}
+.rain-bolt .c{stroke:#fff;stroke-width:3.4;filter:drop-shadow(0 0 5px #bfe0ff)}
+@keyframes rainBolt{0%{opacity:0}6%{opacity:1}28%{opacity:.35}42%{opacity:1}100%{opacity:0}}
+.ty-drop.zapped .bb{filter:brightness(2.1) saturate(.6);transition:filter .05s}
+.rp-flash{position:absolute;z-index:5;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,0) 70%);animation:rpFlash .28s ease-out forwards;pointer-events:none}
+@keyframes rpFlash{from{transform:scale(.3);opacity:1}to{transform:scale(2.2);opacity:0}}
+.rp-ring{position:absolute;z-index:5;width:46px;height:46px;margin:-23px 0 0 -23px;border:4px solid rgba(255,255,255,.9);border-radius:50%;animation:rpRing .38s ease-out forwards;pointer-events:none}
+@keyframes rpRing{from{transform:scale(.3);opacity:1}to{transform:scale(3.4);opacity:0}}
+.rp-shard{position:absolute;z-index:5;height:9px;margin:-4px 0 0 -6px;background:var(--c);border-radius:60% 40% 55% 45%;box-shadow:inset -2px -2px 0 rgba(0,0,0,.18);animation:rpShard .75s cubic-bezier(.15,.7,.4,1) forwards;pointer-events:none}
+@keyframes rpShard{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.rp-drop{position:absolute;z-index:5;width:6px;height:9px;margin:-4px 0 0 -3px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#bfe6ff;animation:rpShard .75s ease-in forwards;pointer-events:none}
+.rain-splash{position:absolute;bottom:18px;width:34px;height:12px;margin-left:-17px;border:3px solid #cfe9ff;border-radius:50%;z-index:4;animation:rainRing .6s ease-out forwards}
+@keyframes rainRing{from{transform:scale(.3);opacity:1}to{transform:scale(2.4);opacity:0}}
+.rain-banner{position:absolute;left:0;right:0;top:20%;text-align:center;z-index:6;font-weight:bold;font-size:clamp(1.4rem,4.6vw,2.9rem);color:#ffe066;text-shadow:0 4px 0 rgba(0,0,0,.5),0 0 20px rgba(255,210,63,.65);pointer-events:none}
+.rain-banner.pop{animation:tyPop .9s ease-out}
+.rain-plus{position:absolute;z-index:6;transform:translateX(-50%);font-weight:bold;font-size:1.5rem;color:#fff3b0;text-shadow:0 2px 0 rgba(0,0,0,.55);animation:rainUp .9s ease-out forwards;pointer-events:none}
+@keyframes rainUp{to{transform:translate(-50%,-52px);opacity:0}}
+.g-rain .ty-extra{font-size:1.05rem}
+.ty-play.g-rain{--k:clamp(15px,min(2.6vw,4.1vh),30px);gap:6px}
+@media (prefers-reduced-motion:reduce){.rain-streaks,.rain-clouds,.rain-water::before{animation:none}.rain-flash{display:none}}
+@media print{.rain-sky{display:none}}
