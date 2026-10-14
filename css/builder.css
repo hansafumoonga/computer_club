@@ -121,13 +121,13 @@
 @media print{
   body *{visibility:hidden}
   @page{size:A4 landscape;margin:0}
-  html,body{height:209mm !important;max-height:209mm !important;overflow:hidden !important;margin:0 !important}
+  html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
   .bd-certwrap,.bd-certwrap *{visibility:visible}
   #mode-builder{height:auto;padding:0;display:block}
   .bd-stage,.bd-root{position:static;overflow:visible;height:auto;max-height:none;box-shadow:none;background:#fff}
-  .bd-certwrap{position:absolute;left:0;top:0;width:297mm;padding:0;gap:0}
-  .bd-cert{width:297mm;height:209mm;box-shadow:none;border-radius:0}
-  .bd-cert svg{width:297mm;height:209mm}
+  .bd-certwrap{position:absolute;left:0;top:0;width:100vw;padding:0;gap:0}
+  .bd-cert{width:100vw;height:calc(100vh - 2px);box-shadow:none;border-radius:0}
+  .bd-cert svg{width:100%;height:100%}
   .bd-certwrap .bd-opts,.bd-certwrap .bd-note{display:none !important}
 }
 
