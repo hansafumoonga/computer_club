@@ -6,7 +6,7 @@ A set of free browser games for a school computer club, to help children learn t
 
 > **Please use it on a computer.** Tech Explorers is made for a **desktop or laptop computer with a keyboard and a mouse** (or a Makey Makey for the arrow-key games). **iPads, phones and other tablets may not work, or may not give the results you expect**: touch screens have no physical keyboard, so the typing and keyboard games do not work properly, and some mouse actions (such as right-click and drag) can behave differently. It has been tested on a computer in Chrome.
 
-It runs entirely in the browser. No install, no accounts, no server and no internet needed after the page has loaded. Nothing about the children is collected or saved.
+It runs entirely in the browser. No install, no accounts, no server and no internet needed after the page has loaded. Nothing about the children is collected or sent anywhere. Progress is kept only on that computer, for about 3 hours (see Known limits).
 
 ---
 
@@ -96,7 +96,7 @@ The live site is hosted free on **Cloudflare Pages**, connected to this reposito
 Plain HTML, CSS and JavaScript only. No libraries and no build step.
 
 ## Known limits
-- **Progress is not saved, so every level is open** and a learner can start where they stopped. It lasts only while the page is open, so download the teacher report or print the certificate before closing the tab.
+- **Progress is kept for about 3 hours, on that computer only.** Stars, best scores, the teacher report and a typed name survive a refresh or an accidental close in Click & Type Quest, Builder Club and Typing Club, and are cleared after 3 hours without use so the next learner starts fresh. Nothing is sent anywhere. **Every level is open**, so a learner can start where they stopped. Paintings are not kept, so save or print them first. Download the teacher report or print the certificate before you finish.
 - **The spoken voice** uses a voice already installed on the device. If a device has no English voice, the lessons still work with the words on screen.
 - **Computers only:** use a desktop or laptop with a keyboard and mouse. iPads, phones and tablets may not work or may not produce the results you expect.
 - **Browsers:** it has been tested in Chrome. Other modern browsers should work but have not been checked as carefully.

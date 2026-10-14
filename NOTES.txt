@@ -4,7 +4,7 @@ COMPUTER CLUB & KEYBOARD SKILLS SUITE - teacher notes (version 2)
 HOW TO USE
   Open index.html (double-click), or upload this whole folder to any free static host (live site: Cloudflare Pages, https://techexplorers.pages.dev/) as-is
   (index.html + the css and js folders and the small files next to index.html).
-  No server, no install, no network calls, nothing is saved anywhere.
+  No server, no install, no network calls, nothing is sent anywhere. A short-lived copy of progress is kept in the browser (see CC.keep in js/core.js, 3 hours).
 
 WORD HUNT + SLICE & POP (version 8)
   - Word Hunt now has 10 levels you can pick from (numbers along the top). Easy short words first (MOUSE, FILE, SAVE), then everyday
@@ -147,7 +147,7 @@ WHAT I COULD NOT CHECK / SIMPLIFIED
   - "Challenging" is a judgement call: I tested with bots, not children. If it is too hard or too easy, change the numbers above
     (COMMANDO_LEVELS d / len, COMMANDO_LIVES, BOSS_HP_*, JUMP_LEVELS speed, BLASTER_LEVELS gap/speedMul).
   - A level picker (small numbered circles) is on every level's start screen, so you can jump to any stage; to lock levels you would
-    need to remove that (and nothing is saved between visits - by design, no storage is used).
+    need to remove that (and progress is kept in the browser only for 3 hours, CC.keep.hours in js/core.js).
   - Functions starting with an underscore (e.g. CC.modes.commando._sim) are test hooks only.
   - I overwrote your old index.html (the previous piano page) at the start of version 1; it was not in files.zip so it could not be restored.
 
@@ -163,7 +163,7 @@ COMPUTER SKILLS ADVENTURE (Session 1, first card)
   - Buttons on every level: map, show-me-again, restart this part, pause, sound. Home screen: Voice (reads Buddy aloud with voices already
     on the computer - never the internet), High contrast, Slow animations, Click-to-place (drag alternative), Unlock all levels.
   - Teacher report (home screen): stars per skill, recommended practice, Download (.txt) or Print. Progress is kept only while the page is open
-    (no storage, no network) - download the report before closing.
+    (kept in the browser for 3 hours, no network) - download the report before finishing.
   - Drag and drop alternatives: click a piece then click its spot, or Tab to a piece, press Enter, Tab to its spot, press Enter.
 
   - CERTIFICATE: after all 10 levels are done, a graduation screen button (and a button on the home screen) opens an A4 landscape certificate with the Tech Explorers keycap logo, the learner name (type it, or leave blank to write by hand), year, stars, date and a teacher line. Print it (landscape) or Download picture (PNG). The game name is one value: CC.SKILLS.NAME in js/skills_levels.js (plus the title in index.html and the card name in js/main.js).

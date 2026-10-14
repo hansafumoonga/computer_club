@@ -32,6 +32,8 @@ const S = {
   locked: false, paused: false, finished: false, timers: [], idleTimer: 0, demoTok: 0, ptr: null, caps: false, lastSay: ''
 };
 SKILLS.forEach(function (s) { S.stats[s.id] = { ok: 0, bad: 0 }; });
+(function () { const k = CC.keep.load('skills'); if (k) { S.done = k.done || {}; S.stars = k.stars || {}; S.badges = k.badges || {}; S.name = k.name || ''; Object.keys(k.stats || {}).forEach(function (id) { if (S.stats[id]) S.stats[id] = k.stats[id]; }); } })();
+function keepProgress() { CC.keep.save('skills', { done: S.done, stars: S.stars, badges: S.badges, stats: S.stats, name: S.name }); }
 
 /* ---------- small helpers ---------- */
 const E = { stage: null, items: null, svg: null, say: null, sub: null, buddy: null, dots: null, cursor: null, mouse: null, typeBox: null, kb: null, caps: null, overlay: null };
@@ -231,7 +233,7 @@ function helpTogether() {
 function finishLevel() {
   clearTimers(); S.locked = true;
   const lv = S.level, m = S.mistakes, stars = m <= 1 ? 3 : m <= 4 ? 2 : 1;
-  S.done[lv.id] = true; S.stars[lv.id] = Math.max(S.stars[lv.id] || 0, stars); S.badges[lv.id] = lv.badge;
+  S.done[lv.id] = true; S.stars[lv.id] = Math.max(S.stars[lv.id] || 0, stars); S.badges[lv.id] = lv.badge; keepProgress();
   confetti(40); sfx('levelComplete'); say('You did it! 🎉', 'cheer', ''); voice('You did it! You finished level ' + S.level.id + '. You earned the ' + S.level.badge + ' badge.');
   const last = lv.id >= LEVELS.length;
   CC.ui.show(E.stage, { emoji: '🏆', stars: stars, title: 'You completed Level ' + lv.id + '!', text: 'New badge: ' + lv.badge + ' 🏆',
@@ -797,7 +799,7 @@ function showHome() {
     b.addEventListener('click', function () { b.blur(); S.year = y; yrs.querySelectorAll('.yr').forEach(function (x, i) { x.classList.toggle('on', i + 1 === y); }); }); yrs.appendChild(b); });
   if (!S.fixedYear) bar.appendChild(yrs);
   const nm = el('input', 'sk-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name');
-  nm.addEventListener('input', function () { S.name = nm.value; }); bar.appendChild(nm);
+  nm.addEventListener('input', function () { S.name = nm.value; keepProgress(); }); bar.appendChild(nm);
   home.appendChild(bar);
   const map = el('div', 'sk-map');
   LEVELS.forEach(function (lv) {
@@ -984,7 +986,7 @@ function showCertificate() {
   const nm = el('input', 'sk-name'); nm.type = 'text'; nm.maxLength = 28; nm.placeholder = '✏️ Name on the certificate'; nm.value = S.name; nm.setAttribute('aria-label', 'Name on the certificate');
   top.appendChild(nm);
   const paper = el('div', 'sk-cert'); paper.innerHTML = certSvg(S.name);
-  nm.addEventListener('input', function () { S.name = nm.value; paper.innerHTML = certSvg(S.name); });
+  nm.addEventListener('input', function () { S.name = nm.value; keepProgress(); paper.innerHTML = certSvg(S.name); });
   const row = el('div', 'row sk-cert-bar');
   const dl = el('button', 'btn primary', '⬇ Download picture'); dl.type = 'button';
   dl.addEventListener('click', function () {

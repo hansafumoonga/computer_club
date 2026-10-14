@@ -14,6 +14,8 @@ function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&
 const S = { year: 2, name: '', door: 'type', level: 1, best: {}, run: null, timers: [], loop: null, view: 'home', voice: true, kindSeen: {}, howSeen: {}, fixed: false };
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
+(function () { const k = CC.keep.load('builder'); if (k) { S.best = k.best || {}; S.name = k.name || ''; } })();
+function keepProgress() { CC.keep.save('builder', { best: S.best, name: S.name }); }
 function bestOf(door, lv) { return S.best[door + ':' + lv] || null; }
 function doneCount(door) { return BUILDS.filter(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }).length; }
 /* progress is not saved, so every picture is open and a learner can start where they stopped; the certificate comes with the last picture (the city) */
@@ -86,7 +88,7 @@ function showHome() {
   const setup = el('div', 'bd-setup'); const yrs = el('div', 'bd-years'); yrs.appendChild(el('span', '', 'I am in Year'));
   [1, 2, 3].forEach(function (y) { const b = el('button', 'btn yr' + (S.year === y ? ' on' : ''), String(y)); b.type = 'button'; b.addEventListener('click', function () { b.blur(); S.year = y; yrs.querySelectorAll('.yr').forEach(function (x, i) { x.classList.toggle('on', i + 1 === y); }); }); yrs.appendChild(b); });
   setup.appendChild(yrs);
-  const nm = el('input', 'bd-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name'); nm.addEventListener('input', function () { S.name = nm.value; }); setup.appendChild(nm);
+  const nm = el('input', 'bd-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name'); nm.addEventListener('input', function () { S.name = nm.value; keepProgress(); }); setup.appendChild(nm);
   h.appendChild(setup);
   const doors = el('div', 'bd-doors');
   [{ id: 'click', icon: '🖱️', name: 'Click & Build', desc: 'Click, drag and build', c: '#22b8cf' }, { id: 'type', icon: '⌨️', name: 'Type & Build', desc: 'Type the word to build it', c: '#ff7a45' }].forEach(function (d) {
@@ -268,7 +270,7 @@ function finish(R) {
   R.phase = 'done'; CC.sfx.levelComplete();
   R.svg.classList.add('party'); R.pcs.forEach(function (g, k) { g.style.animationDelay = (k * 70) + 'ms'; });
   const stars = R.door === 'type' ? (R.assists === 0 ? 3 : R.assists <= 2 ? 2 : 1) : (R.misses <= 3 ? 3 : R.misses <= 8 ? 2 : 1), key = R.door + ':' + R.lv, old = S.best[key];
-  S.best[key] = { stars: Math.max(old ? old.stars : 0, stars) };
+  S.best[key] = { stars: Math.max(old ? old.stars : 0, stars) }; keepProgress();
   const last = R.lv >= BUILDS.length, earned = certEarned();
   later(function () {
     const btns = [];
@@ -323,7 +325,7 @@ function showCertificate() {
   const w = el('div', 'bd-certwrap'), top = el('div', 'bd-opts');
   const nm = el('input', 'bd-name'); nm.type = 'text'; nm.maxLength = 28; nm.placeholder = '✏️ Name on the certificate'; nm.value = S.name; nm.setAttribute('aria-label', 'Name on the certificate'); top.appendChild(nm);
   const paper = el('div', 'bd-cert'); paper.innerHTML = certSvg(S.name);
-  nm.addEventListener('input', function () { S.name = nm.value; paper.innerHTML = certSvg(S.name); });
+  nm.addEventListener('input', function () { S.name = nm.value; keepProgress(); paper.innerHTML = certSvg(S.name); });
   const row = el('div', 'bd-opts');
   const dl = el('button', 'btn primary', '⬇ Download picture'); dl.type = 'button';
   dl.addEventListener('click', function () {

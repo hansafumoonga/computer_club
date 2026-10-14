@@ -24,6 +24,8 @@ const S = { year: 4, name: '', view: 'home', game: 'racer', level: 1, guide: tru
 function target() { return D.TARGET_WPM[S.year]; }
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }
 function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
+(function () { const k = CC.keep.load('typing'); if (k) { S.best = k.best || {}; S.ghost = k.ghost || {}; S.keys = k.keys || {}; S.rounds = k.rounds || []; S.name = k.name || ''; } })();
+function keepProgress() { CC.keep.save('typing', { best: S.best, ghost: S.ghost, keys: S.keys, rounds: S.rounds, name: S.name }); }
 function bestOf(g, lv) { return S.best[g + ':' + lv] || null; }
 
 /* ---------- the on-screen keyboard (finger guide) ---------- */
@@ -87,7 +89,7 @@ function showHome() {
   const yrs = el('div', 'ty-years'); yrs.appendChild(el('span', '', 'I am in Year'));
   [4, 5, 6].forEach(function (y) { const b = el('button', 'btn yr' + (S.year === y ? ' on' : ''), String(y)); b.type = 'button'; b.addEventListener('click', function () { b.blur(); S.year = y; yrs.querySelectorAll('.yr').forEach(function (x, i) { x.classList.toggle('on', i + 4 === y); }); }); yrs.appendChild(b); });
   if (!S.fixedYear) setup.appendChild(yrs);
-  const nm = el('input', 'ty-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name'); nm.addEventListener('input', function () { S.name = nm.value; });
+  const nm = el('input', 'ty-name'); nm.type = 'text'; nm.maxLength = 20; nm.placeholder = '✏️ My name'; nm.value = S.name; nm.setAttribute('aria-label', 'My name'); nm.addEventListener('input', function () { S.name = nm.value; keepProgress(); });
   setup.appendChild(nm); h.appendChild(setup);
   const cards = el('div', 'ty-games');
   GAMES.forEach(function (g) {
@@ -382,7 +384,7 @@ function finishRun(R, won) {
   S.best[key] = { stars: Math.max(old ? old.stars : 0, stars), wpm: Math.max(old ? old.wpm : 0, won ? w : 0) || (old ? old.wpm : w), acc: Math.max(old ? old.acc : 0, won ? a : 0) };
   let beat = false;
   if (R.game === 'racer' && won && R.times.length) { const g = S.ghost[key]; if (!g || R.t < g.finish) { beat = !!g; S.ghost[key] = { times: R.times.slice(), finish: R.t }; } }
-  S.rounds.push({ game: R.game, lv: R.lv, wpm: w, acc: a, stars: stars, won: won, secs: Math.round(R.t) });
+  S.rounds.push({ game: R.game, lv: R.lv, wpm: w, acc: a, stars: stars, won: won, secs: Math.round(R.t) }); keepProgress();
   const med = won && R.game !== 'blaster' ? medal(w) : '', prac = practiceKeys(3).map(function (k) { return k.c.toUpperCase(); });
   const titles = { racer: ['Race finished!', 'Nice try!'], blaster: ['Blasted them all!', 'Almost! The shields broke'], boss: ['Boss beaten!', 'The boss got away this time'] }[R.game];
   const bits = [Math.round(w) + ' words a minute', Math.round(a) + '% accurate']; if (med) bits.push(med); if (beat) bits.push('New personal best!');
@@ -509,7 +511,7 @@ function showCertificate() {
   const nm = el('input', 'ty-name'); nm.type = 'text'; nm.maxLength = 28; nm.placeholder = '✏️ Name on the certificate'; nm.value = S.name; nm.setAttribute('aria-label', 'Name on the certificate');
   top.appendChild(nm);
   const paper = el('div', 'ty-cert'); paper.innerHTML = certSvg(S.name);
-  nm.addEventListener('input', function () { S.name = nm.value; paper.innerHTML = certSvg(S.name); });
+  nm.addEventListener('input', function () { S.name = nm.value; keepProgress(); paper.innerHTML = certSvg(S.name); });
   const row = el('div', 'ty-opts');
   const dl = el('button', 'btn primary', '⬇ Download picture'); dl.type = 'button';
   dl.addEventListener('click', function () {
