@@ -2,7 +2,7 @@ COMPUTER CLUB & KEYBOARD SKILLS SUITE - teacher notes (version 2)
 =================================================================
 
 HOW TO USE
-  Open index.html (double-click), or upload this whole folder to GitHub Pages as-is
+  Open index.html (double-click), or upload this whole folder to any free static host (live site: Cloudflare Pages, https://techexplorers.pages.dev/) as-is
   (index.html + the css and js folders and the small files next to index.html).
   No server, no install, no network calls, nothing is saved anywhere.
 
@@ -139,7 +139,7 @@ HOW IT WAS TESTED  (automated: headless Chrome driven over DevTools, opened from
   - Word Hunt: dragged across a hidden word with the mouse -> word found and ticked, finished the round -> "Round done" -> next round.
   - Fruit Slice, Pattern Pop, Piano (including a real, non-silent recording and no microphone prompt) re-checked after the changes.
   - Layout: stage stays 16:9 with no gap and no scrolling at 700x900, 1280x800, 1920x1080 (and the smaller sizes checked before).
-  - Searched for localStorage, cookies, fetch, XMLHttpRequest, http(s):// and external links: none (only css/style.css is linked).
+  - Searched for localStorage, cookies, fetch, XMLHttpRequest, http(s):// and external links: none (only the project's own css and js files are linked).
 
 WHAT I COULD NOT CHECK / SIMPLIFIED
   - I could not listen to the sound (no speakers in the test setup) - sounds are triggered and the recording has audio, but please

@@ -79,10 +79,8 @@ Each year menu has three groups to choose from at the top: **Keyboard and mouse*
 ## QR code for quick access
 `tech-explorers-qr.pdf` is a one-page printable QR code with clear camera instructions (it is also linked from the How to use page). If you host your own copy, make a new QR code for your own address.
 
-## Put your own copy on GitHub Pages
-1. Push this folder to a GitHub repository.
-2. In the repository go to **Settings, then Pages**, choose the `main` branch and the `/ (root)` folder, then Save.
-3. Share `https://<your-name>.github.io/<repo-name>/`.
+## Hosting your own copy
+The live site is hosted free on **Cloudflare Pages**, connected to this repository: every push to `main` updates the site. Any free static host works the same way (Cloudflare Pages, GitHub Pages, Netlify). Use no build command and publish the root folder as it is. If you host your own copy, make a new QR code for your own address.
 
 ## Files
 - `css/paint.css`, `js/paint_common.js`, `js/paint_data.js`, `js/paint.js`, `js/magic.js`, `js/art.js`, `js/scene_items.js`, `js/scene.js`: Paint Studio, Magic Mix, Art Studio and Scene Maker (shared colours and backgrounds, the pictures and things to drag, and one engine each)
