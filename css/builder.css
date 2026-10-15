@@ -205,3 +205,28 @@
 
 .bd-note{margin:0;color:var(--ink-dim);font-size:.95rem;text-align:center}
 .bd-maptop .btn:disabled{background:#1f2358;color:#8a90c8;border-color:#3a3e8a;opacity:1}
+
+/* ---------- the animated mouse (Click & Build): pointer, mouse diagram and a ghost of the piece ---------- */
+.bd-cursor{position:absolute;width:clamp(32px,5vw,48px);aspect-ratio:24/30;z-index:60;pointer-events:none;margin:-3px 0 0 -6px;filter:drop-shadow(0 4px 3px rgba(0,0,0,.45));transition:transform .1s}
+.bd-cursor svg{width:100%;height:100%;display:block}
+.bd-cursor .ring{position:absolute;left:6px;top:3px;width:44px;height:44px;margin:-22px;border-radius:50%;border:5px solid #ffe14d;opacity:0}
+.bd-cursor.orange .ring{border-color:#ff9f45}
+.bd-cursor.click .ring{animation:bdRing .38s ease-out}
+.bd-cursor.down{transform:scale(.88)}
+@keyframes bdRing{from{opacity:1;transform:scale(.35)}to{opacity:0;transform:scale(1.9)}}
+.bd-mouse{position:absolute;right:14px;top:62px;width:46px;height:64px;z-index:58;pointer-events:none;background:#e9ebf5;border-radius:50% 50% 45% 45%;border:3px solid #15163a;display:flex;box-shadow:0 4px 0 rgba(0,0,0,.28)}
+.bd-mouse i{flex:1;height:55%;border-bottom:3px solid #15163a;transition:background .15s}
+.bd-mouse .l{border-right:2px solid #15163a;border-radius:99px 0 0 0}.bd-mouse .r{border-left:2px solid #15163a;border-radius:0 99px 0 0}
+.bd-mouse::after{content:"";position:absolute;left:50%;top:9px;width:6px;height:15px;margin-left:-3px;border-radius:99px;background:#15163a;opacity:.5}
+.bd-mouse[data-btn=left] .l,.bd-mouse[data-btn=hold] .l,.bd-mouse[data-btn=dbl] .l{background:#ffd23f}
+.bd-mouse[data-btn=right] .r{background:#ff9f45}
+.bd-mouse[data-btn=hold] .l,.bd-mouse[data-btn=dbl] .l{animation:bdBtn .35s infinite alternate}
+@keyframes bdBtn{to{filter:brightness(.8)}}
+.bd-mouse::before{position:absolute;left:50%;bottom:-27px;transform:translateX(-50%);font:bold .8rem sans-serif;background:#15163a;color:#ffe14d;border-radius:99px;padding:.1em .6em;white-space:nowrap}
+.bd-mouse[data-btn=left]::before{content:"LEFT"}.bd-mouse[data-btn=right]::before{content:"RIGHT"}.bd-mouse[data-btn=hold]::before{content:"HOLD"}.bd-mouse[data-btn=dbl]::before{content:"CLICK-CLICK"}
+.bd-ghost{position:absolute;z-index:55;pointer-events:none;opacity:.92;filter:drop-shadow(0 8px 6px rgba(0,0,0,.35));transform:scale(1.04)}
+.bd-ghost .bd-mini{animation:none}
+.bd-ghost.drop{opacity:0;transition:opacity .4s}
+.bd-mini.demo-lift{opacity:.35;animation:none}
+.bd-menu.demo{pointer-events:none}
+@media (max-width:640px){.bd-mouse{width:38px;height:54px;top:58px}}

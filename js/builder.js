@@ -79,7 +79,7 @@ function hlKey(ch) { Object.keys(kbEls).forEach(function (k) { kbEls[k].classLis
 
 /* ---------- screens ---------- */
 function setView(v, node) { S.view = v; const r = $root(); r.innerHTML = ''; r.appendChild(node); r.scrollTop = 0; }
-function stopRun() { clearTimers(); hush(); closeMenu(); if (S.run) { S.run.phase = 'off'; if (S.run.float && S.run.float.parentNode) S.run.float.parentNode.removeChild(S.run.float); } S.run = null; }
+function stopRun() { clearTimers(); hush(); closeMenu(); if (S.run) demoCancel(S.run); if (S.run) { S.run.phase = 'off'; if (S.run.float && S.run.float.parentNode) S.run.float.parentNode.removeChild(S.run.float); } S.run = null; }
 function showHome() {
   stopRun(); CC.ui.close();
   const h = el('div', 'bd-home');
@@ -145,12 +145,18 @@ function startRun() {
   R.ui.dots = el('div', 'bd-dots'); b.pieces.forEach(function () { R.ui.dots.appendChild(el('i')); });
   hud.appendChild(map); hud.appendChild(chip); hud.appendChild(R.ui.dots);
   if (S.door === 'type') { const hb = el('button', 'btn ico', '💡'); hb.type = 'button'; hb.setAttribute('aria-label', 'show me the key'); hb.title = 'Show me the key'; hb.addEventListener('click', function () { hb.blur(); showHint(R); }); hud.appendChild(hb); }
+  if (S.door === 'click') { const sm = el('button', 'btn ico', '🖱️'); sm.type = 'button'; sm.setAttribute('aria-label', 'show me with the mouse'); sm.title = 'Show me'; sm.addEventListener('click', function () { sm.blur(); demo(R, 'Watch the mouse. ' + TIPS[R.kind]); }); hud.appendChild(sm); }
   const vb = el('button', 'btn ico' + (S.voice ? '' : ' off'), '🗣️'); vb.type = 'button'; vb.setAttribute('aria-label', 'voice on or off'); vb.title = 'Bo voice'; vb.addEventListener('click', function () { vb.blur(); S.voice = !S.voice; vb.classList.toggle('off', !S.voice); if (!S.voice) hush(); }); hud.appendChild(vb);
   p.appendChild(hud);
   const scene = el('div', 'bd-scene'); scene.innerHTML = svgFor(b); p.appendChild(scene); R.svg = scene.firstChild;
   R.ui.bottom = el('div', 'bd-bottom'); p.appendChild(R.ui.bottom); R.play = p;
   R.ui.coach = el('div', 'bd-coach'); R.ui.coach.innerHTML = '<span class="bd-av">🐻</span><span class="bt"></span>'; R.ui.bt = R.ui.coach.querySelector('.bt'); R.ui.bottom.appendChild(R.ui.coach);
   R.ui.tip = { set textContent(v) { bo(R, v); } };
+  if (S.door === 'click') {
+    R.ui.cur = el('div', 'bd-cursor'); R.ui.cur.innerHTML = CURSOR_SVG; R.ui.cur.hidden = true; R.ui.mouse = el('div', 'bd-mouse'); R.ui.mouse.innerHTML = '<i class="l"></i><i class="r"></i>'; R.ui.mouse.dataset.btn = 'none'; R.ui.mouse.hidden = true;
+    p.appendChild(R.ui.mouse); p.appendChild(R.ui.cur);
+    p.addEventListener('pointerdown', function () { R.idle = 0; demoCancel(R); }, true);   // the child takes over: the demonstration stops
+  }
   setView('play', p);
   R.pcs = Array.prototype.slice.call(R.svg.querySelectorAll('.pc')); R.hits = []; R.bb = [];
   R.pcs.forEach(function (g) { const bb = g.getBBox(), h = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); h.setAttribute('class', 'hit'); h.setAttribute('x', bb.x - 8); h.setAttribute('y', bb.y - 8); h.setAttribute('width', bb.width + 16); h.setAttribute('height', bb.height + 16); h.setAttribute('rx', 10); h.setAttribute('fill', 'transparent'); g.appendChild(h); R.hits.push(h); R.bb.push(bb); });
@@ -211,12 +217,82 @@ function sparkle(R, bb) {
   R.svg.appendChild(g); later(function () { if (g.parentNode) g.parentNode.removeChild(g); }, 800);
 }
 
+
+/* ---------- the animated mouse: Click & Build shows the child exactly what to do ----------
+   A drawn mouse pointer glides to the piece and clicks, double-clicks, right-clicks (and opens the little menu) or drags the piece into place,
+   while a small mouse diagram lights up the button to press. It plays the first time each skill appears, again after a quiet moment,
+   and any time the child presses the 🖱️ button. It only shows; the child still does the action. */
+const CURSOR_SVG = '<svg viewBox="0 0 24 30" aria-hidden="true"><path d="M2 2 L2 24 L8 18.5 L12.2 28 L16 26.4 L11.8 17 L20 17 Z" fill="#fff" stroke="#15163a" stroke-width="2" stroke-linejoin="round"/></svg><b class="ring"></b>';
+function demoCancel(R) {
+  if (!R) return; R.demoTok = (R.demoTok || 0) + 1; R.demoing = false;
+  if (R.ui.cur) { R.ui.cur.hidden = true; R.ui.cur.classList.remove('down', 'click', 'orange'); }
+  if (R.ui.mouse) { R.ui.mouse.hidden = true; R.ui.mouse.dataset.btn = 'none'; }
+  if (R.ui.ghost) { if (R.ui.ghost.parentNode) R.ui.ghost.parentNode.removeChild(R.ui.ghost); R.ui.ghost = null; }
+  if (R.ui.dmenu) { if (R.ui.dmenu.parentNode) R.ui.dmenu.parentNode.removeChild(R.ui.dmenu); R.ui.dmenu = null; }
+  const m = R.ui.tray && R.ui.tray.querySelector('.bd-mini'); if (m) m.classList.remove('demo-lift');
+}
+function ctr(R, node) { const pr = R.play.getBoundingClientRect(), r = node.getBoundingClientRect(); return { x: r.left + r.width / 2 - pr.left, y: r.top + r.height / 2 - pr.top }; }
+function dWait(R, tok, ms) { return new Promise(function (res) { setTimeout(function () { res(tok === R.demoTok && S.run === R && R.phase === 'play'); }, ms); }); }
+function dPos(R, x, y) {
+  R.cx = x; R.cy = y; R.ui.cur.style.left = x + 'px'; R.ui.cur.style.top = y + 'px';
+  if (R.ui.ghost) { R.ui.ghost.style.left = (x - R.ghw / 2 + 6) + 'px'; R.ui.ghost.style.top = (y - R.ghh / 2 + 10) + 'px'; }
+}
+function dMove(R, tok, x, y, ms) {      // glide the pointer; a timer takes over if the browser pauses frames, so a demo can never freeze
+  const a = { x: R.cx, y: R.cy }, t0 = performance.now();
+  return new Promise(function (res) {
+    (function f(now) {
+      if (tok !== R.demoTok || S.run !== R) { res(false); return; }
+      const u = Math.min(1, (now - t0) / ms), e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; dPos(R, a.x + (x - a.x) * e, a.y + (y - a.y) * e);
+      if (u >= 1) { res(true); return; }
+      let fired = false; const tid = setTimeout(function () { if (!fired) { fired = true; f(performance.now()); } }, 90);
+      requestAnimationFrame(function (t) { if (fired) return; fired = true; clearTimeout(tid); f(t); });
+    })(t0);
+  });
+}
+function dPress(R, btn) { R.ui.mouse.dataset.btn = btn; R.ui.cur.classList.remove('click'); void R.ui.cur.offsetWidth; R.ui.cur.classList.toggle('orange', btn === 'right'); R.ui.cur.classList.add('click'); CC.sfx.clink(); }
+function dRelease(R) { R.ui.mouse.dataset.btn = 'none'; R.ui.cur.classList.remove('click', 'down'); }
+async function demo(R, line) {
+  if (!R || S.run !== R || S.door !== 'click' || R.phase !== 'play' || R.demoing || R.float || !R.kind) return;
+  demoCancel(R); const tok = R.demoTok; R.demoing = true;
+  if (line) bo(R, line);
+  const kind = R.kind, idx = R.i, hit = R.hits[idx], tgt = ctr(R, hit), pr = R.play.getBoundingClientRect(), cur = R.ui.cur;
+  cur.hidden = false; R.ui.mouse.hidden = false;
+  const W = function (ms) { return dWait(R, tok, ms); }, go = function (p, ms) { return dMove(R, tok, p.x, p.y, ms); };
+  async function seq(steps) { for (let i = 0; i < steps.length; i++) { if (!(await steps[i]())) return false; } return true; }
+  let ok = false;
+  if (kind === 'drag') {
+    const mini = R.ui.tray.querySelector('.bd-mini'); if (!mini) { demoCancel(R); return; }
+    const from = ctr(R, mini), mr = mini.getBoundingClientRect(); dPos(R, from.x, from.y);
+    ok = await seq([function () { return W(450); },
+      function () { cur.classList.add('down'); R.ui.mouse.dataset.btn = 'hold'; CC.sfx.pickup && CC.sfx.pickup(); mini.classList.add('demo-lift');
+        const g = el('div', 'bd-ghost'), c = mini.cloneNode(true); c.classList.remove('lifted', 'picked'); g.appendChild(c); R.play.appendChild(g); R.ui.ghost = g; R.ghw = mr.width; R.ghh = mr.height; dPos(R, from.x, from.y); return W(600); },
+      function () { return go(tgt, 1500); },
+      function () { dRelease(R); cur.classList.add('click'); CC.sfx.clink(); if (R.ui.ghost) { R.ui.ghost.classList.add('drop'); } return W(500); },
+      function () { pulse(R); return W(500); }]);
+  } else {
+    const start = { x: pr.width * 0.78, y: pr.height * 0.72 }; dPos(R, start.x, start.y);
+    if (kind === 'click') ok = await seq([function () { return W(300); }, function () { return go(tgt, 1100); }, function () { dPress(R, 'left'); return W(380); }, function () { dRelease(R); pulse(R); return W(700); }]);
+    else if (kind === 'dbl') ok = await seq([function () { return W(300); }, function () { return go(tgt, 1100); },
+      function () { dPress(R, 'dbl'); return W(170); }, function () { dRelease(R); return W(110); }, function () { dPress(R, 'dbl'); return W(260); }, function () { dRelease(R); pulse(R); return W(700); }]);
+    else if (kind === 'right') {
+      ok = await seq([function () { return W(300); }, function () { return go(tgt, 1100); }, function () { dPress(R, 'right'); return W(300); },
+        function () {
+          dRelease(R); const m = el('div', 'bd-menu demo'); m.appendChild(el('div', 'mi', '✨ Add')); m.appendChild(el('div', 'mi dim', '✖ Close')); R.play.appendChild(m); R.ui.dmenu = m;
+          m.style.left = Math.max(4, Math.min(tgt.x, pr.width - 150)) + 'px'; m.style.top = Math.max(4, Math.min(tgt.y, pr.height - 110)) + 'px'; return W(600); },
+        function () { const add = ctr(R, R.ui.dmenu.firstChild); return go({ x: add.x - 20, y: add.y }, 800); },
+        function () { dPress(R, 'left'); return W(420); }, function () { dRelease(R); if (R.ui.dmenu && R.ui.dmenu.parentNode) R.ui.dmenu.parentNode.removeChild(R.ui.dmenu); R.ui.dmenu = null; pulse(R); return W(500); }]);
+    }
+  }
+  if (tok === R.demoTok) demoCancel(R);
+}
+
 /* ---- mouse door ---- */
 function setupTask(R) {
   const kind = KINDS[R.lv - 1][R.i % KINDS[R.lv - 1].length], g = R.pcs[R.i], hit = R.hits[R.i]; R.kind = kind; R.picked = false; R.dropMiss = 0; R.ui.tray.innerHTML = '';
   const longer = !S.kindSeen[kind], say = (!S.howSeen.click ? 'Hello! I am Bo. ' + HOW.click + ' ' : '') + (R.praise ? R.praise + ' ' : '') + (longer ? KINDLONG[kind] : TIPS[kind]); S.kindSeen[kind] = true; S.howSeen.click = true; R.praise = '';
   bo(R, longer ? KINDLONG[kind] : TIPS[kind], say);
   hit.style.pointerEvents = ''; g.classList.add('act'); g.classList.toggle('dragkind', kind === 'drag');
+  demoCancel(R); R.idle = 0; if (longer) { const idx = R.i; later(function () { if (S.run === R && R.i === idx && R.kind === kind) demo(R); }, 1500); }
   const fresh = hit.cloneNode(false); hit.parentNode.replaceChild(fresh, hit); R.hits[R.i] = fresh;     // drop old listeners
   if (kind === 'click') fresh.addEventListener('click', function () { place(R); });
   else if (kind === 'dbl') {
@@ -283,7 +359,9 @@ function finish(R) {
   }, 1500);
 }
 function update(dt) {
-  const R = S.run; if (!R || R.phase !== 'play' || R.door !== 'type') return;
+  const R = S.run; if (!R || R.phase !== 'play') return;
+  if (R.door === 'click') { R.idle += dt; if (R.idle > 10 && !R.demoing && !R.float && !R.menu) { R.idle = 0; demo(R, 'Watch the mouse. ' + TIPS[R.kind]); } return; }
+  if (R.door !== 'type') return;
   R.idle += dt; const hintAt = S.year === 3 ? 8 : 5, autoAt = S.year === 1 ? 13 : 18;
   if (R.idle > hintAt && !R.hint) showHint(R);
   if (R.idle > autoAt) assist(R);
