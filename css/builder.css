@@ -89,7 +89,7 @@
 .bd-mini.lifted{opacity:.35;animation:none}
 .bd-mini.picked{border-color:#4fbf5f;box-shadow:0 0 0 5px #b6f0be}
 .bd-trayhint{font-weight:bold;color:#1d6f8f}
-.bd-float{position:fixed;z-index:999;pointer-events:none;filter:drop-shadow(0 8px 6px rgba(0,0,0,.3));transform:scale(1.04)}
+.bd-float{position:fixed;left:0;top:0;z-index:999;pointer-events:none;will-change:transform;filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
 .bd-float svg{display:block}
 .bd-float .pc *{stroke:#3a2f5a;stroke-width:2.5;stroke-linejoin:round}
 .bd-float .pc .ns{stroke:none}

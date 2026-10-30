@@ -321,11 +321,11 @@ function setupDrag(R) {
   mini.setAttribute('width', Math.max(30, bb.width * sc0)); mini.setAttribute('height', Math.max(30, bb.height * sc0)); mini.innerHTML = '<g class="pc on">' + R.b.pieces[idx].s + '</g>';
   tray.appendChild(mini); tray.appendChild(el('span', 'bd-trayhint', '⬆ drag me up to the dotted spot'));
   let st = null;
-  function moveFloat(e) { if (!R.float) return; R.float.style.left = (e.clientX - R.float.offsetWidth / 2) + 'px'; R.float.style.top = (e.clientY - R.float.offsetHeight / 2) + 'px'; }
+  function moveFloat(e) { if (!R.float) return; R.float.style.transform = 'translate3d(' + Math.round(e.clientX - R.fw / 2) + 'px,' + Math.round(e.clientY - R.fh / 2) + 'px,0) scale(1.04)'; }   /* a transform (not left/top) keeps dragging smooth in every browser */
   mini.addEventListener('pointerdown', function (e) {
     if (R.phase !== 'play' || R.i !== idx) return; e.preventDefault(); try { mini.setPointerCapture(e.pointerId); } catch (x) { }
     const sr = R.svg.getBoundingClientRect(), sc = Math.min(sr.width / 480, sr.height / 300), f = el('div', 'bd-float');
-    const clone = mini.cloneNode(true); clone.setAttribute('width', bb.width * sc); clone.setAttribute('height', bb.height * sc); f.appendChild(clone); document.body.appendChild(f); R.float = f;
+    const clone = mini.cloneNode(true); clone.setAttribute('width', bb.width * sc); clone.setAttribute('height', bb.height * sc); f.appendChild(clone); document.body.appendChild(f); R.float = f; R.fw = f.offsetWidth; R.fh = f.offsetHeight;
     st = { x: e.clientX, y: e.clientY, moved: false }; mini.classList.add('lifted'); moveFloat(e);
   });
   mini.addEventListener('pointermove', function (e) { if (!st) return; if (Math.abs(e.clientX - st.x) + Math.abs(e.clientY - st.y) > 8) st.moved = true; moveFloat(e); });

@@ -782,7 +782,7 @@ function applyTheme() {
 }
 function toggleBtn(label, key, icon) {
   const b = el('button', 'btn sk-tog' + (S.opt[key] ? ' on' : ''), '<span>' + icon + '</span> ' + label); b.type = 'button';
-  b.addEventListener('click', function () { b.blur(); S.opt[key] = !S.opt[key]; b.classList.toggle('on', S.opt[key]); applyTheme(); if (key === 'voice' && S.opt.voice) speak('Hello! I am Buddy.'); });
+  b.addEventListener('click', function () { b.blur(); S.opt[key] = !S.opt[key]; b.classList.toggle('on', S.opt[key]); applyTheme(); if (key === 'voice' && S.opt.voice) voice('Hello! I am Buddy.'); });
   return b;
 }
 

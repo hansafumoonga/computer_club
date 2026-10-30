@@ -99,7 +99,7 @@ function showHome() {
     const rain = g.id === 'rain', done = rain ? 0 : LEVELS.filter(function (l) { const b = bestOf(g.id, l.id); return b && b.stars >= 1; }).length;
     const c = el('button', 'ty-gcard'); c.type = 'button'; c.style.setProperty('--c', g.color);
     c.innerHTML = '<span class="gi">' + g.icon + '</span><span class="gn"></span><span class="gp"></span>';
-    c.querySelector('.gn').textContent = g.name; c.querySelector('.gp').textContent = rain ? (rainBest() ? 'Best: ' + rainBest() : 'A 2 minute challenge') : done + ' / 10 levels';
+    c.querySelector('.gn').textContent = g.name; c.querySelector('.gp').textContent = rain ? (rainBest() ? 'Best: ' + rainBest() : 'Catch the falling words') : done + ' / 10 levels';
     c.addEventListener('click', function () { c.blur(); CC.audio.init(); S.game = g.id; if (rain) showRainIntro(); else showMap(); }); cards.appendChild(c);
   });
   h.appendChild(cards);
