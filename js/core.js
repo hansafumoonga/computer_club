@@ -317,10 +317,14 @@ UI.handleKey = function (e) {
 
 /* Shared "Level Complete!" moment (Jump Over!, Star Blaster, Commando Run all use this) */
 UI.levelComplete = function (stage, o) {
-  CC.sfx.levelComplete();
+  if (!o.quiet) CC.sfx.levelComplete();
   const last = o.level >= o.total;
   const buttons = [];
-  if (last) buttons.push({ icon: '🔁', label: 'Again', keys: ['Space', 'Enter'], primary: true, fn: o.onRestartAll });
+  if (last && o.reward && CC.rewards) {   /* finishing the last level earns the game's 3D reward picture */
+    CC.rewards.earn(o.reward);
+    buttons.push({ icon: '🏆', label: 'Reward', keys: ['Space', 'Enter'], primary: true, fn: function () { CC.rewards.show(o.reward, function () { UI.levelComplete(stage, Object.assign({}, o, { quiet: true })); }); } });
+    buttons.push({ icon: '🔁', label: 'Again', fn: o.onRestartAll });
+  } else if (last) buttons.push({ icon: '🔁', label: 'Again', keys: ['Space', 'Enter'], primary: true, fn: o.onRestartAll });
   else buttons.push({ icon: '▶', label: 'Next', keys: ['Space', 'Enter'], primary: true, fn: o.onNext });
   buttons.push({ icon: '↻', label: 'Replay', keys: ['ArrowUp'], fn: o.onReplay });
   buttons.push({ icon: '🏠', label: 'Menu', fn: o.onMenu });
@@ -375,7 +379,7 @@ CC.makeLevelGame = function (cfg) {
     g.complete = function () {
       if (g.state !== 'play') return; g.state = 'done'; const lv = g.level;
       g.pending = setTimeout(function () {
-        UI.levelComplete(g.stage, { level: lv + 1, total: cfg.total, stars: g.stars,
+        UI.levelComplete(g.stage, { level: lv + 1, total: cfg.total, stars: g.stars, reward: cfg.reward,
           onNext: function () { g.goto(lv + 1, true); }, onReplay: function () { g.goto(lv, true); },
           onRestartAll: function () { g.goto(0, true); }, onMenu: function () { CC.goMenu(); } });
       }, 800);

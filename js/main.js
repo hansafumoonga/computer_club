@@ -71,6 +71,7 @@ function showMenu() {
       const m = MODES[id], b = document.createElement('button');
       b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;
       b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
+      if (CC.rewards && CC.rewards.has(id)) { const tr = document.createElement('span'); tr.className = 'rw-badge'; tr.setAttribute('role', 'button'); tr.setAttribute('tabindex', '0'); tr.setAttribute('aria-label', 'my reward'); tr.title = 'My reward'; tr.textContent = '🏆'; tr.addEventListener('click', function (e) { e.stopPropagation(); CC.rewards.show(id); }); tr.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); CC.rewards.show(id); } }); b.appendChild(tr); }
       b.addEventListener('click', function () { startMode(id); });
       box.appendChild(b);
     });

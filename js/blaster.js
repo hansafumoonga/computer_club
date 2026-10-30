@@ -212,6 +212,7 @@ function onKeyDown(g, e) {
   if (!e.repeat && e.code === 'Space' && g.state === 'play') wantFire = true;
 }
 CC.modes.blaster = CC.makeLevelGame({
+  reward: 'blaster',
   stageId: 'stage-blaster', title: 'Level', emoji: '🚀', total: BLASTER_LEVELS.length,
   levelIcon: function (i) { return BLASTER_LEVELS[i].boss ? '👾' : '🚀'; },
   controls: [{ keys: ['←', '→'], icon: '🚀' }, { keys: ['Space'], icon: '💥' }],

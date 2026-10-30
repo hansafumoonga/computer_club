@@ -115,7 +115,7 @@ function pop(f, fromGolden) {
 function levelDone() {
   const st = missed <= 1 ? 3 : missed <= 4 ? 2 : 1; best[lvIdx] = Math.max(best[lvIdx] || 0, st);
   const last = lvIdx >= SLICE_LEVELS.length - 1;
-  CC.ui.levelComplete(stage, { level: lvIdx + 1, total: SLICE_LEVELS.length, stars: st,
+  CC.ui.levelComplete(stage, { level: lvIdx + 1, total: SLICE_LEVELS.length, stars: st, reward: 'fruit',
     onNext: function () { startLevel(lvIdx + 1); }, onReplay: function () { startLevel(lvIdx); }, onRestartAll: function () { chooserSel = 0; chooser(); }, onMenu: function () { CC.goMenu(); } });
 }
 function update(dt) {

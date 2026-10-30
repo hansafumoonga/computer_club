@@ -684,6 +684,7 @@ function onKeyDown(g, e) {
   if (e.code === 'Space') wantFire = true;
 }
 CC.modes.commando = CC.makeLevelGame({
+  reward: 'commando',
   makey: true,
   stageId: 'stage-commando', title: 'Stage', emoji: '🤖', total: COMMANDO_LEVELS.length,
   levelIcon: function (i) { return SP.THEMES[COMMANDO_LEVELS[i].theme].icon; },

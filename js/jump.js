@@ -173,6 +173,7 @@ function onKeyDown(g, e) {
 }
 
 const game = CC.makeLevelGame({
+  reward: 'jump',
   stageId: 'stage-jump', title: 'Level', emoji: '🏃', total: JUMP_LEVELS.length,
   levelIcon: function (i) { return SP.THEMES[JUMP_LEVELS[i].theme].icon; },
   controls: [{ keys: ['Space', '↑'], icon: '🦘' }, { keys: ['↓'], icon: '⬇️' }],

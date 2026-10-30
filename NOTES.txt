@@ -109,6 +109,9 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
                 js/shortcuts.js (TASKS = the challenges, CHEAT = the extra shortcuts list; shortcuts that a web page cannot safely capture are only listed).
   Paint Studio  js/paint_data.js (every colouring picture is plain SVG: copy one entry in PICS; each part is a shape with class "r") and js/paint.js
                 (COLOURS = the palette; blank paper brush sizes are in openBlank()). No levels: the learner chooses what to paint.
+  Rewards       js/rewards.js + css/rewards.css: the 3D reward pictures for games without a certificate (Jump Over!, Star Blaster, Commando Run, Slice & Pop, Word Hunt,
+                Pattern Pop!, Piano, Shortcut Lab). Each drawing is a function in EMB (SVG); REWARDS holds the title and colours. A game earns its reward by calling
+                CC.rewards.earn('id') (or CC.rewards.note for parts, like the piano songs) and offers CC.rewards.show('id'). Pattern Pop! needs PATTERN_REWARD_LENGTH (7) in js/pattern.js.
   Mouse Club    js/mouseclub.js + css/mouseclub.css (Year 1 only). GAMES at the top of the file holds all 60 stages: each stage is one row (t = the kind of stage,
                 n = how many, sz = how big (bigger is easier), speed = how fast things move, text = what Bo says and the screen shows). Change a row to make a stage
                 easier or harder. The slow music is the 'gentle' tune in js/music.js. Bo speaks a little slower on Chrome for Mac (MAC_CHROME). Stars: 0-2 hints = 3 stars.

@@ -149,10 +149,12 @@ function check(cells) {
 }
 function levelDone() {
   const last = level >= LEVELS.length - 1; stars[level] = Math.max(stars[level] || 0, 1); renderLevels();
+  if (last && CC.rewards) CC.rewards.earn('words');   /* finding every word on the last level earns the 3D reward picture */
+  const again = { icon: '🔁', label: 'Again', fn: function () { level = 0; newRound(); } };
   CC.ui.show(stageEl, { emoji: last ? '🏆' : '🎉', stars: 3, title: last ? 'You found them all!' : 'Level ' + (level + 1) + ' done!',
-    buttons: [last ? { icon: '🔁', label: 'Again', keys: ['Space', 'Enter'], primary: true, fn: function () { level = 0; newRound(); } }
-      : { icon: '▶', label: 'Next', keys: ['Space', 'Enter'], primary: true, fn: function () { level++; newRound(); } },
-    { icon: '↻', label: 'Replay', keys: ['ArrowUp'], fn: function () { newRound(); } }, { icon: '🏠', label: 'Menu', fn: function () { CC.goMenu(); } }] });
+    buttons: [last && CC.rewards ? { icon: '🏆', label: 'Reward', keys: ['Space', 'Enter'], primary: true, fn: function () { CC.rewards.show('words', levelDone); } }
+      : last ? Object.assign({ keys: ['Space', 'Enter'], primary: true }, again) : { icon: '▶', label: 'Next', keys: ['Space', 'Enter'], primary: true, fn: function () { level++; newRound(); } },
+    last && CC.rewards ? again : { icon: '↻', label: 'Replay', keys: ['ArrowUp'], fn: function () { newRound(); } }, { icon: '🏠', label: 'Menu', fn: function () { CC.goMenu(); } }] });
 }
 function newRound() {
   CC.ui.close(); const p = generate(LEVELS[level]); grid = p.grid; words = p.words; found = {}; sel = null; cursor = [0, 0]; firstClick = null; render();

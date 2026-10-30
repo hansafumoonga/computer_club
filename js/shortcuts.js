@@ -69,7 +69,12 @@ function say(text, good) { S.el.msg.textContent = text; S.el.msg.className = 'sh
 function finish(id) {
   if (S.done[id]) return; S.done[id] = true; const t = TASKS.filter(function (x) { return x.id === id; })[0];
   say('✅ ' + t.what, true); CC.sfx.good(); updateList();
-  if (Object.keys(S.done).length === TASKS.length) { setTimeout(function () { CC.sfx.levelComplete(); say('🏆 Shortcut Star! You used every shortcut. Now use them in your own work!', true); }, 600); }
+  if (Object.keys(S.done).length === TASKS.length) { setTimeout(function () { CC.sfx.levelComplete(); say('🏆 Shortcut Star! You used every shortcut. Now use them in your own work!', true); if (CC.rewards && CC.rewards.earn('shortcuts')) setTimeout(rewardScreen, 1500); }, 600); }
+}
+function rewardScreen() {   /* every shortcut used: offer the reward picture */
+  const again = function () { CC.ui.show($stage(), { emoji: '🏆', title: 'Shortcut Hero!', text: 'You used every shortcut!',
+    buttons: [{ icon: '🏆', label: 'Reward', keys: ['Enter'], primary: true, fn: function () { CC.rewards.show('shortcuts', again); } }, { icon: '⌨️', label: 'Keep practising', fn: function () { CC.ui.close(); } }] }); };
+  again();
 }
 const OPS = {
   all: function () { setSel(0, S.doc.length); finish('all'); },

@@ -1,0 +1,21 @@
+/* rewards.css - the 3D reward picture screen (rw- classes) and the small trophy on a year-menu card */
+.rw-screen{position:fixed;inset:0;z-index:2000;background:rgba(10,11,40,.96);display:flex;flex-direction:column;align-items:center;gap:12px;padding:14px 16px 20px;overflow:auto;color:#f5f4ff}
+.rw-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;flex:none}
+.rw-name{font:inherit;font-size:1.05rem;padding:.5em .8em;border-radius:12px;border:3px solid #3a3e8a;background:#1a1b3f;color:#fff;width:14em;max-width:100%}
+.rw-name:focus{outline:none;border-color:#ffd23f}
+.rw-paper{flex:none;width:min(100%,calc((100vh - 150px) * 1.414));background:#fff;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.55);line-height:0}
+.rw-paper svg{width:100%;height:auto;display:block}
+.rw-note{margin:0;color:#b7b8de;font-size:.9rem;text-align:center;flex:none}
+.mode-card{position:relative}
+.mode-card .rw-badge{position:absolute;top:8px;right:8px;width:2.3rem;height:2.3rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;border-radius:50%;background:linear-gradient(#fff3b0,#e5a91a);border:3px solid #8a5a00;box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer;z-index:3;transition:transform .12s}
+.mode-card .rw-badge:hover,.mode-card .rw-badge:focus-visible{transform:scale(1.15) rotate(-6deg);outline:none}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  body.rw-open > *:not(.rw-screen){display:none !important}
+  html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important;background:#fff !important}
+  body.rw-open .rw-screen,body.rw-open .rw-screen *{visibility:visible !important}
+  .rw-screen{position:static;display:block;padding:0;background:#fff;overflow:visible}
+  .rw-bar,.rw-note{display:none !important}
+  .rw-paper{width:100vw;height:calc(100vh - 2px);border-radius:0;box-shadow:none}
+  .rw-paper svg{width:100%;height:100%}
+}

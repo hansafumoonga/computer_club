@@ -66,6 +66,8 @@ Each year menu has three groups to choose from at the top: **Keyboard and mouse*
 
 **One look for every painting program.** Paint Studio, Magic Mix, Art Studio, Scene Maker, Magic Lab and Design Studio all share the same layout: an action bar on top, tools on the left, the paper in the middle and colour, size and background on the right. Only what the tools can do grows from year to year.
 
+**3D reward pictures.** The games that have no certificate give a printable, 3D-looking reward picture when the child finishes them: a diamond for **Jump Over!**, a rocket for **Star Blaster**, a hero medal for **Commando Run**, a crowned watermelon for **Slice & Pop** (last level), a magnifying glass for **Word Hunt** (last level), a rainbow for **Pattern Pop!** (copy a pattern of seven), golden notes on a keyboard for **Piano** (play every song all the way through) and a lightning bolt for **Shortcut Lab** (use all twelve shortcuts). A 🏆 button appears on the end screen, and a small gold trophy stays on the game's card in the year menu. The child can type a name, then print the picture (A4 landscape) or save it as a picture. The drawings are made in code, so nothing is downloaded. Rewards are kept on the computer for a few hours, like other progress.
+
 ### For teachers
 - A **pause** button in every game (the Escape key also works in the arrow-key games).
 - Click & Type Quest has Year 1, 2 and 3 settings, an optional spoken voice, high contrast, slow animations and a click-to-place alternative to dragging, and a simple **teacher report** (stars per skill and suggested practice).

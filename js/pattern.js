@@ -4,6 +4,7 @@
 'use strict';
 
 /* =============== TEACHER SETTINGS =============== */
+const PATTERN_REWARD_LENGTH = 7;   // copy a pattern this long to earn the reward picture
 const PATTERN_START_LENGTH = 1;      // how many pads in the first round
 const PATTERN_LIT_SECONDS = 0.55;    // how long each pad glows while watching (bigger = slower, easier)
 const PATTERN_GAP_SECONDS = 0.3;     // pause between pads while watching
@@ -71,7 +72,7 @@ function press(i) {
     idx++;
     if (idx >= seq.length) {
       message = 'Great memory! ⭐'; CC.sfx.good(); particles.burst(W / 2, 110, ['#ffd23f', '#ffffff', '#6bcb77'], 20, { speed: 200, size: 6, up: 120 });
-      later(1.3, nextRound);
+      if (seq.length >= PATTERN_REWARD_LENGTH && CC.rewards && CC.rewards.earn('pattern')) { later(1.3, rewardScreen); } else later(1.3, nextRound);
     }
   } else if (graceLeft > 0) {
     graceLeft--; message = 'That was close! Watch again.'; CC.sfx.softMiss();
@@ -84,6 +85,11 @@ function press(i) {
         buttons: [{ icon: '▶', label: 'Again', keys: CC.MAKEY_KEYS.concat(['Enter']), primary: true, fn: newGame }, { icon: '🏠', label: 'Menu', fn: function () { CC.goMenu(); } }] });
     });
   }
+}
+function rewardScreen() {   /* the first time a pattern of seven is copied: offer the reward, then carry on */
+  state = 'reward'; const again = function () { CC.ui.show(stage, { emoji: '🏆', title: 'Pattern Star!', text: 'You copied ' + seq.length + ' in a row!',
+    buttons: [{ icon: '🏆', label: 'Reward', keys: ['Enter'], primary: true, fn: function () { CC.rewards.show('pattern', again); } }, { icon: '▶', label: 'Keep going', keys: CC.MAKEY_KEYS, fn: function () { CC.ui.close(); nextRound(); } }, { icon: '🏠', label: 'Menu', fn: function () { CC.goMenu(); } }] }); };
+  again();
 }
 function draw() {
   const c = ctx, bg = c.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#15163a'); bg.addColorStop(1, '#2d2f78');

@@ -91,6 +91,8 @@ function build() {
   });
   const beat = document.createElement('button'); beat.className = 'btn'; beat.id = 'piano-beat'; beat.textContent = '🥁 Beat: Off';
   beat.addEventListener('click', function () { beat.blur(); setBeat(!beatOn); }); modesRow.appendChild(beat);
+  const rw = document.createElement('button'); rw.className = 'btn primary'; rw.id = 'piano-reward'; rw.textContent = '🏆 My reward'; rw.hidden = true;
+  rw.addEventListener('click', function () { rw.blur(); if (CC.rewards) CC.rewards.show('piano'); }); modesRow.appendChild(rw);
   $('rec-start').addEventListener('click', function () { this.blur(); recStart(); });
   $('rec-stop').addEventListener('click', function () { this.blur(); recStop(); });
   $('rec-play').addEventListener('click', function () { this.blur(); const a = $('rec-audio'); a.currentTime = 0; a.play(); });
@@ -108,6 +110,10 @@ function padLabels(real) {          // the letter shown on each pad: C D E F G n
 }
 function clearGuide() { CC.NOTES.forEach(function (n) { keyEls[n].classList.remove('guide'); }); padLabels(null); }
 function stopListen() { listenTimers.forEach(clearTimeout); listenTimers = []; }
+function rewardScreen() {   /* every song played all the way through: show the reward picture and keep a trophy button on the screen */
+  const b = $('piano-reward'); if (b) b.hidden = false;
+  if (CC.rewards) CC.rewards.show('piano');
+}
 function title() { return SONGS[song].name.replace(/^\S+\s/, ''); }
 
 function setSong(id) { song = id; stopListen(); if (beatOn) { stopBeat(); startBeat(); } setMode(mode === 'free' ? 'free' : mode); }
@@ -134,7 +140,7 @@ function press(n) {
   if (mode === 'learn') {
     if (want && want.pad === n) {
       learnIdx++;
-      if (learnIdx >= SONGS[song].notes.length) { clearGuide(); msg('🎉 Wow! You played the whole song!'); CC.sfx.levelComplete(); setTimeout(function () { if (mode === 'learn') { learnIdx = 0; msg('Want to play it again? Follow the lights!'); showGuide(); } }, 3500); }
+      if (learnIdx >= SONGS[song].notes.length) { clearGuide(); msg('🎉 Wow! You played the whole song!'); CC.sfx.levelComplete(); if (CC.rewards && CC.rewards.note('piano', song, Object.keys(SONGS).length)) setTimeout(rewardScreen, 1200); setTimeout(function () { if (mode === 'learn') { learnIdx = 0; msg('Want to play it again? Follow the lights!'); showGuide(); } }, 3500); }
       else { msg('Nice! Keep going…'); showGuide(); }
     } else if (want) msg('Almost! Try the glowing key.');
   }
@@ -210,7 +216,7 @@ function recStop() {
 CC.modes.piano = {
   makey: true,
   enter: function () {
-    A.init(); build();
+    A.init(); build(); const rb = $('piano-reward'); if (rb) rb.hidden = !(CC.rewards && CC.rewards.has('piano'));
     song = 'jingle'; mode = 'free'; learnIdx = 0; pressedKeys = {};
     setBeat(false); clearGuide(); refreshButtons(); msg('Free Play: touch the pads and make some music!');
   },
