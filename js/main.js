@@ -13,6 +13,7 @@ const MODES = {
   commando: { icon: '🤖', name: 'Commando Run',  desc: 'Run, jump and blast the bots',    group: 'arrow', color: '#a77bff' },
   pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy',          group: 'arrow', color: '#22c6c6' },
   /* Builder Club has two doors; each year gets the one that suits it (the same game, opened on the right door) */
+  mouseclub: { icon: '🖱️', name: 'Mouse Club', desc: 'Move, click, drag and scroll, one skill at a time', group: 'kb', color: '#22b8cf', cert: true },
   buildclick: { icon: '🏗️', name: 'Click & Build', desc: 'Click, drag and build a car, a house, a city!', group: 'kb', color: '#22b8cf', cert: true, mode: 'builder', args: { door: 'click' } },
   buildtype:  { icon: '🏗️', name: 'Type & Build',  desc: 'Type the word to build a car, a house, a city!', group: 'kb', color: '#ff7a45', cert: true, mode: 'builder', args: { door: 'type' } },
   magic:    { icon: '✨', name: 'Magic Mix',     desc: 'Watch colours mix and paint a picture', group: 'design', color: '#ffb52e' },
@@ -26,7 +27,7 @@ const MODES = {
 };
 /* what each year can play, easiest and most suitable first. Jump Over! is for everyone. */
 const YEARS = {
-  '1': { modes: ['buildclick', 'paint', 'magic', 'skills', 'fruit', 'jump', 'piano'] },
+  '1': { modes: ['mouseclub', 'buildclick', 'paint', 'magic', 'skills', 'fruit', 'jump', 'piano'] },
   '2': { modes: ['buildtype', 'art', 'magic', 'skills', 'fruit', 'words', 'jump', 'blaster', 'piano'] },
   '3': { modes: ['scene', 'magic', 'art', 'skills', 'words', 'fruit', 'blaster', 'jump', 'pattern', 'piano'] },
   '4': { modes: ['typing', 'shortcuts', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
@@ -38,7 +39,7 @@ const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['design', '🎨'
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
-const MUSIC = { skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, shortcuts: null, magiclab: 'words', design: 'words', magic: 'words', art: 'words', scene: 'words', paint: 'words', buildclick: 'words', buildtype: 'words' };
+const MUSIC = { mouseclub: 'gentle', skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, shortcuts: null, magiclab: 'words', design: 'words', magic: 'words', art: 'words', scene: 'words', paint: 'words', buildclick: 'words', buildtype: 'words' };
 
 function showOnly(el) {
   document.querySelectorAll('.screen, .mode').forEach(function (s) { s.hidden = true; });
