@@ -91,6 +91,8 @@ The live site is hosted free on **Cloudflare Pages**, connected to this reposito
 - `css/shortcuts.css`, `js/shortcuts.js`: Shortcut Lab
 - `css/builder.css`, `js/builder_data.js`, `js/builder.js`: Builder Club (styling, the drawn pictures and their words, engine)
 - `css/typing.css`, `js/typing_data.js`, `js/typing.js`: Typing Club (styling, levels and sentences, engine)
+- `css/mouseclub.css`, `js/mouseclub.js`: Mouse Club for Year 1 (all 60 stages are rows of settings at the top of the file)
+- `css/rewards.css`, `js/rewards.js`: the 3D reward pictures for the games without a certificate
 - `index.html`: the page
 - `css/style.css`: styling for the whole system
 - `css/skills.css`, `js/skills.js`, `js/skills_levels.js`: Click & Type Quest (engine and all level content)

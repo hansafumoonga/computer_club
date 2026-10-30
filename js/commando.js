@@ -78,7 +78,7 @@ const AIRBORNE = { flyer: 1, bomber: 1, gunship: 1 };
 
 const SP = CC.sprites, GROUND = 370, W = 800;
 let hero, cam, L, li, lv, enemies, bullets, orbs, waves, caps, lives, invincible, fireCd, wantFire, weapon, jumpBuf, hurtT, aimUp, stepT, dropT, coyote, lastSafe;
-let warned = false, warnT = 0, landT = 0, casings = [], recoilT = 0, pickT = 0, slowT = 0, fires = [], boss, bossAnnounce, cpX = 0, cpSaved = {}, rescue = null, shake = 0, flashT = 0, dustT = 0, hint = null, shotsFired = 0, wasGrounded = true;
+let warned = false, warnT = 0, landT = 0, casings = [], recoilT = 0, pickT = 0, slowT = 0, fires = [], boss, bossAnnounce, cpX = 0, cpSaved = {}, rescue = null, shake = 0, flashT = 0, hint = null, shotsFired = 0, wasGrounded = true;
 
 /* ---------------- stage builder (same stage every time you play it) ---------------- */
 function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -198,7 +198,7 @@ function reset(g, level, fromCp) {
   enemies = L.enemies; if (cpX) enemies = enemies.filter(function (e) { return e.x > cpX + 350; });
   caps = L.caps; if (cpX) caps = caps.filter(function (c) { return c.x > cpX + 100; });
   L.flags.forEach(function (f) { f.on = cpX >= f.x; });
-  bullets = []; orbs = []; waves = []; fires = []; casings = []; recoilT = 0; pickT = 0; slowT = 0; boss = null; bossAnnounce = 0; warned = false; warnT = 0; landT = 0; rescue = null; shake = 0; flashT = 0; dustT = 0; hint = null; shotsFired = 0; wasGrounded = true;
+  bullets = []; orbs = []; waves = []; fires = []; casings = []; recoilT = 0; pickT = 0; slowT = 0; boss = null; bossAnnounce = 0; warned = false; warnT = 0; landT = 0; rescue = null; shake = 0; flashT = 0; hint = null; shotsFired = 0; wasGrounded = true;
   lives = COMMANDO_LIVES; invincible = 1.5; fireCd = 0; wantFire = false; weapon = 'normal'; jumpBuf = 0; hurtT = 0; aimUp = false; stepT = 0; dropT = 0; coyote = 0; lastSafe = sx;
 }
 function heroBox() { const h = hero.duck ? 34 : 60; return CC.shrink(hero.x - 15, hero.y - h, 30, h, COMMANDO_HITBOX_PAD); }

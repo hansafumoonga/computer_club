@@ -3,7 +3,7 @@
 (function () {
 'use strict';
 const SP = CC.sprites, H = SP.helpers, TAU = Math.PI * 2, OUT = '#1a1b3f';
-const rr = H.rr, circ = H.circ, ell = H.ell, fs = H.fs, puff = H.puff, shine = H.shine, eyes = H.eyes, smile = H.smile;
+const rr = H.rr, circ = H.circ, ell = H.ell, fs = H.fs, puff = H.puff, shine = H.shine, eyes = H.eyes;
 
 /* ---------- 15 stage themes: sky, hills, ground, liquid in pits, decoration ---------- */
 SP.THEMES = [
@@ -108,7 +108,6 @@ function deco(c, kind, x, gy, s, th, t) {
 
 /* ---------- colour helpers + cached scenery layers (richer, more realistic look) ---------- */
 function rgbOf(hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
-function mix(a, b, k) { const A = rgbOf(a), B = rgbOf(b); return 'rgb(' + ((A[0] + (B[0] - A[0]) * k) | 0) + ',' + ((A[1] + (B[1] - A[1]) * k) | 0) + ',' + ((A[2] + (B[2] - A[2]) * k) | 0) + ')'; }
 function mixHex(a, b, k) { const A = rgbOf(a), B = rgbOf(b), v = function (i) { return ((A[i] + (B[i] - A[i]) * k) | 0).toString(16).padStart(2, '0'); }; return '#' + v(0) + v(1) + v(2); }
 const TILE = 1200;
 /* a seamlessly repeating mountain ridge: gradient body, glowing ridge-line, soft snow/light on the peaks */
@@ -254,7 +253,7 @@ SP.heartPickup = function (c, x, y, t) {
 /* ======================= BIG BOSSES =======================
    All face LEFT (toward the hero). Anchor = bottom centre (hovering ones use y as their centre-bottom too).
    s = {hurt (bool), t, pal:[c1,c2,c3], charge 0..1 (telegraph), hp (0..1)} */
-const fierceEyes = H.fierceEyes, roar = H.roar, grr = H.grr, brows = H.brows;
+const fierceEyes = H.fierceEyes, roar = H.roar;
 const B = {};
 function limbs(c, pts, w, col) { c.lineCap = 'round'; c.beginPath(); c.moveTo(pts[0], pts[1]); c.quadraticCurveTo(pts[2], pts[3], pts[4], pts[5]); c.lineWidth = w + 5; c.strokeStyle = OUT; c.stroke(); c.lineWidth = w; c.strokeStyle = col; c.stroke(); }
 function flash(c, s) { if (s.hurt) { c.save(); c.globalAlpha = 0.28; c.fillStyle = '#fff'; c.fillRect(-170, -250, 340, 270); c.restore(); } }
@@ -391,7 +390,7 @@ B.alien = function (c, s) {
   c.fillStyle = '#e8ffff'; for (let i = 0; i < 5; i++) { c.beginPath(); c.moveTo(-52 + i * 9, 8); c.lineTo(-48 + i * 9, 20); c.lineTo(-44 + i * 9, 8); c.closePath(); c.fill(); c.stroke(); }
   [[-34, -14, 5], [-16, -22, 6], [4, -24, 5]].forEach(function (e) { const g = c.createRadialGradient(e[0], e[1], 1, e[0], e[1], e[2] * 3); g.addColorStop(0, glow); g.addColorStop(1, 'rgba(120,255,230,0)'); c.fillStyle = g; c.beginPath(); c.arc(e[0], e[1], e[2] * 3, 0, TAU); c.fill(); circ(c, e[0], e[1], e[2], '#eaffff'); });   // three glowing eyes
   c.restore();
-  if (s.acting && s.move === 'breath') { const k = 1, g = c.createRadialGradient(-142, -166, 2, -142, -166, 56); g.addColorStop(0, 'rgba(220,255,160,.9)'); g.addColorStop(1, 'rgba(110,255,90,0)'); c.fillStyle = g; c.beginPath(); c.arc(-142, -166, 56, 0, TAU); c.fill(); }
+  if (s.acting && s.move === 'breath') { const g = c.createRadialGradient(-142, -166, 2, -142, -166, 56); g.addColorStop(0, 'rgba(220,255,160,.9)'); g.addColorStop(1, 'rgba(110,255,90,0)'); c.fillStyle = g; c.beginPath(); c.arc(-142, -166, 56, 0, TAU); c.fill(); }
 };
 /* a ball of fire (or green acid) that leaves a glowing tail behind it */
 SP.fireball = function (c, x, y, t, ang, acid) {
@@ -455,7 +454,7 @@ B.ufo = function (c, s) {
   c.restore();
 };
 B.frog = function (c, s) {
-  const t = s.t, col = s.pal[0];
+  const col = s.pal[0];
   [-1, 1].forEach(function (d) { ell(c, d * 82, -24, 46, 22, col); ell(c, d * 40, -30, 24, 20, col); claws(c, d * 82, -6, 4, '#fffbea'); });
   for (let i = 0; i < 5; i++) tri(c, -60 + i * 30, -134 + Math.abs(i - 2) * 8, -52 + i * 30, -160 + Math.abs(i - 2) * 8, -44 + i * 30, -134 + Math.abs(i - 2) * 8, s.pal[1]);
   ell(c, 0, -80, 94, 72, puff(c, 0, -80, 102, s.pal[2], col)); ell(c, 0, -60, 60, 36, '#e8f8b8');
@@ -478,7 +477,7 @@ B.golem = function (c, s) {
 SP.BOSS_KINDS = Object.keys(B);
 /* kind: lion|octopus|scorpion|yeti|dragon|gorilla|spider|robot|eagle|ufo|frog|golem */
 SP.bossDraw = function (c, kind, x, y, s) {
-  const sc = s.scale || 1.2, pal = s.pal || [], rage = s.rage;
+  const sc = s.scale || 1.2, rage = s.rage;
   c.save(); c.translate(x, y); c.scale(sc, sc);
   if (s.charge > 0) c.translate(Math.sin(s.t * 40) * 2 * s.charge, 0);
   // glowing aura behind the creature (red and angry in the last phase)

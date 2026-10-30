@@ -9,7 +9,6 @@
 /* ---------- home and stage map ---------- */
 .mc-home,.mc-map,.mc-certwrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 20px;text-align:center;width:100%}
 .mc-title{font-size:clamp(2.2rem,6vw,3.6rem);font-weight:bold;color:var(--accent,#ffd23f);text-shadow:0 4px 0 #0c0d26}
-.mc-sub{margin:0;font-size:clamp(1rem,2.2vw,1.35rem);font-weight:bold;color:var(--ink-dim,#b7b8de)}
 .mc-name{font:inherit;font-size:1.1rem;padding:.5em .8em;border-radius:14px;border:3px solid #3a3e8a;background:#1a1b3f;color:var(--ink,#f5f4ff);width:12em;max-width:100%}
 .mc-name:focus{outline:none;border-color:var(--accent,#ffd23f)}
 .mc-games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;width:min(900px,100%)}
@@ -130,7 +129,6 @@
 .mc-rocket.shake{animation:mcShakeX .12s}
 .mc-sbtns{position:absolute;right:34px;bottom:12px;display:flex;gap:8px;align-items:center;z-index:14;background:rgba(255,255,255,.85);padding:6px 10px;border-radius:99px;color:#1f2a55}
 .mc-sbtns .btn.ico{font-size:1.1rem;padding:.15em .6em}
-.mc-shint{font-weight:bold;font-size:.85rem}
 @keyframes mcShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @keyframes mcShakeX{25%{transform:translateX(calc(-50% - 4px))}75%{transform:translateX(calc(-50% + 4px))}}
 

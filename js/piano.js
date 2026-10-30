@@ -45,7 +45,7 @@ const BEATS = {
 };
 
 /* ---- note helpers: 'G4' -> frequency and a scale position (C4 = 0, D4 = 1 ... C5 = 7) ---- */
-const LETTER = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 }, SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const LETTER = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
 function degOf(n) { return (+n.slice(1) - 4) * 7 + LETTER[n[0]]; }
 /* Work out, for every note of a song, which of the five pads to press. The "window" of five notes slides when the tune leaves it. */
 function plan(s) {

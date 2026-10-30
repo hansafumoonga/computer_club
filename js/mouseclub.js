@@ -202,7 +202,7 @@ function startStage(game, i) {
   R.area.addEventListener('wheel', function (e) { R.idle = 0; if (R.hd.wheel) R.hd.wheel(e); }, { passive: false });
   R.area.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   R.area.addEventListener('pointerdown', function () { R.idle = 0; demoCancel(R); }, true);
-  R.area.addEventListener('click', function (e) { if (R.locked || e.target !== R.area && !e.target.classList.contains('mc-bgfill')) return; if (R.hd.bgclick) R.hd.bgclick(e); });
+  R.area.addEventListener('click', function (e) { if (R.locked || e.target !== R.area) return; if (R.hd.bgclick) R.hd.bgclick(e); });
   TYPES[cfg.t](R, cfg);
   paintDots(R); guideNow(R);
   /* Bo says the instruction; the pointer shows it the first time this kind of stage appears, and again after a quiet moment */

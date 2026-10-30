@@ -259,11 +259,10 @@ async function demo(R, line) {
   cur.hidden = false; R.ui.mouse.hidden = false;
   const W = function (ms) { return dWait(R, tok, ms); }, go = function (p, ms) { return dMove(R, tok, p.x, p.y, ms); };
   async function seq(steps) { for (let i = 0; i < steps.length; i++) { if (!(await steps[i]())) return false; } return true; }
-  let ok = false;
   if (kind === 'drag') {
     const mini = R.ui.tray.querySelector('.bd-mini'); if (!mini) { demoCancel(R); return; }
     const from = ctr(R, mini), mr = mini.getBoundingClientRect(); dPos(R, from.x, from.y);
-    ok = await seq([function () { return W(450); },
+    await seq([function () { return W(450); },
       function () { cur.classList.add('down'); R.ui.mouse.dataset.btn = 'hold'; CC.sfx.pickup && CC.sfx.pickup(); mini.classList.add('demo-lift');
         const g = el('div', 'bd-ghost'), c = mini.cloneNode(true); c.classList.remove('lifted', 'picked'); g.appendChild(c); R.play.appendChild(g); R.ui.ghost = g; R.ghw = mr.width; R.ghh = mr.height; dPos(R, from.x, from.y); return W(600); },
       function () { return go(tgt, 1500); },
@@ -271,11 +270,11 @@ async function demo(R, line) {
       function () { pulse(R); return W(500); }]);
   } else {
     const start = { x: pr.width * 0.78, y: pr.height * 0.72 }; dPos(R, start.x, start.y);
-    if (kind === 'click') ok = await seq([function () { return W(300); }, function () { return go(tgt, 1100); }, function () { dPress(R, 'left'); return W(380); }, function () { dRelease(R); pulse(R); return W(700); }]);
-    else if (kind === 'dbl') ok = await seq([function () { return W(300); }, function () { return go(tgt, 1100); },
+    if (kind === 'click') await seq([function () { return W(300); }, function () { return go(tgt, 1100); }, function () { dPress(R, 'left'); return W(380); }, function () { dRelease(R); pulse(R); return W(700); }]);
+    else if (kind === 'dbl') await seq([function () { return W(300); }, function () { return go(tgt, 1100); },
       function () { dPress(R, 'dbl'); return W(170); }, function () { dRelease(R); return W(110); }, function () { dPress(R, 'dbl'); return W(260); }, function () { dRelease(R); pulse(R); return W(700); }]);
     else if (kind === 'right') {
-      ok = await seq([function () { return W(300); }, function () { return go(tgt, 1100); }, function () { dPress(R, 'right'); return W(300); },
+      await seq([function () { return W(300); }, function () { return go(tgt, 1100); }, function () { dPress(R, 'right'); return W(300); },
         function () {
           dRelease(R); const m = el('div', 'bd-menu demo'); m.appendChild(el('div', 'mi', '✨ Add')); m.appendChild(el('div', 'mi dim', '✖ Close')); R.play.appendChild(m); R.ui.dmenu = m;
           m.style.left = Math.max(4, Math.min(tgt.x, pr.width - 150)) + 'px'; m.style.top = Math.max(4, Math.min(tgt.y, pr.height - 110)) + 'px'; return W(600); },

@@ -50,7 +50,7 @@ const PATTERNS = [
 const GROUND = 370, HERO_X = 150, SP = CC.sprites;
 const SIZES = Object.assign({ pit: { w: 130, h: 14 } }, SP.JUMP_OBSTACLES);
 const BEE_HEIGHT = 46, SWING_BOTTOM = 56, STOMPABLE = { bush: 1, rock: 1, stump: 1, wall: 1 };
-let landedAge = 9, hero, obstacles, coins, lives, invincible, scroll, spawnIn, spawned, passed, lv, jumpBuffer, wasAir, hurtT, got, stars;
+let landedAge = 9, hero, obstacles, coins, lives, invincible, scroll, spawnIn, spawned, passed, lv, jumpBuffer, wasAir, hurtT, got;
 
 function reset(g, level) {
   lv = JUMP_LEVELS[level]; CC.music.play('jump', { tempo: 1 + level * 0.03 });
