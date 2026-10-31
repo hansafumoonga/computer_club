@@ -105,10 +105,11 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
                 Every painting program is built from these, so they look the same; to change the look for all of them, change these two files.
                 js/magiclab.js (STYLES, HARMONIES: add a style by adding a painter function), js/art.js (BASIC and ADVANCED tool lists; Design Studio is the same file with more tools).
   Painting games js/paint_common.js (COLOURS and BACKGROUNDS shared by Paint Studio, Art Studio, Scene Maker and Magic Mix: add a background by adding one entry),
-                js/magic.js (PALS = the base colours that mix; DUR = how long each stage takes), js/art.js (TOOLS, STAMPS), js/scene_items.js (ITEMS = the things to drag: add one entry),
-                js/shortcuts.js (TASKS = the challenges, CHEAT = the extra shortcuts list; shortcuts that a web page cannot safely capture are only listed).
+                js/magic.js (PALS = the base colours that mix; DUR = how long each stage takes), js/art.js (TOOLS, STAMPS), js/scene_items.js (ITEMS = the things to drag: add one entry).
   Paint Studio  js/paint_data.js (every colouring picture is plain SVG: copy one entry in PICS; each part is a shape with class "r") and js/paint.js
                 (COLOURS = the palette; blank paper brush sizes are in openBlank()). No levels: the learner chooses what to paint.
+  Shortcut Lab  js/shortcuts.js + css/shortcuts.css (Years 4-6): the shortcuts are rows of TASKS at the top of the file (cat = group, win / mac = the keys shown, real = happens on the
+                computer itself, need = which key the lab watches for when the computer takes over). Add a shortcut by adding a row (and, for the notes, a function in OPS).
   Rewards       js/rewards.js + css/rewards.css: the 3D reward pictures for games without a certificate (Jump Over!, Star Blaster, Commando Run, Slice & Pop, Word Hunt,
                 Pattern Pop!, Piano, Shortcut Lab). Each drawing is a function in EMB (SVG); REWARDS holds the title and colours. A game earns its reward by calling
                 CC.rewards.earn('id') (or CC.rewards.note for parts, like the piano songs) and offers CC.rewards.show('id'). Pattern Pop! needs PATTERN_REWARD_LENGTH (7) in js/pattern.js.
