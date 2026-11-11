@@ -16,7 +16,7 @@ CC.keep = {
   },
   save: function (k, v) { try { localStorage.setItem('te_' + k, JSON.stringify({ t: Date.now(), v: v })); } catch (e) {} }
 };
-['typing', 'builder', 'skills'].forEach(function (k) { CC.keep.load(k); });   /* clear anything that has expired */
+['typing', 'builder', 'skills', 'desktop'].forEach(function (k) { CC.keep.load(k); });   /* clear anything that has expired */
 CC.MAKEY_KEYS = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight', 'Space'];
 CC.KEY_MAP = { ArrowLeft: 'C', ArrowUp: 'D', ArrowDown: 'E', ArrowRight: 'F', Space: 'G' };
 CC.KEY_LABEL = { ArrowLeft: '←', ArrowUp: '↑', ArrowDown: '↓', ArrowRight: '→', Space: 'Space' };

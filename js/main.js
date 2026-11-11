@@ -22,24 +22,25 @@ const MODES = {
   design:   { icon: '🎛️', name: 'Design Studio', desc: 'Layers, text, symmetry and more tools', group: 'design', color: '#ff7a45' },
   magiclab: { icon: '🔮', name: 'Magic Lab',     desc: 'Kaleidoscopes, spirals and colour harmony', group: 'design', color: '#a77bff' },
   shortcuts:{ icon: '⚡', name: 'Shortcut Lab',  desc: 'Learn keyboard shortcuts that really work', group: 'kb', color: '#a77bff' },
+  desktop:  { icon: '🪟', name: 'Desktop Skills', desc: 'Windows, folders and files, like a real computer', group: 'kb', color: '#4d8dff' },
   paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', group: 'design', color: '#ff7ac8' },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss, catch the rain', group: 'kb', color: '#5ac8ff', cert: true }
 };
 /* what each year can play, easiest and most suitable first. Jump Over! is for everyone. */
 const YEARS = {
-  '1': { modes: ['mouseclub', 'buildclick', 'paint', 'magic', 'skills', 'fruit', 'jump', 'piano'] },
-  '2': { modes: ['buildtype', 'art', 'magic', 'skills', 'fruit', 'words', 'jump', 'blaster', 'piano'] },
-  '3': { modes: ['scene', 'magic', 'art', 'skills', 'words', 'fruit', 'blaster', 'jump', 'pattern', 'piano'] },
-  '4': { modes: ['typing', 'shortcuts', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
-  '5': { modes: ['typing', 'shortcuts', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
-  '6': { modes: ['typing', 'shortcuts', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'piano'] }
+  '1': { modes: ['mouseclub', 'buildclick', 'paint', 'magic', 'skills', 'desktop', 'fruit', 'jump', 'piano'] },
+  '2': { modes: ['buildtype', 'art', 'magic', 'skills', 'desktop', 'fruit', 'words', 'jump', 'blaster', 'piano'] },
+  '3': { modes: ['scene', 'magic', 'art', 'skills', 'desktop', 'words', 'fruit', 'blaster', 'jump', 'pattern', 'piano'] },
+  '4': { modes: ['typing', 'shortcuts', 'desktop', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
+  '5': { modes: ['typing', 'shortcuts', 'desktop', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
+  '6': { modes: ['typing', 'shortcuts', 'desktop', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'piano'] }
 };
 /* the three groups in every year menu: learning with keyboard and mouse, painting and design, and the arrow-key / Makey Makey games */
 const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
-const MUSIC = { mouseclub: 'gentle', skills: null, fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, shortcuts: null, magiclab: 'words', design: 'words', magic: 'words', art: 'words', scene: 'words', paint: 'words', buildclick: 'words', buildtype: 'words' };
+const MUSIC = { mouseclub: 'gentle', skills: null, desktop: 'gentle', fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, shortcuts: null, magiclab: 'words', design: 'words', magic: 'words', art: 'words', scene: 'words', paint: 'words', buildclick: 'words', buildtype: 'words' };
 
 function showOnly(el) {
   document.querySelectorAll('.screen, .mode').forEach(function (s) { s.hidden = true; });

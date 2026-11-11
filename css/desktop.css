@@ -1,0 +1,111 @@
+/* desktop.css - Desktop Skills (every rule starts with dk- so nothing else is touched). A pretend computer desktop: windows, folders, a bar and a bin. */
+.dk-play{display:flex;flex-direction:column;gap:8px;height:100%;min-height:0;padding:8px 10px;width:100%}
+
+/* ---------- top bar, the instruction ---------- */
+.dk-top{flex:none;display:flex;align-items:center;gap:10px}
+.dk-lv{font-size:1rem;white-space:nowrap}
+.dk-dots{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+.dk-dots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.35)}
+.dk-dots i.c{background:#ffd23f;border-color:#fff3b0}
+.dk-dots i.d{background:#6bcb77;border-color:#b6f0be}
+.dk-top .btn{padding:.35em .7em;font-size:1.05rem}
+.dk-msg{flex:none;text-align:center;padding:8px 14px;border-radius:16px;background:linear-gradient(160deg,#2f3590,#1f2150);border:3px solid #4a50a8;transition:background .2s,border-color .2s}
+.dk-msg .say{display:block;font-size:clamp(1.15rem,2.6vw,1.7rem);color:#fff}
+.dk-msg .sub{display:block;font-size:clamp(.85rem,1.6vw,1.05rem);color:var(--ink-dim,#b7b8de);min-height:1.2em}
+.dk-msg.good{background:linear-gradient(160deg,#1f5a46,#173a36);border-color:#3f9a63}
+.dk-msg.bad{background:linear-gradient(160deg,#6a2a3a,#40182a);border-color:#d9534f}
+
+/* ---------- the pretend computer ---------- */
+.dk-screen{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;border:4px solid #0d0e2b;box-shadow:0 6px 18px rgba(0,0,0,.45);color:#15163a;user-select:none;-webkit-user-select:none}
+.dk-area{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;background:radial-gradient(ellipse 60% 50% at 25% 15%,#4fb3ff,transparent 70%),radial-gradient(ellipse 55% 50% at 85% 80%,#7a63ff,transparent 70%),linear-gradient(#2a74dd,#1a4aa8)}
+.dk-icons{position:absolute;left:0;top:0;bottom:0;right:120px;padding:10px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(auto-fill,minmax(88px,88px));grid-auto-columns:92px;gap:4px;align-content:start;justify-content:start;pointer-events:none}
+.dk-icons .dk-ico{pointer-events:auto}
+.dk-bin{position:absolute;right:12px;bottom:12px;width:92px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:10px;cursor:default;touch-action:none}
+.dk-bin .ig{font-size:2.5rem;line-height:1.1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.dk-bin .nm{font-size:.82rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.dk-bin.full .ig{filter:drop-shadow(0 2px 3px rgba(0,0,0,.35)) saturate(1.4)}
+
+/* ---------- icons: files and folders ---------- */
+.dk-ico{display:flex;flex-direction:column;align-items:center;gap:2px;width:88px;padding:6px 4px;border-radius:10px;cursor:default;border:2px solid transparent;touch-action:none}
+.dk-ico .ig{font-size:2.5rem;line-height:1.1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
+.dk-ico .nm{font-size:.82rem;font-weight:bold;text-align:center;word-break:break-word;line-height:1.15;max-width:100%}
+.dk-icons .dk-ico .nm,.dk-bin .nm{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.dk-ico:hover{background:rgba(255,255,255,.18)}
+.dk-ico.sel{background:rgba(255,225,77,.35);border-color:#ffe14d}
+.dk-ico.dragging{opacity:.45}
+.dk-ico .dk-edit{width:82px;font:inherit;font-size:.82rem;font-weight:bold;text-align:center;padding:1px 2px;border:2px solid #2a74dd;border-radius:4px;color:#15163a;background:#fff;outline:none}
+.dk-over{outline:4px solid #ffe14d;outline-offset:-4px;background:rgba(255,225,77,.3) !important;border-radius:10px}
+.dk-ghost{position:fixed;z-index:200;pointer-events:none;transform:translate(-50%,-50%);font-size:2.4rem;opacity:.9;filter:drop-shadow(0 6px 8px rgba(0,0,0,.5))}
+
+/* ---------- windows ---------- */
+.dk-wins{position:absolute;inset:0;pointer-events:none}
+.dk-win{position:absolute;display:flex;flex-direction:column;background:#fff;border:3px solid #2a2f66;border-radius:12px 12px 6px 6px;box-shadow:0 10px 24px rgba(0,0,0,.45);overflow:hidden;pointer-events:auto;min-width:180px;min-height:120px}
+.dk-win.lift{box-shadow:0 16px 34px rgba(0,0,0,.55)}
+.dk-win.max{inset:0 !important;width:auto !important;height:auto !important;border-radius:0;border-width:0}
+.dk-win.mini{display:none}
+.dk-title{flex:none;display:flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;background:linear-gradient(#eef0ff,#cfd5f5);border-bottom:2px solid #9aa0d8;cursor:grab;touch-action:none}
+.dk-title .ti{font-size:1.15rem}
+.dk-title .tt{flex:1;min-width:0;font-weight:bold;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk-win.lift .dk-title{cursor:grabbing}
+.wbtn{flex:none;width:34px;height:26px;border:0;border-radius:6px;font:inherit;font-weight:bold;font-size:1.05rem;line-height:1;color:#15163a;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.wbtn.b-min{background:#ffd23f}
+.wbtn.b-max{background:#6bcb77}
+.wbtn.b-cls{background:#ff5c72;color:#fff}
+.wbtn:hover{filter:brightness(1.1)}
+.dk-tools{flex:none;display:flex;gap:6px;padding:6px 8px;background:#eef0ff;border-bottom:2px solid #d3d8f5}
+.dk-tools button{font:inherit;font-weight:bold;font-size:.82rem;padding:.3em .7em;border-radius:8px;border:2px solid #9aa0d8;background:#fff;color:#15163a;cursor:pointer}
+.dk-tools button:hover{background:#e6e9ff}
+.dk-files{flex:1;min-height:0;overflow:auto;padding:8px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:4px;background:#fdfdff}
+.dk-files .dk-ico:hover{background:#e6e9ff}
+.dk-files .dk-ico.sel{background:#fff3b0;border-color:#e5a91a}
+.dk-files .dk-ico .nm{color:#15163a;text-shadow:none}
+.dk-empty{color:#7a7da8;font-style:italic;padding:6px}
+.dk-view{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#fdfdff,#e8ecff);padding:10px;overflow:auto}
+.dk-view .big{font-size:clamp(3rem,9vw,6rem)}
+.dk-view p{margin:0;font-size:1rem;line-height:1.5;max-width:26em}
+.dk-grip{position:absolute;right:0;bottom:0;width:22px;height:22px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 0 50%,#6a70d8 50% 58%,transparent 58% 70%,#6a70d8 70% 78%,transparent 78%)}
+.dk-win.max .dk-grip{display:none}
+.dk-target{position:absolute;border:4px dashed #fff;border-radius:12px;background:rgba(255,255,255,.16);pointer-events:none;z-index:1}
+
+/* ---------- the bar at the bottom ---------- */
+.dk-taskbar{flex:none;height:42px;display:flex;align-items:center;gap:6px;padding:0 8px;background:linear-gradient(#232a63,#141845);border-top:2px solid #4a50a8;overflow:hidden}
+.tb-start{font-size:1.5rem;margin-right:4px}
+.dk-tb{font:inherit;font-weight:bold;font-size:.82rem;color:#fff;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.3);border-radius:8px;padding:0 10px;height:30px;min-width:90px;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;cursor:pointer}
+.dk-tb:hover{background:rgba(255,255,255,.2)}
+.dk-tb.on{background:rgba(255,255,255,.28);border-bottom:4px solid #6bcb77}
+.dk-tb.min{opacity:.8;border-style:dashed}
+
+/* ---------- right-click menu ---------- */
+.dk-menu{position:absolute;z-index:150;min-width:160px;background:#fff;border:2px solid #2a2f66;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.45);padding:4px;display:flex;flex-direction:column}
+.dk-menu .mi{font:inherit;font-weight:bold;font-size:.92rem;text-align:left;border:0;background:transparent;color:#15163a;padding:.45em .7em;border-radius:7px;cursor:pointer;display:flex;gap:8px}
+.dk-menu .mi:hover:not(:disabled){background:#dfe6ff}
+.dk-menu .mi:disabled{opacity:.4;cursor:default}
+
+/* ---------- the glowing hint ---------- */
+.dk-hl{animation:dkglow 1s ease-in-out infinite;position:relative;z-index:30}
+.dk-ico.dk-hl,.dk-bin.dk-hl{background:rgba(255,225,77,.4);border-color:#ffe14d}
+.wbtn.dk-hl,.dk-tools .dk-hl,.dk-tb.dk-hl{box-shadow:0 0 0 4px #ffe14d,0 0 14px 4px #ffd23f}
+.dk-title.dk-hl{background:linear-gradient(#fff6c2,#ffe27a)}
+.dk-files.dk-hl{outline:4px dashed #ffd23f;outline-offset:-4px}
+.dk-grip.dk-hl{background-color:#ffe14d;border-radius:6px}
+.dk-target.dk-hl{border-color:#ffe14d;background:rgba(255,225,77,.25)}
+.dk-edit.dk-hl{box-shadow:0 0 0 4px #ffe14d}
+@keyframes dkglow{50%{filter:brightness(1.25)}}
+
+/* ---------- level map ---------- */
+.dk-home{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 18px;text-align:center;width:100%}
+.dk-h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:bold;color:var(--accent,#ffd23f);text-shadow:0 4px 0 #0c0d26}
+.dk-h2{margin:0;font-size:clamp(1rem,2.2vw,1.3rem);font-weight:bold;color:var(--ink-dim,#b7b8de)}
+.dk-map{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:900px}
+.dk-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px 12px;border-radius:20px;border:4px solid #4a50a8;background:linear-gradient(160deg,#2f3590,#1f2150);color:#fff;font:inherit;cursor:pointer;transition:transform .12s,border-color .12s}
+.dk-tile:hover,.dk-tile:focus-visible{transform:translateY(-3px);border-color:#ffd23f;outline:none}
+.dk-tile.done{border-color:#3f9a63;background:linear-gradient(160deg,#1f5a46,#173a36)}
+.dk-tile .n{position:absolute;left:8px;top:6px;font-weight:bold;font-size:.85rem;opacity:.8}
+.dk-tile .ic{font-size:2.8rem;line-height:1;height:64px;display:flex;align-items:center;justify-content:center}
+.dk-tile .ic svg{width:64px;height:64px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+.dk-tile .nm{font-weight:bold;font-size:1.05rem}
+.dk-tile .st{font-size:.85rem;color:var(--ink-dim,#b7b8de)}
+.dk-tile .pr{position:absolute;right:6px;top:6px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;background:linear-gradient(#fff3b0,#e5a91a);border:2px solid #8a5a00;cursor:pointer}
+.dk-tile .pr:hover{transform:scale(1.12)}
+@media (max-width:820px){.dk-map{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){.dk-hl{animation:none}}

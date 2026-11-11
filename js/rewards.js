@@ -134,6 +134,7 @@ const REWARDS = {
 let uidN = 0;
 /* the picture is the reward: a big 3D drawing on a soft spotlight, with just a small caption plate */
 function card(r, name) {
+  if (r.gem) return gemCard(r, name);
   const u = 'r' + (uidN++), n = (name || '').trim(); let g = '';
   g += '<defs>' + common('c' + u) + '<radialGradient id="sp' + u + '" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="' + r.bg[0] + '"/><stop offset="1" stop-color="' + r.bg[1] + '"/></radialGradient><linearGradient id="fl' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="' + r.frame + '" stop-opacity=".16"/></linearGradient></defs>';
   g += '<rect width="' + W + '" height="' + H + '" fill="url(#sp' + u + ')"/><rect y="560" width="' + W + '" height="' + (H - 560) + '" fill="url(#fl' + u + ')"/>';
@@ -149,6 +150,32 @@ function card(r, name) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 
+/* ---------- a drawn gem as a reward picture (Click & Type Quest and Desktop Skills): a spotlight, rays, sparkles and a caption plate ---------- */
+const SPARK = [[120, 120, 20], [1000, 130, 24], [170, 420, 14], [960, 400, 16], [250, 220, 10], [880, 250, 12], [90, 300, 12], [1040, 330, 12], [300, 520, 9], [830, 520, 10], [210, 110, 8], [920, 90, 9]];
+function gemCard(r, name) {
+  const u = 'q' + (uidN++), n = (name || '').trim(), I = CC.SKILLS.gemInfo(r.gem) || { h: 44, s: 90 };
+  const h = I.h, hs = Math.min(70, I.s), dk = 'hsl(' + h + ',' + Math.min(80, hs + 10) + '%,28%)', fr = 'hsl(' + h + ',' + hs + '%,42%)', pale = 'hsl(' + h + ',80%,97%)', soft = 'hsl(' + h + ',62%,82%)';
+  let g = '<defs>' + common('c' + u) + '<radialGradient id="sp' + u + '" cx=".5" cy=".45" r=".78"><stop offset="0" stop-color="' + pale + '"/><stop offset="1" stop-color="' + soft + '"/></radialGradient>' +
+    '<radialGradient id="gl' + u + '" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".6" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>';
+  g += '<rect width="' + W + '" height="' + H + '" fill="url(#sp' + u + ')"/>';
+  for (let k = 0; k < 28; k++) { const a = k / 28 * Math.PI * 2, b = a + 0.1; g += '<polygon points="' + mid + ',340 ' + (mid + Math.cos(a) * 900).toFixed(0) + ',' + (340 + Math.sin(a) * 900).toFixed(0) + ' ' + (mid + Math.cos(b) * 900).toFixed(0) + ',' + (340 + Math.sin(b) * 900).toFixed(0) + '" fill="#fff" opacity=".2"/>'; }
+  [300, 250, 205].forEach(function (rr, i) { g += '<circle cx="' + mid + '" cy="340" r="' + rr + '" fill="none" stroke="#fff" stroke-width="' + (i ? 2 : 4) + '" opacity="' + (0.55 - i * 0.12) + '"/>'; });
+  g += '<circle cx="' + mid + '" cy="340" r="250" fill="url(#gl' + u + ')"/>';
+  g += '<rect x="22" y="22" width="' + (W - 44) + '" height="' + (H - 44) + '" rx="26" fill="none" stroke="' + fr + '" stroke-width="12"/><rect x="40" y="40" width="' + (W - 80) + '" height="' + (H - 80) + '" rx="14" fill="none" stroke="url(#gdc' + u + ')" stroke-width="3"/>';
+  SPARK.forEach(function (p, i) { g += spark(p[0], p[1], p[2], i % 3 ? '#fff' : '#fff2a8'); });
+  g += CC.keycapsSvg(CC.APP_NAME, mid, 52, 24);
+  const gs = CC.SKILLS.gem(r.gem, 0).replace('<svg ', '<svg x="' + (mid - 225) + '" y="104" width="450" height="450" ');
+  g += '<g filter="url(#dsc' + u + ')">' + gs + '</g>';
+  g += '<g filter="url(#dsc' + u + ')"><rect x="' + (mid - 330) + '" y="568" width="660" height="170" rx="24" fill="#fffdf4" stroke="url(#gdc' + u + ')" stroke-width="5"/></g>';
+  g += '<text x="' + mid + '" y="628" font-family="' + SERIF + '" font-size="58" font-style="italic" font-weight="bold" fill="url(#gvc' + u + ')" stroke="#8a5a00" stroke-width="2" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">' + esc(r.title) + '</text>';
+  g += '<text x="' + mid + '" y="660" font-family="' + SERIF + '" font-size="21" fill="' + dk + '" text-anchor="middle">' + esc(r.game) + '</text>';
+  g += '<text x="' + mid + '" y="689" font-family="' + SANS + '" font-size="14" letter-spacing="3" fill="' + dk + '" opacity=".7" text-anchor="middle">AWARDED TO</text>';
+  const fsz = n.length <= 16 ? 32 : n.length <= 22 ? 26 : 22;
+  g += '<text x="' + mid + '" y="722" font-family="' + SCRIPT + '" font-size="' + fsz + '" font-weight="bold" fill="' + dk + '" text-anchor="middle">' + esc(n) + '</text>';
+  if (!n) g += '<line x1="430" y1="724" x2="693" y2="724" stroke="' + dk + '" stroke-width="1.6" opacity=".6"/>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
+}
+
 /* ---------- what has been earned (kept for a few hours on this computer) ---------- */
 const S = { earned: {}, prog: {}, name: '' };
 (function () { const k = CC.keep.load('rewards'); if (k) { S.earned = k.earned || {}; S.prog = k.prog || {}; S.name = k.name || ''; } })();
@@ -161,7 +188,7 @@ function dismiss() {
 }
 function close() { const cb = afterClose; afterClose = null; dismiss(); if (cb) cb(); }   /* closing the picture can bring back the screen the child came from */
 function show(id, onClose) {
-  const r = REWARDS[id]; if (!r) return; dismiss(); afterClose = onClose || null;
+  const r = typeof id === 'object' ? id : REWARDS[id]; if (!r) return; dismiss(); afterClose = onClose || null;
   const s = document.createElement('div'); s.className = 'rw-screen'; s.setAttribute('role', 'dialog'); s.setAttribute('aria-label', r.title);
   const bar = document.createElement('div'); bar.className = 'rw-bar';
   const nm = document.createElement('input'); nm.type = 'text'; nm.className = 'rw-name'; nm.maxLength = 26; nm.placeholder = '✏️ Name on the reward'; nm.value = S.name; nm.setAttribute('aria-label', 'Name on the reward');
@@ -190,6 +217,8 @@ CC.rewards = {
   /* for games made of separate parts (the piano songs): note(id, 'songName', howManyParts) earns the reward when every part is done */
   note: function (id, key, total) { const p = S.prog[id] = S.prog[id] || {}; p[key] = 1; keep(); if (Object.keys(p).length >= total) return CC.rewards.earn(id); return false; },
   show: show, close: close,
+  /* a drawn gem to print: CC.rewards.gem('ruby', { title: 'Ruby', game: 'Level 2 - Click & Type Quest' }, afterClose) */
+  gem: function (kind, o, onClose) { show({ gem: kind, title: o.title, game: o.game }, onClose); },
   /* test hooks (used only by the automated checks) */
   _card: card, _S: S
 };

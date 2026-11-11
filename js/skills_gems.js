@@ -89,13 +89,21 @@ const GEMS = {
   quartz:    { name: 'Rose Quartz', cut: 'marquise', h: 330, s: 72, l: 62 },
   aqua:      { name: 'Aquamarine',  cut: 'princess', h: 176, s: 70, l: 46 },
   citrine:   { name: 'Citrine',     cut: 'tri',      h: 48,  s: 94, l: 52 },
-  opal:      { name: 'Opal',        special: 'opal' },
+  opal:      { name: 'Opal',        special: 'opal',  h: 268, s: 45, l: 70 },
   stargem:   { name: 'Star Gem',    cut: 'star',     h: 44,  s: 96, l: 54 },
-  crown:     { name: 'Golden Crown', special: 'crown' }
+  crown:     { name: 'Golden Crown', special: 'crown', h: 44, s: 90, l: 55 },
+  /* the gems of Desktop Skills */
+  garnet:    { name: 'Garnet',      cut: 'cushion',  h: 8,   s: 72, l: 38 },
+  peridot:   { name: 'Peridot',     cut: 'marquise', h: 78,  s: 70, l: 46 },
+  moonstone: { name: 'Moonstone',   cut: 'oval',     h: 212, s: 38, l: 68 },
+  tanzanite: { name: 'Tanzanite',   cut: 'princess', h: 252, s: 72, l: 46 },
+  jade:      { name: 'Jade',        cut: 'hex',      h: 160, s: 56, l: 38 },
+  amber:     { name: 'Amber',       cut: 'emerald',  h: 34,  s: 90, l: 46 }
 };
 
 /* CC.SKILLS.gem('ruby', 96) -> an <svg> string, px wide; CC.SKILLS.gemName('ruby') -> 'Ruby' */
 CC.SKILLS.GEMS = GEMS;
+CC.SKILLS.gemInfo = function (kind) { return GEMS[kind] || null; };
 CC.SKILLS.gemName = function (kind) { return GEMS[kind] ? GEMS[kind].name : ''; };
 CC.SKILLS.gem = function (kind, px) {
   const d = GEMS[kind]; if (!d) return '';
