@@ -184,16 +184,19 @@ Click & Type Quest: gems, and the new game Desktop Skills
     Rose Quartz, Aquamarine, Citrine, Opal. The gem shows on the level-complete screen, on the finished level tile and on a gem shelf under the level
     map (locked gems are dark). A level names its gem with gem: 'ruby'; badge is the gem's name (used in the teacher report).
     To add a gem: add an entry to GEMS in skills_gems.js (cut, hue, saturation, lightness).
-  - PRINTABLE GEMS: any gem can be printed on A4 landscape as a reward picture (not a certificate): a spotlight tinted to the gem's colour, rays,
-    sparkles, the TECH EXPLORERS keycaps, the gem's name, the level and game, and 'Awarded to' + the learner's name (typed in the name box, or left
-    empty to write by hand). Open it with the Print gem button on the level-complete screen, by clicking a finished gem on the shelf (Quest) or the
-    printer badge on a finished tile (Desktop Skills). Code: gemCard() in js/rewards.js, CC.rewards.gem(kind, {title, game}, afterClose).
+  - GEMS TO LOOK AT AND SAVE (nothing is printed per level): the 'My gem' button on the level-complete screen, a click on a finished gem on the shelf
+    (Quest) or on the gem badge of a finished tile (Desktop Skills) opens the gem BIG. 'Save gem (no background)' downloads a see-through PNG
+    (1024 px); 'Save with background' adds a soft colour. Code: showGem() / saveGem() in js/rewards.js, CC.rewards.gem(kind, {title, game}, afterClose).
+  - DESKTOP SKILLS CERTIFICATE: winning all 8 gems unlocks an A4 landscape certificate (window title bar, TECH EXPLORERS keycaps, name, the 8 gems in a
+    row, the skills for the learner's year, date, teacher line). Same screen as the other rewards: name box, Print, Download picture.
+    Code: desktopCert() in js/rewards.js, opened by showCertificate() in js/desktop.js.
   - DESKTOP SKILLS (Years 1 to 6, its own game: js/desktop.js, js/desktop_levels.js, css/desktop.css). A pretend desktop with windows, folders, files,
     a taskbar and a Recycle Bin that really work with the mouse. 8 levels, each wins a gem: 1 Open & Close (Garnet), 2 Hide & Show (Peridot),
     3 Move & Resize (Moonstone), 4 Many Windows (Tanzanite), 5 Make a Folder (Jade), 6 Organise (Star Gem), 7 Delete & Bring Back (Amber),
     8 Tidy Up! (Golden Crown). A task has min / max (school year), a start scene (files and windows), a glowing hint and a goal function; to add a
     level or task, edit js/desktop_levels.js only. Year 1 gets the simplest steps, glowing hints from the start and toolbar buttons (New folder,
-    Delete); Years 2 and 3+ use right-click menus, Delete / F2 / Ctrl+C / Ctrl+V and the window corner. The arrow button restarts a step, the
+    Delete); Years 2 and 3 use right-click menus, Delete / F2 / Ctrl+C / Ctrl+V and the window corner; Years 4 to 6 get harder
+    tasks (keyboard only, many windows, folders inside folders, sort everything, rescue one file) marked min: 4 in the levels file. The arrow button restarts a step, the
     lightbulb shows the glow. Progress (levels, stars) is kept for about 3 hours like the other games.
 
 UPDATE: TECH EXPLORERS (new name), COMMANDO, PIANO, VOICE

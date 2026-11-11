@@ -134,7 +134,7 @@ const REWARDS = {
 let uidN = 0;
 /* the picture is the reward: a big 3D drawing on a soft spotlight, with just a small caption plate */
 function card(r, name) {
-  if (r.gem) return gemCard(r, name);
+  if (r.cert === 'desktop') return desktopCert(r, name);
   const u = 'r' + (uidN++), n = (name || '').trim(); let g = '';
   g += '<defs>' + common('c' + u) + '<radialGradient id="sp' + u + '" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="' + r.bg[0] + '"/><stop offset="1" stop-color="' + r.bg[1] + '"/></radialGradient><linearGradient id="fl' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="' + r.frame + '" stop-opacity=".16"/></linearGradient></defs>';
   g += '<rect width="' + W + '" height="' + H + '" fill="url(#sp' + u + ')"/><rect y="560" width="' + W + '" height="' + (H - 560) + '" fill="url(#fl' + u + ')"/>';
@@ -150,30 +150,76 @@ function card(r, name) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 
-/* ---------- a drawn gem as a reward picture (Click & Type Quest and Desktop Skills): a spotlight, rays, sparkles and a caption plate ---------- */
-const SPARK = [[120, 120, 20], [1000, 130, 24], [170, 420, 14], [960, 400, 16], [250, 220, 10], [880, 250, 12], [90, 300, 12], [1040, 330, 12], [300, 520, 9], [830, 520, 10], [210, 110, 8], [920, 90, 9]];
-function gemCard(r, name) {
-  const u = 'q' + (uidN++), n = (name || '').trim(), I = CC.SKILLS.gemInfo(r.gem) || { h: 44, s: 90 };
-  const h = I.h, hs = Math.min(70, I.s), dk = 'hsl(' + h + ',' + Math.min(80, hs + 10) + '%,28%)', fr = 'hsl(' + h + ',' + hs + '%,42%)', pale = 'hsl(' + h + ',80%,97%)', soft = 'hsl(' + h + ',62%,82%)';
-  let g = '<defs>' + common('c' + u) + '<radialGradient id="sp' + u + '" cx=".5" cy=".45" r=".78"><stop offset="0" stop-color="' + pale + '"/><stop offset="1" stop-color="' + soft + '"/></radialGradient>' +
-    '<radialGradient id="gl' + u + '" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".6" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>';
-  g += '<rect width="' + W + '" height="' + H + '" fill="url(#sp' + u + ')"/>';
-  for (let k = 0; k < 28; k++) { const a = k / 28 * Math.PI * 2, b = a + 0.1; g += '<polygon points="' + mid + ',340 ' + (mid + Math.cos(a) * 900).toFixed(0) + ',' + (340 + Math.sin(a) * 900).toFixed(0) + ' ' + (mid + Math.cos(b) * 900).toFixed(0) + ',' + (340 + Math.sin(b) * 900).toFixed(0) + '" fill="#fff" opacity=".2"/>'; }
-  [300, 250, 205].forEach(function (rr, i) { g += '<circle cx="' + mid + '" cy="340" r="' + rr + '" fill="none" stroke="#fff" stroke-width="' + (i ? 2 : 4) + '" opacity="' + (0.55 - i * 0.12) + '"/>'; });
-  g += '<circle cx="' + mid + '" cy="340" r="250" fill="url(#gl' + u + ')"/>';
-  g += '<rect x="22" y="22" width="' + (W - 44) + '" height="' + (H - 44) + '" rx="26" fill="none" stroke="' + fr + '" stroke-width="12"/><rect x="40" y="40" width="' + (W - 80) + '" height="' + (H - 80) + '" rx="14" fill="none" stroke="url(#gdc' + u + ')" stroke-width="3"/>';
-  SPARK.forEach(function (p, i) { g += spark(p[0], p[1], p[2], i % 3 ? '#fff' : '#fff2a8'); });
-  g += CC.keycapsSvg(CC.APP_NAME, mid, 52, 24);
-  const gs = CC.SKILLS.gem(r.gem, 0).replace('<svg ', '<svg x="' + (mid - 225) + '" y="104" width="450" height="450" ');
-  g += '<g filter="url(#dsc' + u + ')">' + gs + '</g>';
-  g += '<g filter="url(#dsc' + u + ')"><rect x="' + (mid - 330) + '" y="568" width="660" height="170" rx="24" fill="#fffdf4" stroke="url(#gdc' + u + ')" stroke-width="5"/></g>';
-  g += '<text x="' + mid + '" y="628" font-family="' + SERIF + '" font-size="58" font-style="italic" font-weight="bold" fill="url(#gvc' + u + ')" stroke="#8a5a00" stroke-width="2" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">' + esc(r.title) + '</text>';
-  g += '<text x="' + mid + '" y="660" font-family="' + SERIF + '" font-size="21" fill="' + dk + '" text-anchor="middle">' + esc(r.game) + '</text>';
-  g += '<text x="' + mid + '" y="689" font-family="' + SANS + '" font-size="14" letter-spacing="3" fill="' + dk + '" opacity=".7" text-anchor="middle">AWARDED TO</text>';
-  const fsz = n.length <= 16 ? 32 : n.length <= 22 ? 26 : 22;
-  g += '<text x="' + mid + '" y="722" font-family="' + SCRIPT + '" font-size="' + fsz + '" font-weight="bold" fill="' + dk + '" text-anchor="middle">' + esc(n) + '</text>';
-  if (!n) g += '<line x1="430" y1="724" x2="693" y2="724" stroke="' + dk + '" stroke-width="1.6" opacity=".6"/>';
+/* ---------- the Desktop Skills certificate (A4 landscape): a window title bar, the TECH EXPLORERS keycaps and the 8 gems ---------- */
+function desktopCert(r, name) {
+  const u = 'dc' + (uidN++), n = (name || '').trim(), dt = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  const FR = ['#4d8dff', '#7a63ff', '#22c6c6', '#ffd23f'], INK = '#15163a', BLUE = '#2f6bd8';
+  let g = '<defs><linearGradient id="bg' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#edf3ff"/></linearGradient>' +
+    '<linearGradient id="tb' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e4edff"/><stop offset="1" stop-color="#c3d6fb"/></linearGradient>' +
+    '<linearGradient id="wn' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fdcff"/><stop offset="1" stop-color="#2f7be8"/></linearGradient></defs>';
+  g += '<rect width="' + W + '" height="' + H + '" fill="url(#bg' + u + ')"/>';
+  FR.forEach(function (c, i) { const o = 12 + i * 7; g += '<rect x="' + o + '" y="' + o + '" width="' + (W - 2 * o) + '" height="' + (H - 2 * o) + '" rx="' + (16 - i * 2) + '" fill="none" stroke="' + c + '" stroke-width="7"/>'; });
+  g += '<rect x="58" y="58" width="' + (W - 116) + '" height="' + (H - 116) + '" rx="6" fill="none" stroke="' + INK + '" stroke-width="2"/>';
+  /* a window title bar across the top */
+  g += '<rect x="58" y="58" width="' + (W - 116) + '" height="38" rx="6" fill="url(#tb' + u + ')" stroke="' + INK + '" stroke-width="2"/>';
+  [['#ff5f57', 82], ['#febc2e', 104], ['#28c840', 126]].forEach(function (d) { g += '<circle cx="' + d[1] + '" cy="77" r="7" fill="' + d[0] + '" stroke="' + INK + '" stroke-width="1.5"/>'; });
+  g += '<text x="' + mid + '" y="83" font-family="' + SANS + '" font-size="16" font-weight="bold" letter-spacing="2" fill="' + INK + '" opacity=".65" text-anchor="middle">DESKTOP SKILLS</text>';
+  g += CC.keycapsSvg(CC.APP_NAME, mid, 116, 38);
+  g += '<text x="' + mid + '" y="236" font-family="' + SERIF + '" font-size="54" font-weight="bold" fill="' + INK + '" text-anchor="middle">Certificate of Achievement</text>';
+  g += '<text x="' + mid + '" y="276" font-family="' + SERIF + '" font-size="24" font-style="italic" fill="#555" text-anchor="middle">proudly presented to</text>';
+  const fsz = n.length <= 14 ? 60 : n.length <= 20 ? 48 : 38;
+  g += '<text x="' + mid + '" y="346" font-family="' + SCRIPT + '" font-size="' + fsz + '" fill="#d8334e" text-anchor="middle">' + esc(n) + '</text>';
+  g += '<line x1="250" y1="362" x2="873" y2="362" stroke="#e0a800" stroke-width="3"/>';
+  g += '<text x="' + mid + '" y="402" font-family="' + SANS + '" font-size="22" fill="#333" text-anchor="middle">for completing</text>';
+  g += '<text x="' + mid + '" y="450" font-family="' + SANS + '" font-size="44" font-weight="bold" fill="' + BLUE + '" text-anchor="middle">' + esc(r.game) + '</text>';
+  g += '<text x="' + mid + '" y="482" font-family="' + SANS + '" font-size="20" fill="#333" text-anchor="middle">Windows, folders and files · Year ' + (r.year || 1) + '</text>';
+  const sk = r.skills || [], half = Math.ceil(sk.length / 2);
+  [sk.slice(0, half), sk.slice(half)].forEach(function (row, i) { g += '<text x="' + mid + '" y="' + (516 + i * 26) + '" font-family="' + SANS + '" font-size="17" fill="#555" text-anchor="middle">' + esc(row.join('  •  ')) + '</text>'; });
+  /* the 8 gems, in a row */
+  const gm = r.gems || [], gs = 60, gap = 16, tw = gm.length * gs + (gm.length - 1) * gap, x0 = mid - tw / 2;
+  g += '<rect x="' + (x0 - 24) + '" y="556" width="' + (tw + 48) + '" height="' + (gs + 20) + '" rx="' + ((gs + 20) / 2) + '" fill="#fff" stroke="' + FR[0] + '" stroke-width="3"/>';
+  gm.forEach(function (k, i) { g += CC.SKILLS.gem(k, 0).replace('<svg ', '<svg x="' + (x0 + i * (gs + gap)).toFixed(0) + '" y="566" width="' + gs + '" height="' + gs + '" '); });
+  /* decoration: a little window on the left, a folder on the right */
+  g += '<rect x="86" y="296" width="150" height="102" rx="10" fill="#fff" stroke="' + INK + '" stroke-width="3"/><path d="M86 306 a10 10 0 0 1 10 -10 h130 a10 10 0 0 1 10 10 v14 h-150 z" fill="' + FR[0] + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<circle cx="100" cy="308" r="4" fill="#ff5f57"/><circle cx="114" cy="308" r="4" fill="#febc2e"/><circle cx="128" cy="308" r="4" fill="#28c840"/><rect x="98" y="332" width="126" height="48" rx="5" fill="url(#wn' + u + ')"/>' +
+    '<polygon points="' + starPts(161, 356, 17, 7) + '" fill="#ffd23f" stroke="#e0a800" stroke-width="1.5"/>';
+  g += '<path d="M886 318 h42 l12 14 h102 v66 h-156 z" fill="#ffd23f" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/><path d="M886 346 h156 v52 h-156 z" fill="#ffe27a" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>' +
+    '<polygon points="' + starPts(964, 372, 14, 6) + '" fill="#ff5c72"/>';
+  [[250, 440, 7, '#6bcb77'], [878, 446, 6, '#ff9f45'], [1050, 296, 8, '#ffd23f'], [78, 450, 7, '#ff5c72'], [244, 300, 6, '#7a63ff'], [884, 300, 6, '#22c6c6']].forEach(function (s2) { g += '<polygon points="' + starPts(s2[0], s2[1], s2[2], s2[2] * .4) + '" fill="' + s2[3] + '"/>'; });
+  /* rosette */
+  g += '<polygon points="544,690 526,748 548,738 561,753 566,694" fill="#ff5c72"/><polygon points="578,690 596,748 574,738 561,753 556,694" fill="#3b82f6"/>';
+  g += '<circle cx="561" cy="674" r="40" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="674" r="31" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPts(561, 674, 21, 9) + '" fill="#e07a1a"/>';
+  g += '<text x="240" y="702" font-family="' + SANS + '" font-size="20" fill="' + INK + '" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="710" x2="360" y2="710" stroke="' + INK + '" stroke-width="1.5"/><text x="240" y="732" font-family="' + SANS + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
+  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="' + INK + '" stroke-width="1.5"/><text x="883" y="732" font-family="' + SANS + '" font-size="16" fill="#555" text-anchor="middle">Teacher</text>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
+}
+
+/* ---------- a gem to look at, big: it is saved as a picture (see-through, or on a soft background), never printed on paper ---------- */
+function saveGem(kind, title, withBg) {
+  const I = CC.SKILLS.gemInfo(kind) || { h: 44, s: 80 }, px = 1024, svg = CC.SKILLS.gem(kind, px), img = new Image();
+  img.onload = function () {
+    const c = document.createElement('canvas'); c.width = px; c.height = px; const x = c.getContext('2d');
+    if (withBg) { const gr = x.createRadialGradient(px / 2, px / 2, 40, px / 2, px / 2, px * 0.72); gr.addColorStop(0, 'hsl(' + I.h + ',80%,97%)'); gr.addColorStop(1, 'hsl(' + I.h + ',62%,78%)'); x.fillStyle = gr; x.fillRect(0, 0, px, px); }
+    x.drawImage(img, 0, 0, px, px);
+    c.toBlob(function (b) { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'gem-' + String(title || kind).toLowerCase().replace(/[^a-z0-9]+/g, '-') + (withBg ? '' : '-no-background') + '.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); }, 'image/png');
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+function showGem(kind, o, onClose) {
+  dismiss(); afterClose = onClose || null;
+  const I = CC.SKILLS.gemInfo(kind) || { h: 44 }, s = document.createElement('div'); s.className = 'rw-screen rw-gemscreen'; s.setAttribute('role', 'dialog'); s.setAttribute('aria-label', o.title);
+  s.style.setProperty('--gh', I.h);
+  function btn(label, cls, fn) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; b.addEventListener('click', function () { b.blur(); fn(); }); return b; }
+  const bar = document.createElement('div'); bar.className = 'rw-bar';
+  bar.appendChild(btn('⬇ Save gem (no background)', 'primary', function () { saveGem(kind, o.title, false); }));
+  bar.appendChild(btn('⬇ Save with background', '', function () { saveGem(kind, o.title, true); }));
+  bar.appendChild(btn('✖ Close', '', close));
+  const big = document.createElement('div'); big.className = 'rw-gembig'; big.innerHTML = '<span class="rw-glow"></span>' + CC.SKILLS.gem(kind, 0);
+  const cap = document.createElement('div'); cap.className = 'rw-gemcap'; cap.innerHTML = '<b>' + esc(o.title) + '</b><i>' + esc(o.game || '') + '</i>';
+  s.appendChild(bar); s.appendChild(big); s.appendChild(cap);
+  document.body.appendChild(s); document.body.classList.add('rw-open'); screen = s;
+  onEsc = function (e) { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); close(); } }; document.addEventListener('keydown', onEsc, true);
+  if (CC.sfx && CC.sfx.levelComplete) CC.sfx.levelComplete();
 }
 
 /* ---------- what has been earned (kept for a few hours on this computer) ---------- */
@@ -217,8 +263,8 @@ CC.rewards = {
   /* for games made of separate parts (the piano songs): note(id, 'songName', howManyParts) earns the reward when every part is done */
   note: function (id, key, total) { const p = S.prog[id] = S.prog[id] || {}; p[key] = 1; keep(); if (Object.keys(p).length >= total) return CC.rewards.earn(id); return false; },
   show: show, close: close,
-  /* a drawn gem to print: CC.rewards.gem('ruby', { title: 'Ruby', game: 'Level 2 - Click & Type Quest' }, afterClose) */
-  gem: function (kind, o, onClose) { show({ gem: kind, title: o.title, game: o.game }, onClose); },
+  /* a gem to look at big and save as a picture: CC.rewards.gem('ruby', { title: 'Ruby', game: 'Level 2 - Click & Type Quest' }, afterClose) */
+  gem: showGem,
   /* test hooks (used only by the automated checks) */
   _card: card, _S: S
 };

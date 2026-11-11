@@ -82,7 +82,8 @@
 .dk-menu .mi:disabled{opacity:.4;cursor:default}
 
 /* ---------- the glowing hint ---------- */
-.dk-hl{animation:dkglow 1s ease-in-out infinite;position:relative;z-index:30}
+.dk-hl{animation:dkglow 1s ease-in-out infinite;z-index:30}
+.dk-ico.dk-hl,.wbtn.dk-hl,.dk-tb.dk-hl,.dk-tools .dk-hl,.dk-title.dk-hl,.dk-files.dk-hl,.dk-edit.dk-hl{position:relative}
 .dk-ico.dk-hl,.dk-bin.dk-hl{background:rgba(255,225,77,.4);border-color:#ffe14d}
 .wbtn.dk-hl,.dk-tools .dk-hl,.dk-tb.dk-hl{box-shadow:0 0 0 4px #ffe14d,0 0 14px 4px #ffd23f}
 .dk-title.dk-hl{background:linear-gradient(#fff6c2,#ffe27a)}

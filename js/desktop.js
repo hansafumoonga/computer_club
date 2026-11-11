@@ -339,13 +339,23 @@ function finishLevel() {
   S.done[lv.id] = true; S.stars[lv.id] = Math.max(S.stars[lv.id] || 0, stars); keepProgress();
   sfx('levelComplete'); levelDone(lv, stars);
 }
-function printGem(lv, back) { CC.rewards.gem(lv.gem, { title: gemName(lv), game: 'Level ' + lv.id + ' · ' + DATA.NAME }, back); }
+function viewGem(lv, back) { CC.rewards.gem(lv.gem, { title: gemName(lv), game: 'Level ' + lv.id + ' · ' + DATA.NAME }, back); }
+/* the certificate comes with the last gem: it is drawn by CC.rewards (name box, print on A4, save as a picture) */
+function certSkills() {
+  const a = ['Open and close windows', 'Hide and show', 'Move and resize', 'Make folders', 'Sort files', 'The Recycle Bin'];
+  if (S.year >= 2) a.splice(2, 0, 'Right-click menus');
+  if (S.year >= 3) a.push('Rename', 'Copy and paste');
+  if (S.year >= 4) a.push('Keyboard keys', 'Many windows');
+  return a;
+}
+function allDone() { return LEVELS.every(function (l) { return S.done[l.id]; }); }
+function showCertificate(back) { CC.rewards.show({ cert: 'desktop', title: 'Desktop Skills certificate', game: DATA.NAME, year: S.year, gems: LEVELS.map(function (l) { return l.gem; }), skills: certSkills() }, back || showHome); }
 function levelDone(lv, stars) {
   const last = lv.id >= LEVELS.length, all = LEVELS.every(function (l) { return S.done[l.id]; });
   CC.ui.show($stage(), { emoji: '<span class="gem-pop">' + gemSvg(lv, 150) + '</span>', stars: stars, title: all && last ? 'You are a Desktop Hero!' : 'You completed Level ' + lv.id + '!', text: 'New gem: ' + gemName(lv),
     buttons: [
-      last ? { icon: '🗺️', label: 'Levels', primary: true, keys: ['Enter', 'Space'], fn: showHome } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
-      { icon: '🖨', label: 'Print gem', fn: function () { printGem(lv, function () { levelDone(lv, stars); }); } },
+      all && last ? { icon: '🎓', label: 'Certificate', primary: true, keys: ['Enter', 'Space'], fn: function () { showCertificate(function () { levelDone(lv, stars); }); } } : last ? { icon: '🗺️', label: 'Levels', primary: true, keys: ['Enter', 'Space'], fn: showHome } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
+      { icon: '💎', label: 'My gem', fn: function () { viewGem(lv, function () { levelDone(lv, stars); }); } },
       { icon: '🔁', label: '', fn: function () { startLevel(lv.id); } }, last ? { icon: '🏠', label: '', fn: function () { CC.goMenu(); } } : { icon: '🗺️', label: '', fn: showHome }] });
 }
 function buildPlay() {
@@ -371,16 +381,18 @@ function showHome() {
   CC.ui.close(); clearTimers(); closeMenu(); S.view = 'home'; S.lv = null;
   const R = $root(); R.innerHTML = '';
   const h = el('div', 'dk-home');
-  h.innerHTML = '<div class="dk-h1">🪟 Desktop Skills</div><p class="dk-h2">Windows, folders and files, just like a real computer. Win a gem for every level!</p><div class="dk-map"></div>';
+  h.innerHTML = '<div class="dk-h1">🪟 Desktop Skills</div><p class="dk-h2">Windows, folders and files, just like a real computer. Win a gem for every level!</p><div class="dk-map"></div><div class="dk-certrow"></div>';
   const map = h.querySelector('.dk-map');
   LEVELS.forEach(function (lv) {
     const done = !!S.done[lv.id], n = tasksFor(lv).length;
     const b = el('button', 'dk-tile' + (done ? ' done' : ''), '<span class="n">' + lv.id + '</span><span class="ic">' + (done ? gemSvg(lv, 64) : lv.icon) + '</span><span class="nm">' + esc(lv.title) + '</span><span class="st">' + (done ? '⭐'.repeat(S.stars[lv.id] || 1) : n + (n === 1 ? ' step' : ' steps')) + '</span>');
     b.type = 'button'; b.addEventListener('click', function () { b.blur(); startLevel(lv.id); });
-    if (done) { const pr = el('span', 'pr', '🖨'); pr.setAttribute('role', 'button'); pr.setAttribute('tabindex', '0'); pr.title = 'Print my ' + gemName(lv); pr.setAttribute('aria-label', 'print my ' + gemName(lv));
-      const go = function (e) { e.stopPropagation(); e.preventDefault(); printGem(lv, null); }; pr.addEventListener('click', go); pr.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') go(e); }); b.appendChild(pr); }
+    if (done) { const pr = el('span', 'pr', '💎'); pr.setAttribute('role', 'button'); pr.setAttribute('tabindex', '0'); pr.title = 'See my ' + gemName(lv); pr.setAttribute('aria-label', 'see my ' + gemName(lv));
+      const go = function (e) { e.stopPropagation(); e.preventDefault(); viewGem(lv, null); }; pr.addEventListener('click', go); pr.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') go(e); }); b.appendChild(pr); }
     map.appendChild(b);
   });
+  const cr = h.querySelector('.dk-certrow'), ok = allDone(), cb = el('button', 'btn' + (ok ? ' primary' : ''), ok ? '🎓 My certificate' : '🔒 Certificate: win all 8 gems');
+  cb.type = 'button'; cb.disabled = !ok; cb.addEventListener('click', function () { cb.blur(); showCertificate(); }); cr.appendChild(cb);
   R.appendChild(h);
 }
 

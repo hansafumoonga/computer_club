@@ -9,6 +9,15 @@
 .mode-card{position:relative}
 .mode-card .rw-badge{position:absolute;top:8px;right:8px;width:2.3rem;height:2.3rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;border-radius:50%;background:linear-gradient(#fff3b0,#e5a91a);border:3px solid #8a5a00;box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer;z-index:3;transition:transform .12s}
 .mode-card .rw-badge:hover,.mode-card .rw-badge:focus-visible{transform:scale(1.15) rotate(-6deg);outline:none}
+.rw-gemscreen{justify-content:center;background:radial-gradient(ellipse 60% 55% at 50% 45%,hsl(var(--gh,44),55%,30%),rgba(10,11,40,.97) 75%)}
+.rw-gembig{position:relative;flex:none;width:min(80vw,calc(100vh - 230px));aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.rw-gembig svg{position:relative;width:100%;height:100%;filter:drop-shadow(0 12px 22px rgba(0,0,0,.45))}
+.rw-glow{position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55),transparent 68%);animation:rwglow 3s ease-in-out infinite}
+@keyframes rwglow{50%{transform:scale(1.12);opacity:.7}}
+.rw-gemcap{flex:none;text-align:center;display:flex;flex-direction:column;gap:2px}
+.rw-gemcap b{font-size:1.9rem;font-style:italic;color:#ffe27a;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.rw-gemcap i{font-size:1rem;color:#cfd0f2;font-style:normal}
+@media (prefers-reduced-motion:reduce){.rw-glow{animation:none}}
 @media print{
   @page{size:A4 landscape;margin:0}
   body.rw-open > *:not(.rw-screen){display:none !important}
@@ -16,6 +25,7 @@
   body.rw-open .rw-screen,body.rw-open .rw-screen *{visibility:visible !important}
   .rw-screen{position:static;display:block;padding:0;background:#fff;overflow:visible}
   .rw-bar,.rw-note{display:none !important}
+  .rw-gemscreen{display:none !important}
   .rw-paper{width:100vw;height:calc(100vh - 2px);border-radius:0;box-shadow:none}
   .rw-paper svg{width:100%;height:100%}
 }

@@ -237,7 +237,7 @@ function helpTogether() {
   voiceP("Let's try together. Watch me.").then(function () { if (tk === S.demoTok && !S.finished) { S.simplified = true; S.tasks[S.ti].demo = true; beginTask(S.ti, false); } });
 }
 
-function printGem(lv, back) { CC.rewards.gem(lv.gem, { title: lv.badge, game: 'Level ' + lv.id + ' · ' + DATA.NAME }, back); }
+function viewGem(lv, back) { CC.rewards.gem(lv.gem, { title: lv.badge, game: 'Level ' + lv.id + ' · ' + DATA.NAME }, back); }
 function gemSvg(lv, px) { return CC.SKILLS.gem ? CC.SKILLS.gem(lv.gem, px) : '🏆'; }
 function finishLevel() {
   clearTimers(); S.locked = true;
@@ -251,7 +251,7 @@ function finishScreen(lv, stars, last) {
   CC.ui.show(E.stage, { emoji: '<span class="gem-pop">' + gemSvg(lv, 150) + '</span>', stars: stars, title: 'You completed Level ' + lv.id + '!', text: 'New gem: ' + lv.badge,
     buttons: [
       last ? { icon: '🎓', label: 'Certificate', primary: true, keys: ['Enter', 'Space'], fn: showCertificate } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
-      { icon: '🖨', label: 'Print gem', fn: function () { printGem(lv, function () { finishScreen(lv, stars, last); }); } },
+      { icon: '💎', label: 'My gem', fn: function () { viewGem(lv, function () { finishScreen(lv, stars, last); }); } },
       { icon: '🔁', label: '', fn: function () { startLevel(lv.id); } }, { icon: '🗺️', label: '', fn: showHome }] });
 }
 
@@ -824,7 +824,7 @@ function showHome() {
   });
   home.appendChild(map);
   const shelf = el('div', 'sk-shelf'); shelf.setAttribute('aria-label', 'my gems');
-  LEVELS.forEach(function (lv) { const g = el('span', 'sk-gemslot' + (S.done[lv.id] ? ' got' : ''), gemSvg(lv, 44)); g.title = S.done[lv.id] ? 'Print my ' + lv.badge : 'Level ' + lv.id; if (S.done[lv.id]) { g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0'); g.addEventListener('click', function () { printGem(lv, null); }); g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); printGem(lv, null); } }); } shelf.appendChild(g); });
+  LEVELS.forEach(function (lv) { const g = el('span', 'sk-gemslot' + (S.done[lv.id] ? ' got' : ''), gemSvg(lv, 44)); g.title = S.done[lv.id] ? 'See my ' + lv.badge : 'Level ' + lv.id; if (S.done[lv.id]) { g.setAttribute('role', 'button'); g.setAttribute('tabindex', '0'); g.addEventListener('click', function () { viewGem(lv, null); }); g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); viewGem(lv, null); } }); } shelf.appendChild(g); });
   home.appendChild(shelf);
   const opts = el('div', 'sk-opts');
   opts.appendChild(toggleBtn('Sound', 'sound', '🔊')); opts.appendChild(toggleBtn('Voice', 'voice', '🗣️')); opts.appendChild(toggleBtn('High contrast', 'contrast', '🌓'));

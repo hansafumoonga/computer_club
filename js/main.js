@@ -22,7 +22,7 @@ const MODES = {
   design:   { icon: '🎛️', name: 'Design Studio', desc: 'Layers, text, symmetry and more tools', group: 'design', color: '#ff7a45' },
   magiclab: { icon: '🔮', name: 'Magic Lab',     desc: 'Kaleidoscopes, spirals and colour harmony', group: 'design', color: '#a77bff' },
   shortcuts:{ icon: '⚡', name: 'Shortcut Lab',  desc: 'Learn keyboard shortcuts that really work', group: 'kb', color: '#a77bff' },
-  desktop:  { icon: '🪟', name: 'Desktop Skills', desc: 'Windows, folders and files, like a real computer', group: 'kb', color: '#4d8dff' },
+  desktop:  { icon: '🪟', name: 'Desktop Skills', desc: 'Windows, folders and files, like a real computer', group: 'kb', color: '#4d8dff', cert: true },
   paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', group: 'design', color: '#ff7ac8' },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss, catch the rain', group: 'kb', color: '#5ac8ff', cert: true }
 };
