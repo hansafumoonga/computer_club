@@ -177,7 +177,19 @@ COMPUTER SKILLS ADVENTURE (Session 1, first card)
     (kept in the browser for 3 hours, no network) - download the report before finishing.
   - Drag and drop alternatives: click a piece then click its spot, or Tab to a piece, press Enter, Tab to its spot, press Enter.
 
-  - CERTIFICATE: after all 10 levels are done, a graduation screen button (and a button on the home screen) opens an A4 landscape certificate with the Tech Explorers keycap logo, the learner name (type it, or leave blank to write by hand), year, stars, date and a teacher line. Print it (landscape) or Download picture (PNG). The game name is one value: CC.SKILLS.NAME in js/skills_levels.js (plus the title in index.html and the card name in js/main.js).
+  - CERTIFICATE: after all 12 levels are done, a graduation screen button (and a button on the home screen) opens an A4 landscape certificate with the Tech Explorers keycap logo, the learner name (type it, or leave blank to write by hand), year, stars, date and a teacher line. Print it (landscape) or Download picture (PNG). The game name is one value: CC.SKILLS.NAME in js/skills_levels.js (plus the title in index.html and the card name in js/main.js).
+
+Click & Type Quest: gems, Windows and Real Life
+  - Badges are gone. Every finished level wins a drawn gem (js/skills_gems.js, plain SVG): Diamond, Ruby, Emerald, Sapphire, Amethyst, Topaz,
+    Rose Quartz, Aquamarine, Citrine, Opal, Star Gem, Golden Crown. The gem shows on the level-complete screen, on the finished level tile and on a
+    gem shelf under the level map (locked gems are dark). A level names its gem with gem: 'ruby'; badge is the gem's name (used in the teacher report).
+    To add a gem: add an entry to GEMS in skills_gems.js (cut, hue, saturation, lightness).
+  - Level 11 "Windows" (new task type 'window', goals: move, close, min, restore, max, unmax, front). A pretend window with a top bar and the three
+    buttons, a taskbar at the bottom, and the usual Buddy demo. Mouse, click-to-place (Click the bar, then the dotted box) and keyboard (Tab, Enter) all work.
+  - Level 12 "Real Life": double-click a folder, find the Paint app, drag a photo into a folder, close a window; Year 2+ also type your own first
+    name (fromName:true uses the name box on the level map), write HI MUM and press ENTER to send. A task can now set kb:true/false, so one level can mix
+    mouse and typing tasks.
+  - The certificate skills line now also lists "Windows" and "Real-life tasks"; the teacher report has a Windows skill.
 
 UPDATE: TECH EXPLORERS (new name), COMMANDO, PIANO, VOICE
   - The club/app name is one value: CC.APP_NAME in js/core.js. The big keycap logo on the landing page is set in js/main.js (row('logo1','TECH') and row('logo2','EXPLORERS')),

@@ -17,9 +17,10 @@ const SKILLS = [
   { id: 'drag', name: 'Drag & Drop', icon: '✋' }, { id: 'connect', name: 'Connecting', icon: '🔗' },
   { id: 'dbl', name: 'Double Click', icon: '👆👆' }, { id: 'right', name: 'Right Click', icon: '📋' },
   { id: 'keys', name: 'Keyboard Letters', icon: '🔤' }, { id: 'caps', name: 'CAPS LOCK / Big & Small', icon: '🔠' },
-  { id: 'words', name: 'Typing Words', icon: '⌨️' }, { id: 'special', name: 'Space, Backspace, Enter', icon: '↩️' }
+  { id: 'words', name: 'Typing Words', icon: '⌨️' }, { id: 'special', name: 'Space, Backspace, Enter', icon: '↩️' },
+  { id: 'window', name: 'Windows', icon: '🪟' }
 ];
-const DEFAULT_SKILL = { move: 'move', pick: 'click', drag: 'drag', connect: 'connect', dbl: 'dbl', right: 'right', type: 'keys', capsstate: 'caps', enter: 'special' };
+const DEFAULT_SKILL = { move: 'move', pick: 'click', drag: 'drag', connect: 'connect', dbl: 'dbl', right: 'right', window: 'window', type: 'keys', capsstate: 'caps', enter: 'special' };
 
 /* ---------- state (lives for the whole visit) ---------- */
 const S = {
@@ -144,7 +145,13 @@ async function step(line, action) {
 
 /* ---------- level flow ---------- */
 const ACT = {};
-function tasksFor(lv) { return lv.tasks.filter(function (t) { return !t.min || S.year >= t.min; }); }
+function firstName() { return (S.name || '').trim().split(/\s+/)[0].replace(/[^a-zA-Z]/g, '').slice(0, 8).toUpperCase(); }
+function tasksFor(lv) {
+  return lv.tasks.filter(function (t) { return !t.min || S.year >= t.min; }).map(function (t) {
+    const nm = t.fromName ? firstName() : '';
+    return nm.length >= 2 ? Object.assign({}, t, { target: nm, say: 'Type your name:  ' + nm }) : t;
+  });
+}
 
 function startLevel(id) {
   clearTimers(); CC.ui.close();
@@ -165,10 +172,11 @@ function beginTask(i, noDemo) {
   if (S.act && S.act.destroy) S.act.destroy();
   S.ti = i; S.t = S.tasks[i]; S.fails = 0; S.finished = false; S.locked = false; S.ptr = null; S.idleDemo = false;
   E.popN = 0; E.items.innerHTML = ''; E.svg.innerHTML = ''; E.typeBox.innerHTML = ''; E.typeBox.hidden = true;
-  E.stage.classList.toggle('typing', !!S.level.kb); E.stage.parentNode.classList.toggle('typing', !!S.level.kb);
-  E.kb.hidden = !S.level.kb; E.caps.hidden = !S.level.kb;
+  const kbOn = S.t.kb != null ? !!S.t.kb : !!S.level.kb;
+  E.stage.classList.toggle('typing', kbOn); E.stage.parentNode.classList.toggle('typing', kbOn);
+  E.kb.hidden = !kbOn; E.caps.hidden = !kbOn;
   E.stage.dataset.type = S.t.type;
-  const needsMouse = ['move', 'pick', 'drag', 'connect', 'dbl', 'right'].indexOf(S.t.type) >= 0;
+  const needsMouse = ['move', 'pick', 'drag', 'connect', 'dbl', 'right', 'window'].indexOf(S.t.type) >= 0;
   E.mouse.hidden = !needsMouse; setMouse('none');
   S.act = ACT[S.t.type](S.t);
   renderDots();
@@ -230,13 +238,14 @@ function helpTogether() {
   voiceP("Let's try together. Watch me.").then(function () { if (tk === S.demoTok && !S.finished) { S.simplified = true; S.tasks[S.ti].demo = true; beginTask(S.ti, false); } });
 }
 
+function gemSvg(lv, px) { return CC.SKILLS.gem ? CC.SKILLS.gem(lv.gem, px) : '🏆'; }
 function finishLevel() {
   clearTimers(); S.locked = true;
   const lv = S.level, m = S.mistakes, stars = m <= 1 ? 3 : m <= 4 ? 2 : 1;
   S.done[lv.id] = true; S.stars[lv.id] = Math.max(S.stars[lv.id] || 0, stars); S.badges[lv.id] = lv.badge; keepProgress();
-  confetti(40); sfx('levelComplete'); say('You did it! 🎉', 'cheer', ''); voice('You did it! You finished level ' + S.level.id + '. You earned the ' + S.level.badge + ' badge.');
+  confetti(40); sfx('levelComplete'); say('You did it! 🎉', 'cheer', ''); voice('You did it! You finished level ' + S.level.id + '. You won the ' + S.level.badge + '!');
   const last = lv.id >= LEVELS.length;
-  CC.ui.show(E.stage, { emoji: '🏆', stars: stars, title: 'You completed Level ' + lv.id + '!', text: 'New badge: ' + lv.badge + ' 🏆',
+  CC.ui.show(E.stage, { emoji: '<span class="gem-pop">' + gemSvg(lv, 150) + '</span>', stars: stars, title: 'You completed Level ' + lv.id + '!', text: 'New gem: ' + lv.badge,
     buttons: [
       last ? { icon: '🎓', label: 'Certificate', primary: true, keys: ['Enter', 'Space'], fn: showCertificate } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
       { icon: '🔁', label: '', fn: function () { startLevel(lv.id); } }, { icon: '🗺️', label: '', fn: showHome }] });
@@ -615,6 +624,153 @@ ACT.right = function (t) {
   };
 };
 
+/* ---- WINDOWS: drag a window, close it, hide it on the bar, bring it back, make it big, bring one to the front ---- */
+ACT.window = function (t) {
+  const TB = 5, WW = 44, WH = 28, TASK_Y = 51.25, goal = t.goal;
+  const home = Object.assign({ x: 28, y: 9 }, t.from || {});
+  const want = { close: 'close', min: 'min', max: 'max', unmax: 'max' }[goal];
+  const label = { close: 'red ✖ button', min: '— button', max: 'square button' };
+  function mk(title, icon) {
+    const n = el('div', 'sk-win', '<div class="wb"><span class="wt"></span><button type="button" class="wbtn min" aria-label="hide the window">—</button><button type="button" class="wbtn max" aria-label="make the window big">▢</button><button type="button" class="wbtn cls" aria-label="close the window">✕</button></div><div class="wc"></div>');
+    n.querySelector('.wt').textContent = title || '🪟 Window'; n.querySelector('.wc').textContent = icon || '🪟'; return n;
+  }
+  function put(n, g) { n._g = g; n.style.left = U(g.x); n.style.top = U(g.y); n.style.width = U(g.w); n.style.height = U(g.h); }
+  const geo = function (o) { return { x: o.x, y: o.y, w: WW, h: WH }; };
+  const win = mk(t.title, t.icon); let back = null, front = null;
+  const tbar = el('div', 'sk-taskbar', '<span class="tb-start">🪟</span>'); tbar.style.top = U(TASK_Y);
+  const tbtn = el('button', 'tb-btn on'); tbtn.type = 'button'; tbtn.setAttribute('aria-label', 'the window on the bar'); tbtn.textContent = (t.icon || '🪟') + ' ' + String(t.title || 'Window').replace(/^\S+\s/, ''); tbar.appendChild(tbtn);
+  let tgt = null;
+  if (goal === 'front') {
+    back = win; front = mk(t.title2, t.icon2); put(back, geo({ x: 9, y: 7 })); put(front, geo({ x: 30, y: 17 })); back.style.zIndex = 3; front.style.zIndex = 5;
+    E.items.appendChild(back); E.items.appendChild(front);
+  } else {
+    put(win, geo(home)); win.style.zIndex = 3; E.items.appendChild(win);
+    if (goal === 'move') { tgt = el('div', 'sk-wtarget'); tgt.style.left = U(t.to.x); tgt.style.top = U(t.to.y); tgt.style.width = U(WW); tgt.style.height = U(WH); tgt.textContent = '⬇'; E.items.appendChild(tgt); }
+  }
+  E.items.appendChild(tbar);
+  if (goal === 'restore') { win.classList.add('mini'); tbtn.classList.remove('on'); }
+  if (goal === 'unmax') { put(win, { x: 0, y: 0, w: 100, h: TASK_Y }); win.classList.add('maxed'); }
+  let drag = null, sel = false;
+
+  /* where things are (stage units), for the demos and the highlight */
+  const btnAt = function (g, which) { const cx = g.x + g.w - 3.8 - { cls: 0, max: 6, min: 12 }[which]; return { x: cx, y: g.y + TB / 2 }; };
+  const barAt = function (g) { return { x: g.x + g.w * 0.3, y: g.y + TB / 2 }; };
+  const tbtnAt = function () { return { x: 17, y: TASK_Y + 2.5 }; };
+  const kindOf = function (b) { return b.classList.contains('cls') ? 'close' : b.classList.contains('min') ? 'min' : 'max'; };
+
+  function show(on) {
+    win.querySelectorAll('.wbtn').forEach(function (b) { b.classList.remove('hl'); });
+    tbtn.classList.remove('hl'); win.classList.remove('hl'); if (tgt) tgt.classList.remove('hl'); if (back) back.classList.remove('hl');
+    if (!on) return;
+    if (goal === 'move') { win.classList.add('hl'); tgt.classList.add('hl'); }
+    else if (goal === 'restore') tbtn.classList.add('hl');
+    else if (goal === 'front') back.classList.add('hl');
+    else win.querySelector('.wbtn.' + { close: 'cls', min: 'min', max: 'max' }[want]).classList.add('hl');
+  }
+  /* the real changes (the demo uses them too, but only a real click finishes the task) */
+  const doClose = function (real) { win.classList.add('closing'); sfx('pickup'); if (real) good(); };
+  const doMin = function (real) { win.classList.add('mini'); tbtn.classList.remove('on'); sfx('pickup'); if (real) good(); };
+  const doBack = function (real) { win.classList.remove('mini'); tbtn.classList.add('on'); sfx('pickup'); if (real) good(); };
+  const doMax = function (real) { put(win, { x: 0, y: 0, w: 100, h: TASK_Y }); win.classList.add('maxed'); win.querySelector('.max').textContent = '❐'; sfx('pickup'); if (real) good(); };
+  const doSmall = function (real) { put(win, geo(home)); win.classList.remove('maxed'); win.querySelector('.max').textContent = '▢'; sfx('pickup'); if (real) good(); };
+  if (goal === 'unmax') win.querySelector('.max').textContent = '❐';
+  function reset() {
+    show(false);
+    if (goal === 'move') { put(win, geo(home)); win.classList.remove('lift'); }
+    else if (goal === 'close') win.classList.remove('closing');
+    else if (goal === 'min') { win.classList.remove('mini'); tbtn.classList.add('on'); }
+    else if (goal === 'restore') { win.classList.add('mini'); tbtn.classList.remove('on'); }
+    else if (goal === 'max') { put(win, geo(home)); win.classList.remove('maxed'); win.querySelector('.max').textContent = '▢'; }
+    else if (goal === 'unmax') { put(win, { x: 0, y: 0, w: 100, h: TASK_Y }); win.classList.add('maxed'); win.querySelector('.max').textContent = '❐'; }
+    else if (goal === 'front') { back.style.zIndex = 3; front.style.zIndex = 5; }
+  }
+  function press(kind) {
+    if (S.locked || S.paused) return;
+    if (goal === 'move' || goal === 'restore' || goal === 'front') {
+      oops(goal === 'move' ? 'Not that button. Press on the top bar and drag the window.' : goal === 'restore' ? 'The window is hiding. Click the picture on the bar below.' : 'Click the window at the BACK. It is behind the other one.'); return;
+    }
+    if (kind !== want) { oops('Almost! Find the ' + label[want] + ' at the top right of the window.'); return; }
+    if (goal === 'close') doClose(true); else if (goal === 'min') doMin(true); else if (goal === 'max') doMax(true); else doSmall(true);
+  }
+  function snap() {
+    put(win, { x: t.to.x, y: t.to.y, w: WW, h: WH }); win.classList.remove('lift'); sel = false; win.classList.remove('sel'); sfx('clink'); good();
+  }
+  function near(g) { return Math.abs(g.x - t.to.x) <= 8 && Math.abs(g.y - t.to.y) <= 7; }
+  win.querySelectorAll('.wbtn').forEach(function (b) { b.addEventListener('click', function (e) { if (e.detail === 0) press(kindOf(b)); }); });   /* the keyboard (Enter / Space) */
+  tbtn.addEventListener('click', function (e) { if (e.detail === 0 && goal === 'restore' && !S.locked) doBack(true); });
+  return {
+    hl: show,
+    down: function (e) {
+      if (S.locked || S.paused) return; touch();
+      const b = e.target.closest('.wbtn');
+      if (b) { if (e.button !== 0) { oops('Use the LEFT mouse button.', true); return; } e.preventDefault(); press(kindOf(b)); return; }
+      if (e.target.closest('.tb-btn')) {
+        if (e.button !== 0) { oops('Use the LEFT mouse button.', true); return; }
+        if (goal === 'restore') doBack(true); else oops('That button is on the bar. Look at the window.', false); return;
+      }
+      if (goal === 'front') {
+        const n = e.target.closest('.sk-win'); if (!n) { oops('Click one of the windows.'); return; }
+        if (n === back) { back.style.zIndex = 8; back.classList.remove('hl'); sfx('pickup'); good(); } else oops('That one is already at the front. Click the window at the BACK.');
+        return;
+      }
+      if (goal === 'move') {
+        if (sel && e.target.closest('.sk-wtarget')) { snap(); return; }
+        const bar = e.target.closest('.wb');
+        if (!bar) { if (sel) { sel = false; win.classList.remove('sel'); } return; }
+        if (e.button !== 0) { oops('Use the LEFT mouse button.', true); return; }
+        const p = toU(e); drag = { dx: p.x - win._g.x, dy: p.y - win._g.y, sx: p.x, sy: p.y, moved: false };
+        win.classList.add('lift'); setMouse('hold'); sfx('pickup'); try { E.stage.setPointerCapture(e.pointerId); } catch (err) { }
+        return;
+      }
+      if (e.target.closest('.sk-win')) oops('Almost! Look for the ' + label[want] + ' at the top right of the window.', true);
+    },
+    move: function (e) {
+      S.ptr = toU(e); if (!drag) return; touch();
+      const p = S.ptr; if (!drag.moved && dist(p, { x: drag.sx, y: drag.sy }) > 1.2) drag.moved = true;
+      if (drag.moved) put(win, { x: clamp(p.x - drag.dx, 0, 100 - WW), y: clamp(p.y - drag.dy, 0, TASK_Y - TB - 1), w: WW, h: WH });
+    },
+    up: function (e) {
+      if (!drag) return; const d = drag; drag = null; setMouse('none'); win.classList.remove('lift');
+      try { E.stage.releasePointerCapture(e.pointerId); } catch (err) { }
+      if (!d.moved) { sel = true; win.classList.add('sel'); say('Now click the dotted box.', 'calm', ''); if (!S.opt.clickPlace) oops('Hold the mouse button while you move! (Or click the dotted box.)'); return; }
+      if (near(win._g)) snap(); else { put(win, geo(home)); oops('Keep holding until the window is over the dotted box. Then let go.'); }
+    },
+    cancel: function () { if (drag) { drag = null; setMouse('none'); put(win, geo(home)); win.classList.remove('lift'); } },
+    async demo() {
+      const g = win._g;
+      if (goal === 'move') {
+        const a = barAt(g); curShow(a.x + 12, a.y + 14); await wait(300);
+        if (!(await step('Move the arrow onto the top bar of the window.', function () { return curMove(a.x, a.y, 1500); }))) return;
+        if (!(await step('Press and hold the left button.', function () { E.cursor.classList.add('down'); setMouse('hold'); win.classList.add('lift'); sfx('pickup'); return wait(500); }))) return;
+        const dx = t.to.x - g.x, dy = t.to.y - g.y;
+        if (!(await step('Keep holding, and drag the window to the dotted box.', function () { return tween(2300, function (e) { curSet(a.x + dx * e, a.y + dy * e); put(win, { x: g.x + dx * e, y: g.y + dy * e, w: WW, h: WH }); }); }))) return;
+        await step('Let go. The window moved!', function () { E.cursor.classList.remove('down'); setMouse('none'); win.classList.remove('lift'); sfx('clink'); return wait(700); });
+        return;
+      }
+      if (goal === 'restore') {
+        curShow(tbtnAt().x + 14, tbtnAt().y - 14); await wait(300);
+        if (!(await step('The window is hiding on the bar. Move the arrow to its picture.', function () { return curMove(tbtnAt().x, tbtnAt().y, 1600); }))) return;
+        if (!(await step('Click it with the left button.', function () { return curClick('left').then(function (ok) { doBack(false); return ok; }); }))) return;
+        await wait(700); await step('The window is back! Now you try.'); return;
+      }
+      if (goal === 'front') {
+        curShow(60, 46); await wait(300);
+        const gb = back._g;
+        if (!(await step('One window is behind the other. Move the arrow to the one at the back.', function () { return curMove(gb.x + 8, gb.y + 2.5, 1600); }))) return;
+        if (!(await step('Click it. It comes to the front!', function () { return curClick('left').then(function (ok) { back.style.zIndex = 8; return ok; }); }))) return;
+        await wait(700); await step('Now you try!'); return;
+      }
+      const which = { close: 'cls', min: 'min', max: 'max', unmax: 'max' }[goal], at = btnAt(g, which);
+      curShow(at.x - 14, at.y + 16); await wait(300);
+      if (!(await step('Move the arrow to the ' + label[want] + ' at the top right.', function () { return curMove(at.x, at.y, 1700); }))) return;
+      const act = { close: doClose, min: doMin, max: doMax, unmax: doSmall }[goal];
+      if (!(await step('Click it with the left button.', function () { return curClick('left').then(function (ok) { act(false); return ok; }); }))) return;
+      await wait(900); await step('Now you try!');
+    },
+    resetDemo: reset, destroy: function () { }
+  };
+};
+
 /* ---- TYPING: find letters, type letters/words, small vs BIG, SPACE, BACKSPACE, ENTER, CAPS LOCK ---- */
 const KB_ROWS = [['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'Backspace'], ['CapsLock', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Enter'], ['Z', 'X', 'C', 'V', 'B', 'N', 'M'], ['Space']];
 const KB_LABEL = { Backspace: '⌫', CapsLock: 'CAPS', Enter: '⏎', Space: 'SPACE' };
@@ -804,18 +960,21 @@ function showHome() {
   const map = el('div', 'sk-map');
   LEVELS.forEach(function (lv) {
     const w = WORLD[lv.world];
-    const b = el('button', 'sk-tile' + (S.done[lv.id] ? ' done' : ''), '<span class="n">' + lv.id + '</span><span class="ic">' + w.icon + '</span><span class="nm">' + lv.title + '</span><span class="st">' + (S.done[lv.id] ? '⭐'.repeat(S.stars[lv.id]) : '') + '</span>');
+    const b = el('button', 'sk-tile' + (S.done[lv.id] ? ' done' : ''), '<span class="n">' + lv.id + '</span><span class="ic">' + (S.done[lv.id] ? gemSvg(lv, 52) : w.icon) + '</span><span class="nm">' + lv.title + '</span><span class="st">' + (S.done[lv.id] ? '⭐'.repeat(S.stars[lv.id]) : '') + '</span>');
     b.type = 'button'; b.dataset.world = lv.world; b.setAttribute('aria-label', 'Level ' + lv.id + ' ' + lv.title);
     b.addEventListener('click', function () { b.blur(); CC.audio.init(); setSfxGain(); startLevel(lv.id); });
     map.appendChild(b);
   });
   home.appendChild(map);
+  const shelf = el('div', 'sk-shelf'); shelf.setAttribute('aria-label', 'my gems');
+  LEVELS.forEach(function (lv) { const g = el('span', 'sk-gemslot' + (S.done[lv.id] ? ' got' : ''), gemSvg(lv, 44)); g.title = S.done[lv.id] ? lv.badge : 'Level ' + lv.id; shelf.appendChild(g); });
+  home.appendChild(shelf);
   const opts = el('div', 'sk-opts');
   opts.appendChild(toggleBtn('Sound', 'sound', '🔊')); opts.appendChild(toggleBtn('Voice', 'voice', '🗣️')); opts.appendChild(toggleBtn('High contrast', 'contrast', '🌓'));
   opts.appendChild(toggleBtn('Slow', 'slow', '🐢')); opts.appendChild(toggleBtn('Click to place', 'clickPlace', '♿'));
   const rep = el('button', 'btn', '📋 Teacher report'); rep.type = 'button'; rep.addEventListener('click', function () { rep.blur(); showReport(); });
   const all = !!S.done[LEVELS.length];
-  const cert = el('button', 'btn' + (all ? ' primary' : ''), '🎓 Certificate'); cert.type = 'button'; cert.disabled = !all; cert.title = all ? 'Print my certificate' : 'Finish the last level (level 10) to unlock';
+  const cert = el('button', 'btn' + (all ? ' primary' : ''), '🎓 Certificate'); cert.type = 'button'; cert.disabled = !all; cert.title = all ? 'Print my certificate' : 'Finish the last level (level ' + LEVELS.length + ') to unlock';
   cert.addEventListener('click', function () { cert.blur(); showCertificate(); });
   opts.appendChild(cert); opts.appendChild(rep);
   home.appendChild(opts);
@@ -889,7 +1048,7 @@ function reportText() {
   lines.push('Levels completed: ' + Object.keys(S.done).length + ' of ' + LEVELS.length, '');
   SKILLS.forEach(function (k) { const n = starsFor(k.id), st = S.stats[k.id]; lines.push(k.name + ': ' + (n ? '*'.repeat(n) + '-'.repeat(5 - n) : 'not tried yet') + (n ? '  (' + st.ok + ' right, ' + st.bad + ' tries to fix)' : '')); });
   lines.push('', 'Recommended practice: ' + (recommend().join(', ') || 'none - great work!'));
-  Object.keys(S.badges).forEach(function (k, i) { if (!i) lines.push('', 'Badges:'); lines.push(' - ' + S.badges[k]); });
+  Object.keys(S.badges).forEach(function (k, i) { if (!i) lines.push('', 'Gems won:'); lines.push(' - ' + S.badges[k]); });
   return lines.join('\n');
 }
 function recommend() {
@@ -908,8 +1067,8 @@ function showReport() {
   w.appendChild(tb);
   const rec = recommend();
   w.appendChild(el('p', 'rep-rec', '💡 Recommended practice: <b>' + (rec.join(', ') || 'none yet') + '</b>'));
-  const bd = Object.keys(S.badges).map(function (k) { return '🏆 ' + S.badges[k]; }).join('  ');
-  w.appendChild(el('p', 'rep-badges', bd || 'Finish a level to earn a badge!'));
+  const bd = Object.keys(S.badges).map(function (k) { return '💎 ' + S.badges[k]; }).join('  ');
+  w.appendChild(el('p', 'rep-badges', bd || 'Finish a level to win a gem!'));
   const row = el('div', 'row');
   const dl = el('button', 'btn', '⬇ Download report'); dl.type = 'button';
   dl.addEventListener('click', function () { dl.blur(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([reportText()], { type: 'text/plain' })); a.download = 'skills-report' + (S.name ? '-' + S.name.replace(/[^\w-]/g, '') : '') + '.txt'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); });
@@ -928,6 +1087,7 @@ function certSkills() {
   const a = ['Moving the mouse', 'Clicking', 'Drag and drop', 'Connecting', 'Double-click', 'Typing letters', 'Typing words'];
   if (S.year >= 2) a.push('Big and small letters');
   if (S.year >= 3) a.push('Right-click', 'CAPS LOCK', 'Space, Backspace and Enter'); else a.push('Using ENTER');
+  a.push('Windows', 'Real-life tasks');
   return a;
 }
 function certSvg(name) {

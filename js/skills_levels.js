@@ -5,7 +5,10 @@
    Stage units: the play area is 100 wide and 56.25 tall (typing levels: 37.5 tall). 1 unit = 1% of the stage width.
    Item: {id, e (emoji) | svg | c (balloon colour) | t (text), x, y (centre), s (size) | w,h, n (spoken name), d:1 (extra, hidden when simplifying)}
    Task: {type, say, ..., min: first year it appears (1/2/3), skill: which skill it practises, win: message}
-   Task types:  move | pick | drag | connect | dbl | right | type | capsstate | enter
+   Task types:  move | pick | drag | connect | dbl | right | window | type | capsstate | enter
+   A task can set kb:true/false to show or hide the keyboard (a level can mix mouse and typing tasks).
+   window goals: move | close | min | restore | max | unmax | front.  fromName:true on a type task uses the learner's first name.
+   Each level gives one drawn gem: gem: 'ruby' (see skills_gems.js); badge is the gem's name, used in the teacher report.
 */
 (function () {
 'use strict';
@@ -43,13 +46,15 @@ const WORLD = {
   magic:      { name: 'Magic Island',   icon: '🏝️', deco: [['🌴', 7, 40, 12], ['🌴', 93, 41, 12], ['🐚', 24, 52, 4], ['🐚', 74, 52, 4], ['⭐', 12, 8, 4], ['✨', 86, 10, 4]] },
   space:      { name: 'Space',          icon: '🚀', deco: [['🪐', 88, 12, 11], ['🌙', 10, 10, 8], ['⭐', 30, 8, 3], ['⭐', 60, 12, 3], ['⭐', 78, 30, 3], ['⭐', 20, 30, 3]] },
   fantasy:    { name: 'Cloud Kingdom',  icon: '🏰', deco: [['🏰', 90, 21, 12], ['🦄', 9, 27, 9], ['🌈', 22, 9, 10], ['☁️', 80, 7, 7]] },
-  lab:        { name: 'Computer Lab',   icon: '💻', deco: [['🖥️', 8, 9, 7], ['🖥️', 92, 9, 7], ['⌨️', 50, 6, 5]] }
+  lab:        { name: 'Computer Lab',   icon: '💻', deco: [['🖥️', 8, 9, 7], ['🖥️', 92, 9, 7], ['⌨️', 50, 6, 5]] },
+  desktop:    { name: 'Windows',        icon: '🪟', deco: [['🗑️', 94, 44, 5], ['📁', 6, 44, 5]] },
+  reallife:   { name: 'Real Life',      icon: '🌍', deco: [['🏠', 7, 49, 6], ['🌳', 93, 48, 7], ['☁️', 18, 7, 8], ['☁️', 82, 9, 6]] }
 };
 
 const BALL = '⚽';
 const LEVELS = [
 /* ================= 1 · MEET THE MOUSE ================= */
-{ id: 1, title: 'Meet the Mouse', world: 'playground', badge: 'Mouse Mover', icon: '🖱️',
+{ id: 1, title: 'Meet the Mouse', world: 'playground', badge: 'Diamond', gem: 'diamond', icon: '🖱️',
   intro: "Hi! I'm Buddy! 👋 Let's learn to move the mouse!",
   tasks: [
     { type: 'move', say: 'Move the mouse to the sun ☀️', win: 'Great job! ☀️', demo: true, items: [{ e: '☀️', x: 50, y: 22, s: 20, n: 'sun' }] },
@@ -62,7 +67,7 @@ const LEVELS = [
   ] },
 
 /* ================= 2 · LEARN TO CLICK ================= */
-{ id: 2, title: 'Learn to Click', world: 'classroom', badge: 'Click Star', icon: '👆',
+{ id: 2, title: 'Learn to Click', world: 'classroom', badge: 'Ruby', gem: 'ruby', icon: '👆',
   intro: 'The LEFT mouse button is for clicking. Click, click, click! 🎈',
   tasks: [
     { type: 'pick', say: 'Click the big blue balloon 🔵', win: 'Perfect! You clicked it! 🎈', demo: true, answer: ['blue'],
@@ -76,7 +81,7 @@ const LEVELS = [
   ] },
 
 /* ================= 3 · CLICK AND CHOOSE ================= */
-{ id: 3, title: 'Click and Choose', world: 'animalpark', badge: 'Super Chooser', icon: '🎯',
+{ id: 3, title: 'Click and Choose', world: 'animalpark', badge: 'Emerald', gem: 'emerald', icon: '🎯',
   intro: 'Look carefully, then click the right one! 🔎',
   tasks: [
     { type: 'pick', say: 'Click the RED apple 🍎, then the YELLOW banana 🍌', says: ['Click the RED apple 🍎', 'Now click the YELLOW banana 🍌'], win: 'Fruit salad time! 🍎🍌', answer: ['apple', 'banana'], demo: true,
@@ -96,7 +101,7 @@ const LEVELS = [
   ] },
 
 /* ================= 4 · DRAG AND DROP ================= */
-{ id: 4, title: 'Drag and Drop', world: 'building', badge: 'Drag & Drop Champion', icon: '🏗️',
+{ id: 4, title: 'Drag and Drop', world: 'building', badge: 'Sapphire', gem: 'sapphire', icon: '🏗️',
   intro: 'Move, hold the button, drag, then let go! Let us build things! 🧱',
   tasks: [
     { type: 'drag', say: 'Drag the ball into the box ⚽➡️📦', win: 'Goal! You dragged it! ⚽', demo: true, drop: 'box',
@@ -117,7 +122,7 @@ const LEVELS = [
   ] },
 
 /* ================= 5 · BUILD A CAR ================= */
-{ id: 5, title: 'Build and Drive', world: 'road', badge: 'Master Builder', icon: '🚗',
+{ id: 5, title: 'Build and Drive', world: 'road', badge: 'Amethyst', gem: 'amethyst', icon: '🚗',
   intro: 'More building! Hold, drag and let go in the right spot. 🚗',
   tasks: [
     { type: 'drag', say: 'Build a car! 🚗 Drag the wheels to the car', win: 'Vroom vroom! You built a car! 🚗⭐⭐⭐', drop: 'car', scene: 'Car',
@@ -138,7 +143,7 @@ const LEVELS = [
   ] },
 
 /* ================= 6 · CONNECT THE PIECES ================= */
-{ id: 6, title: 'Connect Them', world: 'village', badge: 'Connector', icon: '🔗',
+{ id: 6, title: 'Connect Them', world: 'village', badge: 'Topaz', gem: 'topaz', icon: '🔗',
   intro: 'Press on a picture, hold, and drag a line to its partner! 🔗',
   tasks: [
     { type: 'connect', say: 'Connect each animal to its home 🏠', win: 'Everyone is home! 🏠', demo: true,
@@ -160,7 +165,7 @@ const LEVELS = [
   ] },
 
 /* ================= 7 · DOUBLE-CLICK & RIGHT-CLICK ================= */
-{ id: 7, title: 'Click Click!', world: 'magic', badge: 'Treasure Hunter', icon: '🎁',
+{ id: 7, title: 'Click Click!', world: 'magic', badge: 'Rose Quartz', gem: 'quartz', icon: '🎁',
   intro: 'Some things open with TWO fast clicks. Ready for treasure? 🎁',
   tasks: [
     { type: 'dbl', say: 'Double-click the treasure box 🎁 Click, click!', win: 'You opened it! 💎', demo: true, reveal: '💎', item: { e: '🎁', x: 50, y: 30, s: 22, n: 'treasure box' } },
@@ -170,7 +175,7 @@ const LEVELS = [
   ] },
 
 /* ================= 8 · FIND THE KEYS ================= */
-{ id: 8, title: 'Find the Keys', world: 'space', badge: 'Key Finder', icon: '🔤', kb: true,
+{ id: 8, title: 'Find the Keys', world: 'space', badge: 'Aquamarine', gem: 'aqua', icon: '🔤', kb: true,
   intro: 'Your keyboard has lots of keys. Let us find some letters! 🚀',
   tasks: [
     { type: 'type', say: 'Find the letter A on your keyboard ⌨️', target: 'A', find: true, win: 'You found A! ⭐', skill: 'keys' },
@@ -181,7 +186,7 @@ const LEVELS = [
   ] },
 
 /* ================= 9 · BIG AND SMALL LETTERS ================= */
-{ id: 9, title: 'Big and Small', world: 'fantasy', badge: 'CAPS LOCK Wizard', icon: '🔠', kb: true,
+{ id: 9, title: 'Big and Small', world: 'fantasy', badge: 'Citrine', gem: 'citrine', icon: '🔠', kb: true,
   intro: 'Letters can be small (a) or BIG (A). CAPS LOCK makes them BIG! 🦄',
   tasks: [
     { type: 'type', say: 'Type the small letter  a', target: 'a', exact: true, win: 'A small a! ⭐', skill: 'keys' },
@@ -195,7 +200,7 @@ const LEVELS = [
   ] },
 
 /* ================= 10 · TYPING WORDS ================= */
-{ id: 10, title: 'Word Adventure', world: 'lab', badge: 'Typing Hero', icon: '⌨️', kb: true,
+{ id: 10, title: 'Word Adventure', world: 'lab', badge: 'Opal', gem: 'opal', icon: '⌨️', kb: true,
   intro: 'Type whole words! Space, Backspace and Enter will help you. 💻',
   tasks: [
     { type: 'type', say: 'Type the word:  CAT', target: 'CAT', find: true, win: 'You typed CAT! 🐱', skill: 'words' },
@@ -212,6 +217,34 @@ const LEVELS = [
     { type: 'type', say: 'Oops! One extra letter. Use BACKSPACE ⌫ to fix it', target: 'CAT', prefill: 'CATT', find: true, min: 3, win: 'Fixed! BACKSPACE takes a letter away. ⭐', skill: 'special' },
     { type: 'type', say: 'Type the sentence:  I SEE A CAT', target: 'I SEE A CAT', find: true, min: 3, win: 'A whole sentence! 🎉', skill: 'words' },
     { type: 'enter', say: 'Press ENTER to start the adventure! 🚀', win: 'ENTER sends you on! 🚀', skill: 'special' }
+  ] },
+
+/* ================= 11 · WINDOWS ================= */
+{ id: 11, title: 'Windows', world: 'desktop', badge: 'Star Gem', gem: 'stargem', icon: '🪟',
+  intro: 'Programs open in WINDOWS. Let us move, close, hide and grow them! 🪟',
+  tasks: [
+    { type: 'window', goal: 'move', say: 'Drag the window by its top bar to the dotted box 🪟', win: 'You moved the window! 🪟', demo: true, title: '🖼️ My picture', icon: '🏞️', from: { x: 6, y: 7 }, to: { x: 50, y: 17 } },
+    { type: 'window', goal: 'close', say: 'Click the red ✖ to close the window', win: 'Closed! The red ✖ closes a window. ✖', demo: true, title: '📝 Notes', icon: '📝' },
+    { type: 'window', goal: 'min', say: 'Click the  —  button to hide the window', win: 'Hidden! It waits on the bar below. ⬇️', min: 2, demo: true, title: '🎵 Music', icon: '🎶' },
+    { type: 'window', goal: 'restore', say: 'Click the picture on the bar to bring the window back', win: 'Welcome back, window! ⬆️', min: 2, demo: true, title: '🎵 Music', icon: '🎶' },
+    { type: 'window', goal: 'max', say: 'Click the square  ▢  to make the window BIG', win: 'Nice and big! ▢', min: 2, demo: true, title: '🖼️ My picture', icon: '🏞️' },
+    { type: 'window', goal: 'unmax', say: 'Click the square  ❐  again to make it small', win: 'Back to small! ❐', min: 3, title: '🖼️ My picture', icon: '🏞️' },
+    { type: 'window', goal: 'front', say: 'Click the window at the BACK to bring it to the front', win: 'Now it is in front! 👆', min: 3, demo: true, title: '📝 Notes', icon: '📝', title2: '🖼️ Pictures', icon2: '🏞️' }
+  ] },
+
+/* ================= 12 · REAL LIFE ================= */
+{ id: 12, title: 'Real Life', world: 'reallife', badge: 'Golden Crown', gem: 'crown', icon: '🌍',
+  intro: 'Now use your skills like a real computer user! Open, find, save and send. 🌍',
+  tasks: [
+    { type: 'dbl', kb: false, say: 'Open the folder 📁 Double-click it!', win: 'It opened! Your picture is inside. 🖼️', demo: true, reveal: '🖼️', item: { e: '📁', x: 50, y: 30, s: 22, n: 'folder' }, skill: 'dbl' },
+    { type: 'pick', kb: false, say: 'Click the Paint app 🎨 on the desktop', win: 'You found Paint! 🎨', answer: ['paint'],
+      items: [{ id: 'notes', e: '📝', x: 20, y: 28, s: 14, n: 'Notes', d: 1 }, { id: 'paint', e: '🎨', x: 40, y: 22, s: 14, n: 'Paint' }, { id: 'web', e: '🌐', x: 60, y: 30, s: 14, n: 'Internet', d: 1 }, { id: 'music', e: '🎵', x: 80, y: 24, s: 14, n: 'Music', d: 1 }] },
+    { type: 'drag', kb: false, say: 'Save your photo! Drag it into the folder 🖼️➡️📁', win: 'Saved in the folder! 📁', demo: true, drop: 'folder',
+      pieces: [{ id: 'photo', e: '🖼️', s: 11, x: 20, y: 28 }], zones: [{ id: 'fold', for: 'photo', e: '📁', x: 76, y: 32, s: 22 }] },
+    { type: 'window', kb: false, goal: 'close', say: 'All finished! Close the window with the red ✖', win: 'Closed it like a real user! ✖', title: '🎨 Paint', icon: '🎨' },
+    { type: 'type', kb: true, fromName: true, say: 'Type your name', target: 'SAM', find: true, min: 2, win: 'That is you! ⭐', skill: 'words' },
+    { type: 'type', kb: true, say: 'Write a message:  HI MUM', target: 'HI MUM', find: true, min: 2, win: 'Message written! ✉️', skill: 'words' },
+    { type: 'enter', kb: true, say: 'Press ENTER to send it ✉️', win: 'Sent! You are a real computer user! ✉️', min: 2, skill: 'special' }
   ] }
 ];
 
