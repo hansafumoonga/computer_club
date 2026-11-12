@@ -6,7 +6,6 @@
    Item: {id, e (emoji) | svg | c (balloon colour) | t (text), x, y (centre), s (size) | w,h, n (spoken name), d:1 (extra, hidden when simplifying)}
    Task: {type, say, ..., min: first year it appears (1/2/3), skill: which skill it practises, win: message}
    Task types:  move | pick | drag | connect | dbl | right | type | capsstate | enter
-   A task can set kb:true/false to show or hide the keyboard (a level can mix mouse and typing tasks).
    Each level gives one drawn gem: gem: 'ruby' (see skills_gems.js); badge is the gem's name, used in the teacher report.
 */
 (function () {

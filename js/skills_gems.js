@@ -98,7 +98,13 @@ const GEMS = {
   moonstone: { name: 'Moonstone',   cut: 'oval',     h: 212, s: 38, l: 68 },
   tanzanite: { name: 'Tanzanite',   cut: 'princess', h: 252, s: 72, l: 46 },
   jade:      { name: 'Jade',        cut: 'hex',      h: 160, s: 56, l: 38 },
-  amber:     { name: 'Amber',       cut: 'emerald',  h: 34,  s: 90, l: 46 }
+  amber:     { name: 'Amber',       cut: 'emerald',  h: 34,  s: 90, l: 46 },
+  /* the pro levels of Desktop Skills (Years 4 to 6) */
+  turquoise: { name: 'Turquoise',   cut: 'pear',     h: 174, s: 68, l: 46 },
+  rhodolite: { name: 'Rhodolite',   cut: 'heart',    h: 335, s: 68, l: 50 },
+  sunstone:  { name: 'Sunstone',    cut: 'tri',      h: 22,  s: 92, l: 52 },
+  iolite:    { name: 'Iolite',      cut: 'round',    h: 232, s: 58, l: 42 },
+  spinel:    { name: 'Spinel',      cut: 'cushion',  h: 345, s: 80, l: 44 }
 };
 
 /* CC.SKILLS.gem('ruby', 96) -> an <svg> string, px wide; CC.SKILLS.gemName('ruby') -> 'Ruby' */

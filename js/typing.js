@@ -106,7 +106,7 @@ function showHome() {
   const row = el('div', 'ty-opts');
   const gd = el('button', 'btn' + (S.guide ? ' on' : ''), '🖐️ Finger guide'); gd.type = 'button'; gd.addEventListener('click', function () { gd.blur(); S.guide = !S.guide; gd.classList.toggle('on', S.guide); });
   const rp = el('button', 'btn', '📋 Teacher report'); rp.type = 'button'; rp.addEventListener('click', function () { rp.blur(); showReport(); });
-  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate: finish level 10'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Finish level 10 of one game to unlock'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
+  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate: finish all 10 levels of a game'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Finish level 10 of one game to unlock'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
   [gd, ce, rp].forEach(function (b) { row.appendChild(b); }); h.appendChild(row);
   setView('home', h);
 }
@@ -636,7 +636,7 @@ function showReport() {
 function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function starPath(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
 function finishedGame() {
-  return GAMES.filter(function (g) { const b = bestOf(g.id, LEVELS.length); return b && b.stars >= 1; })[0] || null;
+  return LEVEL_GAMES.filter(function (g) { return LEVELS.every(function (l) { const b = bestOf(g.id, l.id); return b && b.stars >= 1; }); })[0] || null;   /* ALL levels of one game, not just the last */
 }
 function certEarned() { return !!finishedGame(); }
 function certFacts() {

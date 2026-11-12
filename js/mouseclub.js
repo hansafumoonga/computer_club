@@ -94,7 +94,8 @@ function keepProgress() { CC.keep.save('mouseclub', { best: S.best, name: S.name
 function bestOf(g, i) { return S.best[g + ':' + i] || null; }
 function doneCount(g) { let n = 0; for (let i = 1; i <= 10; i++) { const b = bestOf(g, i); if (b && b.stars >= 1) n++; } return n; }
 function finalDone(g) { const b = bestOf(g, 10); return !!(b && b.stars >= 1); }
-function certEarned() { return GAMES.some(function (g) { return finalDone(g.id); }); }
+/* a certificate only comes when ALL 10 stages of a game are done (not just the last one) */
+function certEarned() { return GAMES.some(function (g) { return doneCount(g.id) >= 10; }); }
 
 /* ================= Bo's voice (slow and clear; the music gets quieter while Bo talks) ================= */
 let voicePick = null;
@@ -147,7 +148,7 @@ function showHome() {
   const vc = el('button', 'btn ico' + (S.voice ? ' on' : ''), '🗣️'); vc.type = 'button'; vc.title = 'Bo talks'; vc.setAttribute('aria-label', 'Bo voice on or off');
   vc.addEventListener('click', function () { vc.blur(); S.voice = !S.voice; vc.classList.toggle('on', S.voice); if (S.voice) speak('Hello! I am Bo.'); else hush(); });
   const ce = el('button', 'btn ico' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓' : '🔒'); ce.type = 'button'; ce.disabled = !certEarned(); ce.setAttribute('aria-label', 'certificate');
-  ce.title = certEarned() ? 'My certificate' : 'Finish stage 10 of a game'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
+  ce.title = certEarned() ? 'My certificate' : 'Finish all 10 stages of one game'; ce.addEventListener('click', function () { ce.blur(); showCertificate(); });
   row.appendChild(nm); row.appendChild(vc); row.appendChild(ce); h.appendChild(row);
   setView('home', h);
 }

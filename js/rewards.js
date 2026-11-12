@@ -134,7 +134,7 @@ const REWARDS = {
 let uidN = 0;
 /* the picture is the reward: a big 3D drawing on a soft spotlight, with just a small caption plate */
 function card(r, name) {
-  if (r.cert === 'desktop') return desktopCert(r, name);
+  if (r.cert === 'desktop') return medalCert(r, name);
   const u = 'r' + (uidN++), n = (name || '').trim(); let g = '';
   g += '<defs>' + common('c' + u) + '<radialGradient id="sp' + u + '" cx=".5" cy=".42" r=".75"><stop offset="0" stop-color="' + r.bg[0] + '"/><stop offset="1" stop-color="' + r.bg[1] + '"/></radialGradient><linearGradient id="fl' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="' + r.frame + '" stop-opacity=".16"/></linearGradient></defs>';
   g += '<rect width="' + W + '" height="' + H + '" fill="url(#sp' + u + ')"/><rect y="560" width="' + W + '" height="' + (H - 560) + '" fill="url(#fl' + u + ')"/>';
@@ -150,48 +150,39 @@ function card(r, name) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 
-/* ---------- the Desktop Skills certificate (A4 landscape): a window title bar, the TECH EXPLORERS keycaps and the 8 gems ---------- */
-function desktopCert(r, name) {
-  const u = 'dc' + (uidN++), n = (name || '').trim(), dt = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
-  const FR = ['#4d8dff', '#7a63ff', '#22c6c6', '#ffd23f'], INK = '#15163a', BLUE = '#2f6bd8';
-  let g = '<defs><linearGradient id="bg' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#edf3ff"/></linearGradient>' +
-    '<linearGradient id="tb' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e4edff"/><stop offset="1" stop-color="#c3d6fb"/></linearGradient>' +
-    '<linearGradient id="wn' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fdcff"/><stop offset="1" stop-color="#2f7be8"/></linearGradient></defs>';
-  g += '<rect width="' + W + '" height="' + H + '" fill="url(#bg' + u + ')"/>';
-  FR.forEach(function (c, i) { const o = 12 + i * 7; g += '<rect x="' + o + '" y="' + o + '" width="' + (W - 2 * o) + '" height="' + (H - 2 * o) + '" rx="' + (16 - i * 2) + '" fill="none" stroke="' + c + '" stroke-width="7"/>'; });
-  g += '<rect x="58" y="58" width="' + (W - 116) + '" height="' + (H - 116) + '" rx="6" fill="none" stroke="' + INK + '" stroke-width="2"/>';
-  /* a window title bar across the top */
-  g += '<rect x="58" y="58" width="' + (W - 116) + '" height="38" rx="6" fill="url(#tb' + u + ')" stroke="' + INK + '" stroke-width="2"/>';
-  [['#ff5f57', 82], ['#febc2e', 104], ['#28c840', 126]].forEach(function (d) { g += '<circle cx="' + d[1] + '" cy="77" r="7" fill="' + d[0] + '" stroke="' + INK + '" stroke-width="1.5"/>'; });
-  g += '<text x="' + mid + '" y="83" font-family="' + SANS + '" font-size="16" font-weight="bold" letter-spacing="2" fill="' + INK + '" opacity=".65" text-anchor="middle">DESKTOP SKILLS</text>';
-  g += CC.keycapsSvg(CC.APP_NAME, mid, 116, 38);
-  g += '<text x="' + mid + '" y="236" font-family="' + SERIF + '" font-size="54" font-weight="bold" fill="' + INK + '" text-anchor="middle">Certificate of Achievement</text>';
-  g += '<text x="' + mid + '" y="276" font-family="' + SERIF + '" font-size="24" font-style="italic" fill="#555" text-anchor="middle">proudly presented to</text>';
-  const fsz = n.length <= 14 ? 60 : n.length <= 20 ? 48 : 38;
-  g += '<text x="' + mid + '" y="346" font-family="' + SCRIPT + '" font-size="' + fsz + '" fill="#d8334e" text-anchor="middle">' + esc(n) + '</text>';
-  g += '<line x1="250" y1="362" x2="873" y2="362" stroke="#e0a800" stroke-width="3"/>';
-  g += '<text x="' + mid + '" y="402" font-family="' + SANS + '" font-size="22" fill="#333" text-anchor="middle">for completing</text>';
-  g += '<text x="' + mid + '" y="450" font-family="' + SANS + '" font-size="44" font-weight="bold" fill="' + BLUE + '" text-anchor="middle">' + esc(r.game) + '</text>';
-  g += '<text x="' + mid + '" y="482" font-family="' + SANS + '" font-size="20" fill="#333" text-anchor="middle">Windows, folders and files · Year ' + (r.year || 1) + '</text>';
-  const sk = r.skills || [], half = Math.ceil(sk.length / 2);
-  [sk.slice(0, half), sk.slice(half)].forEach(function (row, i) { g += '<text x="' + mid + '" y="' + (516 + i * 26) + '" font-family="' + SANS + '" font-size="17" fill="#555" text-anchor="middle">' + esc(row.join('  •  ')) + '</text>'; });
-  /* the 8 gems, in a row */
-  const gm = r.gems || [], gs = 60, gap = 16, tw = gm.length * gs + (gm.length - 1) * gap, x0 = mid - tw / 2;
-  g += '<rect x="' + (x0 - 24) + '" y="556" width="' + (tw + 48) + '" height="' + (gs + 20) + '" rx="' + ((gs + 20) / 2) + '" fill="#fff" stroke="' + FR[0] + '" stroke-width="3"/>';
-  gm.forEach(function (k, i) { g += CC.SKILLS.gem(k, 0).replace('<svg ', '<svg x="' + (x0 + i * (gs + gap)).toFixed(0) + '" y="566" width="' + gs + '" height="' + gs + '" '); });
-  /* decoration: a little window on the left, a folder on the right */
-  g += '<rect x="86" y="296" width="150" height="102" rx="10" fill="#fff" stroke="' + INK + '" stroke-width="3"/><path d="M86 306 a10 10 0 0 1 10 -10 h130 a10 10 0 0 1 10 10 v14 h-150 z" fill="' + FR[0] + '" stroke="' + INK + '" stroke-width="3"/>' +
-    '<circle cx="100" cy="308" r="4" fill="#ff5f57"/><circle cx="114" cy="308" r="4" fill="#febc2e"/><circle cx="128" cy="308" r="4" fill="#28c840"/><rect x="98" y="332" width="126" height="48" rx="5" fill="url(#wn' + u + ')"/>' +
-    '<polygon points="' + starPts(161, 356, 17, 7) + '" fill="#ffd23f" stroke="#e0a800" stroke-width="1.5"/>';
-  g += '<path d="M886 318 h42 l12 14 h102 v66 h-156 z" fill="#ffd23f" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/><path d="M886 346 h156 v52 h-156 z" fill="#ffe27a" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>' +
-    '<polygon points="' + starPts(964, 372, 14, 6) + '" fill="#ff5c72"/>';
-  [[250, 440, 7, '#6bcb77'], [878, 446, 6, '#ff9f45'], [1050, 296, 8, '#ffd23f'], [78, 450, 7, '#ff5c72'], [244, 300, 6, '#7a63ff'], [884, 300, 6, '#22c6c6']].forEach(function (s2) { g += '<polygon points="' + starPts(s2[0], s2[1], s2[2], s2[2] * .4) + '" fill="' + s2[3] + '"/>'; });
-  /* rosette */
-  g += '<polygon points="544,690 526,748 548,738 561,753 566,694" fill="#ff5c72"/><polygon points="578,690 596,748 574,738 561,753 556,694" fill="#3b82f6"/>';
-  g += '<circle cx="561" cy="674" r="40" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="674" r="31" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPts(561, 674, 21, 9) + '" fill="#e07a1a"/>';
-  g += '<text x="240" y="702" font-family="' + SANS + '" font-size="20" fill="' + INK + '" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="710" x2="360" y2="710" stroke="' + INK + '" stroke-width="1.5"/><text x="240" y="732" font-family="' + SANS + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
-  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="' + INK + '" stroke-width="1.5"/><text x="883" y="732" font-family="' + SANS + '" font-size="16" fill="#555" text-anchor="middle">Teacher</text>';
-  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
+/* ---------- the Desktop Skills certificate: a gold medal on A4 portrait (earned only when every level for the year is done) ---------- */
+function medalName(n, x, y, size, mw) {
+  const u = 'n' + (uidN++), dk = 'hsl(222,70%,22%)';
+  if (!n) return '<line x1="' + (x - 190) + '" y1="' + (y + 2) + '" x2="' + (x + 190) + '" y2="' + (y + 2) + '" stroke="' + dk + '" stroke-width="1.6" opacity=".55"/>';
+  let s = n.length <= 14 ? size : n.length <= 20 ? size * .82 : size * .66, tw = n.length * s * .46; if (tw > mw) { s = s * mw / tw; tw = mw; }
+  const bw = Math.max(400, tw + 150), bh = s * 1.5, by = y - s * 1.02, bx = x - bw / 2;
+  return '<defs><linearGradient id="rb' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf4"/><stop offset="1" stop-color="#f6e7b4"/></linearGradient><filter id="sh' + u + '" x="-10%" y="-30%" width="120%" height="180%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#000" flood-opacity=".28"/></filter></defs>' +
+    '<polygon points="' + (bx - 60) + ',' + (by + 12) + ' ' + (bx + 10) + ',' + (by + 12) + ' ' + (bx + 10) + ',' + (by + bh + 12) + ' ' + (bx - 60) + ',' + (by + bh + 12) + ' ' + (bx - 36) + ',' + (by + bh / 2 + 12) + '" fill="#e5a91a" stroke="#8a5a00" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<polygon points="' + (bx + bw + 60) + ',' + (by + 12) + ' ' + (bx + bw - 10) + ',' + (by + 12) + ' ' + (bx + bw - 10) + ',' + (by + bh + 12) + ' ' + (bx + bw + 60) + ',' + (by + bh + 12) + ' ' + (bx + bw + 36) + ',' + (by + bh / 2 + 12) + '" fill="#e5a91a" stroke="#8a5a00" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<polygon points="' + (bx + 10) + ',' + (by + bh) + ' ' + (bx + 10) + ',' + (by + bh + 12) + ' ' + (bx + 34) + ',' + (by + bh) + '" fill="#8a5a00"/><polygon points="' + (bx + bw - 10) + ',' + (by + bh) + ' ' + (bx + bw - 10) + ',' + (by + bh + 12) + ' ' + (bx + bw - 34) + ',' + (by + bh) + '" fill="#8a5a00"/>' +
+    '<g filter="url(#sh' + u + ')"><rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="' + bh + '" rx="8" fill="url(#rb' + u + ')" stroke="#b8860b" stroke-width="3.5"/></g><rect x="' + (bx + 8) + '" y="' + (by + 8) + '" width="' + (bw - 16) + '" height="' + (bh - 16) + '" rx="4" fill="none" stroke="#b8860b" stroke-width="1.3" stroke-dasharray="2 5"/>' +
+    '<text x="' + x + '" y="' + y + '" font-family="' + SCRIPT + '" font-size="' + s.toFixed(0) + '" font-weight="bold" fill="' + dk + '" text-anchor="middle">' + esc(n) + '</text>';
+}
+function medalCert(r, name) {
+  const u = 'dm' + (uidN++), n = (name || '').trim(), PW = 794, PH = 1123, cx = 397, cy = 456, dk = 'hsl(222,70%,22%)', hue = 222;
+  let g = '<defs><linearGradient id="gd' + u + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".3" stop-color="#f5c542"/><stop offset=".6" stop-color="#b8860b"/><stop offset="1" stop-color="#ffe27a"/></linearGradient>' +
+    '<linearGradient id="gv' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0a0"/><stop offset=".45" stop-color="#e5a91a"/><stop offset="1" stop-color="#8a5a00"/></linearGradient>' +
+    '<filter id="ds' + u + '" x="-25%" y="-20%" width="150%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="7"/><feOffset dy="10" result="b"/><feComponentTransfer in="b" result="s"><feFuncA type="linear" slope=".3"/></feComponentTransfer><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+    '<linearGradient id="bg' + u + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(' + hue + ',70%,92%)"/><stop offset="1" stop-color="#fff"/></linearGradient>' +
+    '<radialGradient id="in' + u + '" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="hsl(' + hue + ',60%,84%)"/></radialGradient>' +
+    '<path id="ar' + u + '" d="M' + (cx - 261) + ',' + cy + ' a261,261 0 1,1 522,0 a261,261 0 1,1 -522,0"/></defs>';
+  g += '<rect width="' + PW + '" height="' + PH + '" fill="url(#bg' + u + ')"/><rect x="24" y="24" width="' + (PW - 48) + '" height="' + (PH - 48) + '" rx="26" fill="none" stroke="hsl(' + hue + ',65%,45%)" stroke-width="10"/><rect x="42" y="42" width="' + (PW - 84) + '" height="' + (PH - 84) + '" rx="14" fill="none" stroke="url(#gd' + u + ')" stroke-width="3"/>';
+  g += CC.keycapsSvg(CC.APP_NAME, cx, 70, 34);
+  g += '<text x="' + cx + '" y="146" font-family="' + SANS + '" font-size="19" font-weight="bold" letter-spacing="6" fill="' + dk + '" opacity=".75" text-anchor="middle">CERTIFICATE OF ACHIEVEMENT</text>';
+  const rb = function (d) { return '<polygon points="' + (cx + d * 150) + ',' + (cy + 190) + ' ' + (cx + d * 240) + ',' + (cy + 440) + ' ' + (cx + d * 165) + ',' + (cy + 402) + ' ' + (cx + d * 118) + ',' + (cy + 462) + ' ' + (cx + d * 40) + ',' + (cy + 212) + '" fill="' + (d < 0 ? '#ff5c72' : '#3b82f6') + '" stroke="' + (d < 0 ? '#c0334b' : '#2a5bb8') + '" stroke-width="3"/>'; };
+  g += rb(-1) + rb(1);
+  g += '<g filter="url(#ds' + u + ')"><circle cx="' + cx + '" cy="' + cy + '" r="280" fill="url(#gd' + u + ')"/></g><circle cx="' + cx + '" cy="' + cy + '" r="242" fill="url(#in' + u + ')" stroke="#8a5a00" stroke-width="4"/><circle cx="' + cx + '" cy="' + cy + '" r="226" fill="none" stroke="hsl(' + hue + ',60%,60%)" stroke-width="3" stroke-dasharray="3 9" stroke-linecap="round"/>';
+  g += '<text font-family="' + SANS + '" font-size="22" font-weight="bold" letter-spacing="5" fill="#5a3a00"><textPath href="#ar' + u + '" startOffset="0">DESKTOP SKILLS  ✦  ALL ' + (r.levels || 8) + ' LEVELS COMPLETE  ✦  YEAR ' + (r.year || 1) + '  ✦  </textPath></text>';
+  g += CC.SKILLS.gem('crown', 0).replace('<svg ', '<svg x="' + (cx - 170) + '" y="' + (cy - 170) + '" width="340" height="340" ') + spark(cx - 130, cy - 150, 20) + spark(cx + 170, cy - 110, 14) + spark(cx - 150, cy + 130, 11);
+  g += '<g filter="url(#ds' + u + ')"><rect x="117" y="796" width="560" height="96" rx="20" fill="#fffdf4" stroke="url(#gd' + u + ')" stroke-width="5"/></g><text x="' + cx + '" y="864" font-family="' + SERIF + '" font-size="58" font-style="italic" font-weight="bold" fill="url(#gv' + u + ')" stroke="#8a5a00" stroke-width="2" paint-order="stroke" text-anchor="middle">Desktop Hero</text>';
+  g += '<text x="' + cx + '" y="926" font-family="' + SERIF + '" font-size="19" fill="' + dk + '" text-anchor="middle">for finishing every level of Desktop Skills</text><text x="' + cx + '" y="962" font-family="' + SANS + '" font-size="15" letter-spacing="4" fill="' + dk + '" opacity=".7" text-anchor="middle">AWARDED TO</text>';
+  g += medalName(n, cx, 1030, 46, 420);
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + PW + ' ' + PH + '" width="' + PW + '" height="' + PH + '">' + g + '</svg>';
 }
 
 /* ---------- a gem to look at, big: it is saved as a picture (see-through, or on a soft background), never printed on paper ---------- */
@@ -235,7 +226,7 @@ function dismiss() {
 function close() { const cb = afterClose; afterClose = null; dismiss(); if (cb) cb(); }   /* closing the picture can bring back the screen the child came from */
 function show(id, onClose) {
   const r = typeof id === 'object' ? id : REWARDS[id]; if (!r) return; dismiss(); afterClose = onClose || null;
-  const s = document.createElement('div'); s.className = 'rw-screen'; s.setAttribute('role', 'dialog'); s.setAttribute('aria-label', r.title);
+  const s = document.createElement('div'); s.className = 'rw-screen' + (r.portrait ? ' rw-portrait' : ''); s.setAttribute('role', 'dialog'); s.setAttribute('aria-label', r.title);
   const bar = document.createElement('div'); bar.className = 'rw-bar';
   const nm = document.createElement('input'); nm.type = 'text'; nm.className = 'rw-name'; nm.maxLength = 26; nm.placeholder = '✏️ Name on the reward'; nm.value = S.name; nm.setAttribute('aria-label', 'Name on the reward');
   nm.addEventListener('keydown', function (e) { e.stopPropagation(); }); nm.addEventListener('keyup', function (e) { e.stopPropagation(); });
@@ -244,11 +235,11 @@ function show(id, onClose) {
   function btn(label, cls, fn) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn' + (cls ? ' ' + cls : ''); b.textContent = label; b.addEventListener('click', function () { b.blur(); fn(); }); return b; }
   const dl = btn('⬇ Download picture', 'primary', function () {
     const img = new Image();
-    img.onload = function () { const c = document.createElement('canvas'); c.width = 2246; c.height = 1588; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob(function (b) { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'reward-' + r.title.toLowerCase().replace(/[^a-z]+/g, '-') + (S.name ? '-' + S.name.replace(/[^\w-]+/g, '-') : '') + '.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); }, 'image/png'); };
+    img.onload = function () { const c = document.createElement('canvas'); c.width = r.portrait ? 1588 : 2246; c.height = r.portrait ? 2246 : 1588; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob(function (b) { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'reward-' + r.title.toLowerCase().replace(/[^a-z]+/g, '-') + (S.name ? '-' + S.name.replace(/[^\w-]+/g, '-') : '') + '.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); }, 'image/png'); };
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(card(r, S.name));
   });
   bar.appendChild(nm); bar.appendChild(btn('🖨 Print', '', function () { window.print(); })); bar.appendChild(dl); bar.appendChild(btn('✖ Close', '', close));
-  const note = document.createElement('p'); note.className = 'rw-note'; note.textContent = 'Tip: print on A4, landscape. Leave the name empty to write it by hand.';
+  const note = document.createElement('p'); note.className = 'rw-note'; note.textContent = 'Tip: print on A4, ' + (r.portrait ? 'portrait' : 'landscape') + '. Leave the name empty to write it by hand.';
   s.appendChild(bar); s.appendChild(paper); s.appendChild(note);
   document.body.appendChild(s); document.body.classList.add('rw-open'); screen = s;
   onEsc = function (e) { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); close(); } }; document.addEventListener('keydown', onEsc, true);

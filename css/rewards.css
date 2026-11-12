@@ -5,6 +5,7 @@
 .rw-name:focus{outline:none;border-color:#ffd23f}
 .rw-paper{flex:none;width:min(100%,calc((100vh - 150px) * 1.414));background:#fff;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.55);line-height:0}
 .rw-paper svg{width:100%;height:auto;display:block}
+.rw-portrait .rw-paper{width:min(100%,calc((100vh - 150px) * 0.707))}
 .rw-note{margin:0;color:#b7b8de;font-size:.9rem;text-align:center;flex:none}
 .mode-card{position:relative}
 .mode-card .rw-badge{position:absolute;top:8px;right:8px;width:2.3rem;height:2.3rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;border-radius:50%;background:linear-gradient(#fff3b0,#e5a91a);border:3px solid #8a5a00;box-shadow:0 3px 0 rgba(0,0,0,.3);cursor:pointer;z-index:3;transition:transform .12s}
@@ -18,7 +19,9 @@
 .rw-gemcap b{font-size:1.9rem;font-style:italic;color:#ffe27a;text-shadow:0 2px 8px rgba(0,0,0,.5)}
 .rw-gemcap i{font-size:1rem;color:#cfd0f2;font-style:normal}
 @media (prefers-reduced-motion:reduce){.rw-glow{animation:none}}
+@page medal{size:A4 portrait;margin:0}
 @media print{
+  .rw-portrait{page:medal}
   @page{size:A4 landscape;margin:0}
   body.rw-open > *:not(.rw-screen){display:none !important}
   html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important;background:#fff !important}

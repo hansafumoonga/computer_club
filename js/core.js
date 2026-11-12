@@ -320,8 +320,9 @@ UI.levelComplete = function (stage, o) {
   if (!o.quiet) CC.sfx.levelComplete();
   const last = o.level >= o.total;
   const buttons = [];
-  if (last && o.reward && CC.rewards) {   /* finishing the last level earns the game's 3D reward picture */
-    CC.rewards.earn(o.reward);
+  /* the reward picture is earned only when EVERY level has been finished (levels can be picked in any order) */
+  const got = !!(o.reward && CC.rewards && (CC.rewards.note(o.reward, String(o.level), o.total), CC.rewards.has(o.reward)));
+  if (last && got) {
     buttons.push({ icon: '🏆', label: 'Reward', keys: ['Space', 'Enter'], primary: true, fn: function () { CC.rewards.show(o.reward, function () { UI.levelComplete(stage, Object.assign({}, o, { quiet: true })); }); } });
     buttons.push({ icon: '🔁', label: 'Again', fn: o.onRestartAll });
   } else if (last) buttons.push({ icon: '🔁', label: 'Again', keys: ['Space', 'Enter'], primary: true, fn: o.onRestartAll });

@@ -144,12 +144,8 @@ async function step(line, action) {
 
 /* ---------- level flow ---------- */
 const ACT = {};
-function firstName() { return (S.name || '').trim().split(/\s+/)[0].replace(/[^a-zA-Z]/g, '').slice(0, 8).toUpperCase(); }
 function tasksFor(lv) {
-  return lv.tasks.filter(function (t) { return !t.min || S.year >= t.min; }).map(function (t) {
-    const nm = t.fromName ? firstName() : '';
-    return nm.length >= 2 ? Object.assign({}, t, { target: nm, say: 'Type your name:  ' + nm }) : t;
-  });
+  return lv.tasks.filter(function (t) { return !t.min || S.year >= t.min; });
 }
 
 function startLevel(id) {
@@ -171,7 +167,7 @@ function beginTask(i, noDemo) {
   if (S.act && S.act.destroy) S.act.destroy();
   S.ti = i; S.t = S.tasks[i]; S.fails = 0; S.finished = false; S.locked = false; S.ptr = null; S.idleDemo = false;
   E.popN = 0; E.items.innerHTML = ''; E.svg.innerHTML = ''; E.typeBox.innerHTML = ''; E.typeBox.hidden = true;
-  const kbOn = S.t.kb != null ? !!S.t.kb : !!S.level.kb;
+  const kbOn = !!S.level.kb;
   E.stage.classList.toggle('typing', kbOn); E.stage.parentNode.classList.toggle('typing', kbOn);
   E.kb.hidden = !kbOn; E.caps.hidden = !kbOn;
   E.stage.dataset.type = S.t.type;
@@ -250,7 +246,7 @@ function finishLevel() {
 function finishScreen(lv, stars, last) {
   CC.ui.show(E.stage, { emoji: '<span class="gem-pop">' + gemSvg(lv, 150) + '</span>', stars: stars, title: 'You completed Level ' + lv.id + '!', text: 'New gem: ' + lv.badge,
     buttons: [
-      last ? { icon: '🎓', label: 'Certificate', primary: true, keys: ['Enter', 'Space'], fn: showCertificate } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
+      last && questAllDone() ? { icon: '🎓', label: 'Certificate', primary: true, keys: ['Enter', 'Space'], fn: showCertificate } : last ? { icon: '🗺️', label: 'Levels', primary: true, keys: ['Enter', 'Space'], fn: showHome } : { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(lv.id + 1); } },
       { icon: '💎', label: 'My gem', fn: function () { viewGem(lv, function () { finishScreen(lv, stars, last); }); } },
       { icon: '🔁', label: '', fn: function () { startLevel(lv.id); } }, { icon: '🗺️', label: '', fn: showHome }] });
 }
@@ -830,8 +826,8 @@ function showHome() {
   opts.appendChild(toggleBtn('Sound', 'sound', '🔊')); opts.appendChild(toggleBtn('Voice', 'voice', '🗣️')); opts.appendChild(toggleBtn('High contrast', 'contrast', '🌓'));
   opts.appendChild(toggleBtn('Slow', 'slow', '🐢')); opts.appendChild(toggleBtn('Click to place', 'clickPlace', '♿'));
   const rep = el('button', 'btn', '📋 Teacher report'); rep.type = 'button'; rep.addEventListener('click', function () { rep.blur(); showReport(); });
-  const all = !!S.done[LEVELS.length];
-  const cert = el('button', 'btn' + (all ? ' primary' : ''), '🎓 Certificate'); cert.type = 'button'; cert.disabled = !all; cert.title = all ? 'Print my certificate' : 'Finish the last level (level ' + LEVELS.length + ') to unlock';
+  const all = questAllDone();
+  const cert = el('button', 'btn' + (all ? ' primary' : ''), '🎓 Certificate'); cert.type = 'button'; cert.disabled = !all; cert.title = all ? 'Print my certificate' : 'Finish all ' + LEVELS.length + ' levels to unlock';
   cert.addEventListener('click', function () { cert.blur(); showCertificate(); });
   opts.appendChild(cert); opts.appendChild(rep);
   home.appendChild(opts);
@@ -840,6 +836,7 @@ function showHome() {
   home.appendChild(go);
   r.appendChild(home);
 }
+function questAllDone() { return LEVELS.every(function (l) { return S.done[l.id]; }); }
 function nextLevel() { for (let i = 1; i <= LEVELS.length; i++) { if (!S.done[i]) return i; } return 1; }
 
 function renderPlay() {

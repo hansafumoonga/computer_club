@@ -187,9 +187,12 @@ Click & Type Quest: gems, and the new game Desktop Skills
   - GEMS TO LOOK AT AND SAVE (nothing is printed per level): the 'My gem' button on the level-complete screen, a click on a finished gem on the shelf
     (Quest) or on the gem badge of a finished tile (Desktop Skills) opens the gem BIG. 'Save gem (no background)' downloads a see-through PNG
     (1024 px); 'Save with background' adds a soft colour. Code: showGem() / saveGem() in js/rewards.js, CC.rewards.gem(kind, {title, game}, afterClose).
-  - DESKTOP SKILLS CERTIFICATE: winning all 8 gems unlocks an A4 landscape certificate (window title bar, TECH EXPLORERS keycaps, name, the 8 gems in a
-    row, the skills for the learner's year, date, teacher line). Same screen as the other rewards: name box, Print, Download picture.
-    Code: desktopCert() in js/rewards.js, opened by showCertificate() in js/desktop.js.
+  - DESKTOP SKILLS MEDAL (the certificate): a gold medal on A4 PORTRAIT (Golden Crown in the middle, TECH EXPLORERS keycaps, the name on a ribbon).
+    It is unlocked only when EVERY level for the year is done (8 levels in Years 1-3, 13 in Years 4-6). Same screen as the other rewards: name box, Print,
+    Download picture. Code: medalCert() in js/rewards.js, opened by showCertificate() in js/desktop.js.
+  - RULE FOR ALL CERTIFICATES AND REWARD PICTURES: they come only when ALL the levels / stages / pictures are done, not just the last one.
+    Click & Type Quest: questAllDone(); Mouse Club: doneCount(game) >= 10; Click & Build: finalDone() = every picture; Typing Club: finishedGame() = all levels
+    of one game; Jump, Blaster, Commando, Fruit, Word Hunt: CC.rewards.note(id, level, total) in CC.ui.levelComplete / words.js; Piano and Shortcut Lab already needed everything.
   - DESKTOP SKILLS (Years 1 to 6, its own game: js/desktop.js, js/desktop_levels.js, css/desktop.css). A pretend desktop with windows, folders, files,
     a taskbar and a Recycle Bin that really work with the mouse. 8 levels, each wins a gem: 1 Open & Close (Garnet), 2 Hide & Show (Peridot),
     3 Move & Resize (Moonstone), 4 Many Windows (Tanzanite), 5 Make a Folder (Jade), 6 Organise (Star Gem), 7 Delete & Bring Back (Amber),
@@ -214,3 +217,12 @@ UPDATE: TECH EXPLORERS (new name), COMMANDO, PIANO, VOICE
 
   - PAUSE: every game has a pause button in the top bar (next to the music button): Fruit, Word Hunt, Jump Over, Star Blaster, Commando Run, Pattern Pop. The Escape key also pauses/resumes the arrow-key games.
     Pausing freezes the game and the sound; Play carries on exactly where you were; Menu leaves. (The piano is free play, and the Click & Type Quest lessons have their own pause button.)
+
+DESKTOP SKILLS PRO LEVELS (Years 4 to 6; levels 9 to 13 in js/desktop_levels.js have pro: true, min: 4)
+  - 9 Select Many (Turquoise), 10 Split Screen (Rhodolite), 11 Search & Find (Sunstone), 12 Shortcut Pro (Iolite), 13 Screenshots & Apps (Spinel).
+  - New engine parts in js/desktop.js: a selection list (Ctrl+click, Shift+click, Ctrl+A, rubber-band box) and group moves/deletes/copies (one event with ids),
+    cut (Ctrl+X) and undo (Ctrl+Z, snapshot based), snapping a window by dragging its title bar to the left/right/top edge, a Start menu, a search box
+    (Ctrl+F or the magnifier; searchpick reveals a file in its folder), a snipping tool (drag a box; reports which windows are inside), PrtScn, a screen recorder,
+    apps (kind 'app': right-click > Uninstall, or Settings > Apps; the bin refuses them) and keys quizzes (task.choices + task.answer).
+  - Tiers: Year 4 = glowing hints from the start; Year 5 = keys named in the task, hints on the lightbulb; Year 6 = task.y6 (shorter, no key names) and no hints at all
+    (the lightbulb is hidden). Windows-key shortcuts and screenshots cannot be caught in a web page, so those are keycap quizzes plus the simulated tools.

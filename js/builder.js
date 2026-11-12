@@ -19,7 +19,7 @@ function keepProgress() { CC.keep.save('builder', { best: S.best, name: S.name }
 function bestOf(door, lv) { return S.best[door + ':' + lv] || null; }
 function doneCount(door) { return BUILDS.filter(function (b) { const x = bestOf(door, b.id); return x && x.stars >= 1; }).length; }
 /* progress is not saved, so every picture is open and a learner can start where they stopped; the certificate comes with the last picture (the city) */
-function finalDone(door) { const x = bestOf(door, BUILDS.length); return !!(x && x.stars >= 1); }
+function finalDone(door) { return doneCount(door) >= BUILDS.length; }   /* every picture built, not only the last one */
 function certEarned() { return finalDone('type') || finalDone('click'); }
 function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
 
@@ -99,7 +99,7 @@ function showHome() {
   });
   h.appendChild(doors);
   const row = el('div', 'bd-opts');
-  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 My certificate' : '🔒 Certificate: build the city'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Build the last picture, the city, to unlock';
+  const ce = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 My certificate' : '🔒 Certificate: build all the pictures'); ce.type = 'button'; ce.disabled = !certEarned(); ce.title = certEarned() ? 'Print my certificate' : 'Build every picture, up to the city, to unlock';
   ce.addEventListener('click', function () { ce.blur(); showCertificate(); }); const vc = el('button', 'btn' + (S.voice ? ' on' : ''), '🗣️ Voice'); vc.type = 'button'; vc.addEventListener('click', function () { vc.blur(); S.voice = !S.voice; vc.classList.toggle('on', S.voice); if (S.voice) speak('Hello! I am Bo. Let us build something!'); else hush(); });
   row.appendChild(vc); row.appendChild(ce); h.appendChild(row);
   setView('home', h);
@@ -109,7 +109,7 @@ function showMap() {
   const m = el('div', 'bd-map'), top = el('div', 'bd-maptop');
   const back = el('button', 'btn ico', '🏠'); back.type = 'button'; back.setAttribute('aria-label', 'back'); back.addEventListener('click', function () { back.blur(); if (S.fixed) CC.goMenu(); else showHome(); });
   top.appendChild(back); top.appendChild(el('h3', '', S.door === 'type' ? '⌨️ Type & Build' : '🖱️ Click & Build'));
-  const cb = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate'); cb.type = 'button'; cb.disabled = !certEarned(); cb.setAttribute('aria-label', 'certificate'); cb.title = certEarned() ? 'My certificate' : 'Build the last picture, the city, to unlock the certificate';
+  const cb = el('button', 'btn' + (certEarned() ? ' primary' : ''), certEarned() ? '🎓 Certificate' : '🔒 Certificate'); cb.type = 'button'; cb.disabled = !certEarned(); cb.setAttribute('aria-label', 'certificate'); cb.title = certEarned() ? 'My certificate' : 'Build every picture, up to the city, to unlock the certificate';
   cb.addEventListener('click', function () { cb.blur(); showCertificate(); }); top.appendChild(cb); m.appendChild(top);
   const grid = el('div', 'bd-levels');
   BUILDS.forEach(function (b) {
@@ -119,7 +119,7 @@ function showMap() {
     t.setAttribute('aria-label', 'Level ' + b.id + ' ' + b.name);
     t.addEventListener('click', function () { t.blur(); CC.audio.init(); S.level = b.id; intro(); }); grid.appendChild(t);
   });
-  m.appendChild(grid); m.appendChild(el('p', 'bd-note', '🎓 Start on any picture. Build the last one, the city, to get your certificate.')); setView('map', m);
+  m.appendChild(grid); m.appendChild(el('p', 'bd-note', '🎓 Start on any picture. Build all the pictures, up to the city, to get your certificate.')); setView('map', m);
 }
 function intro() {
   const b = BUILDS[S.level - 1];
