@@ -671,7 +671,7 @@ function certSvg(name) {
   g += '<text x="' + mid + '" y="440" font-family="' + sans + '" font-size="20" fill="#44486b" text-anchor="middle">for finishing the last level of <tspan font-weight="bold">' + esc(f.game ? f.game.name : 'Typing Club') + '</tspan> with speed, focus and accuracy</text>';
   g += '<text x="' + mid + '" y="468" font-family="' + sans + '" font-size="17" fill="' + SOFT + '" text-anchor="middle">Year ' + S.year + '  ·  Typing goal ' + T + ' words a minute</text>';
   /* speedometer */
-  const gx = 215, gy = 600, gr = 104;
+  const gx = 215, gy = 576, gr = 104;
   g += '<path d="' + arc(gx, gy, gr, 0, 1) + '" fill="none" stroke="#e8eafa" stroke-width="24" stroke-linecap="round"/>';
   g += '<path d="' + arc(gx, gy, gr, 0, frac) + '" fill="none" stroke="url(#ac)" stroke-width="24" stroke-linecap="round"/>';
   const t0 = pt(gx, gy, gr - 20, tfrac), t1 = pt(gx, gy, gr + 20, tfrac);
@@ -681,13 +681,13 @@ function certSvg(name) {
   g += '<text x="' + gx + '" y="' + (gy + 58) + '" font-family="' + sans + '" font-size="46" font-weight="bold" fill="' + INK + '" text-anchor="middle">' + (f.best || '–') + '</text>';
   g += '<text x="' + gx + '" y="' + (gy + 82) + '" font-family="' + sans + '" font-size="13" font-weight="bold" letter-spacing="3" fill="' + SOFT + '" text-anchor="middle">WORDS A MINUTE</text>';
   /* accuracy ring */
-  const rx = mid, ry = 590, rr = 74, circ = 2 * Math.PI * rr;
+  const rx = mid, ry = 566, rr = 74, circ = 2 * Math.PI * rr;
   g += '<circle cx="' + rx + '" cy="' + ry + '" r="' + rr + '" fill="none" stroke="#e8eafa" stroke-width="18"/>';
   g += '<circle cx="' + rx + '" cy="' + ry + '" r="' + rr + '" fill="none" stroke="url(#ac)" stroke-width="18" stroke-linecap="round" stroke-dasharray="' + (circ * f.avg / 100).toFixed(1) + ' ' + circ.toFixed(1) + '" transform="rotate(-90 ' + rx + ' ' + ry + ')"/>';
   g += '<text x="' + rx + '" y="' + (ry + 16) + '" font-family="' + sans + '" font-size="44" font-weight="bold" fill="' + INK + '" text-anchor="middle">' + f.avg + '%</text>';
   g += '<text x="' + rx + '" y="' + (ry + 120) + '" font-family="' + sans + '" font-size="13" font-weight="bold" letter-spacing="3" fill="' + SOFT + '" text-anchor="middle">ACCURACY</text>';
   /* medal */
-  const mx = 908, my = 584;
+  const mx = 908, my = 560;
   g += '<polygon points="' + (mx - 34) + ',' + (my + 36) + ' ' + (mx - 56) + ',' + (my + 112) + ' ' + (mx - 28) + ',' + (my + 98) + ' ' + (mx - 12) + ',' + (my + 118) + ' ' + (mx - 4) + ',' + (my + 44) + '" fill="#5b3df5"/>';
   g += '<polygon points="' + (mx + 34) + ',' + (my + 36) + ' ' + (mx + 56) + ',' + (my + 112) + ' ' + (mx + 28) + ',' + (my + 98) + ' ' + (mx + 12) + ',' + (my + 118) + ' ' + (mx + 4) + ',' + (my + 44) + '" fill="#14b8e6"/>';
   g += '<circle cx="' + mx + '" cy="' + my + '" r="64" fill="url(#td)" stroke="' + INK + '" stroke-width="4"/><circle cx="' + mx + '" cy="' + my + '" r="51" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="3" stroke-dasharray="3 5"/>';

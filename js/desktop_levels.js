@@ -422,5 +422,37 @@ const LEVELS = [
 function named(o, parent, name) { const k = o.kids(parent); for (let i = 0; i < k.length; i++) if (k[i].kind === 'folder' && same(k[i].name, name)) return k[i].id; return null; }
 function schoolId(o) { const k = o.kids('desk'); for (let i = 0; i < k.length; i++) if (k[i].kind === 'folder' && same(k[i].name, 'SCHOOL')) return k[i].id; return null; }
 
+/* ---- Year 1: what Bo SAYS for each step (voice) and how the moving pointer SHOWS it (demo).
+   One list per level, one entry per Year 1 step, in order: [voice, demo].
+   demo: 'click' | 'dbl' (double-click) | 'drag' (from the first glowing thing to the second) | 'seq' (click the first, then the second) | 'enter' (the Enter key).
+   Leave demo out and Bo clicks the glowing thing, or drags when two things glow. */
+const BO_Y1 = {
+  1: [['This is a folder. Double-click it to open it. Click two times, quickly. Click, click!', 'dbl'],
+      ['Now close the window. Click the red X at the top.'],
+      ['Double-click the picture of the dog to open it. Click, click!', 'dbl'],
+      ['Close the picture window. Click its red X.']],
+  2: [['Click the little line at the top of the window. The window will hide.'],
+      ['The window is hiding on the bar at the bottom. Click it to bring it back.'],
+      ['Click the square at the top to make the window big.'],
+      ['Click the two little squares to make the window small again.']],
+  3: [['Hold the top bar of the window. Keep holding, and drag it to the dotted box. Then let go.', 'drag']],
+  4: [['One window is hiding at the back. Click it to bring it to the front.'],
+      ['Now close the window in front. Click its red X.']],
+  5: [['Click the New folder button to make a folder.'],
+      ['Press the Enter key on the keyboard to keep the name.', 'enter'],
+      ['Double-click your new folder to open it. Click, click!', 'dbl']],
+  6: [['Drag the dog into the folder. Hold the mouse button down, move to the folder, then let go.', 'drag'],
+      ['Put all three pictures in the folder. Drag them one by one.', 'drag']],
+  7: [['Drag the old file into the bin.', 'drag'],
+      ['Click the file. Then click Put back.', 'seq']],
+  8: [['Put the pictures in the folder. Drag them one by one.', 'drag'],
+      ['Now drag the old file into the bin.', 'drag'],
+      ['Double-click the folder to check your pictures. Click, click!', 'dbl']]
+};
+LEVELS.forEach(function (lv) {
+  const list = BO_Y1[lv.id]; if (!list) return;
+  lv.tasks.filter(function (t) { return !t.min || t.min <= 1; }).forEach(function (t, i) { if (list[i]) { t.voice = list[i][0]; if (list[i][1]) t.demo = list[i][1]; } });
+});
+
 CC.DESKTOP = { NAME: 'Desktop Skills', LEVELS: LEVELS };
 })();

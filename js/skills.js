@@ -984,11 +984,11 @@ function certSvg(name) {
   g += '<rect x="900" y="444" width="112" height="10" rx="3" fill="#c9f0ff" stroke="#139a9a" stroke-width="1.2"/>';
   g += '<polygon points="' + starPath(1010, 300, 8, 3.2) + '" fill="#ffd23f"/><polygon points="' + starPath(884, 318, 6, 2.4) + '" fill="#ff9f45"/><polygon points="' + starPath(238, 440, 6, 2.4) + '" fill="#6bcb77"/><polygon points="' + starPath(78, 440, 7, 2.8) + '" fill="#ff5c72"/>';
   /* rosette */
-  g += '<polygon points="536,690 516,752 541,740 555,757 561,694" fill="#ff5c72"/><polygon points="586,690 606,752 581,740 567,757 561,694" fill="#3b82f6"/>';
-  g += '<circle cx="561" cy="668" r="46" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="668" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPath(561, 668, 24, 10) + '" fill="#e07a1a"/>';
+  g += '<g transform="translate(561 655) scale(.78) translate(-561 -668)"><polygon points="536,690 516,752 541,740 555,757 561,694" fill="#ff5c72"/><polygon points="586,690 606,752 581,740 567,757 561,694" fill="#3b82f6"/>';
+  g += '<circle cx="561" cy="668" r="46" fill="#ffd23f" stroke="#e0a800" stroke-width="4"/><circle cx="561" cy="668" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 4"/><polygon points="' + starPath(561, 668, 24, 10) + '" fill="#e07a1a"/></g>';
   /* date + signature */
-  g += '<text x="240" y="702" font-family="' + sans + '" font-size="20" fill="#15163a" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="710" x2="360" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="240" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
-  g += '<line x1="763" y1="710" x2="1003" y2="710" stroke="#15163a" stroke-width="1.5"/><text x="883" y="732" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher</text>';
+  g += '<text x="240" y="688" font-family="' + sans + '" font-size="20" fill="#15163a" text-anchor="middle">' + esc(dt) + '</text><line x1="120" y1="696" x2="360" y2="696" stroke="#15163a" stroke-width="1.5"/><text x="240" y="718" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Date</text>';
+  g += '<line x1="763" y1="696" x2="1003" y2="696" stroke="#15163a" stroke-width="1.5"/><text x="883" y="718" font-family="' + sans + '" font-size="16" fill="#555" text-anchor="middle">Teacher</text>';
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '">' + g + '</svg>';
 }
 function showCertificate() {

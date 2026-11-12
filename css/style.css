@@ -223,8 +223,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 .topbar>:first-child{justify-self:start}
 .topbar h2{min-width:0}
 .tb-right{justify-self:end;display:flex;align-items:center;gap:8px}
-/* a short line under each game name on the menu */
-.mode-card .ds{display:block;font-size:.85rem;line-height:1.25;margin-top:2px}
 /* every pop-up screen (intro, pause, level complete, try again) sits above everything else on the stage */
 .overlay-root{z-index:10}
 

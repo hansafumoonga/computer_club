@@ -26,14 +26,16 @@ const MODES = {
   paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', group: 'design', color: '#ff7ac8' },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss, catch the rain', group: 'kb', color: '#5ac8ff', cert: true }
 };
-/* what each year can play, easiest and most suitable first. Jump Over! is for everyone. */
+/* what each year can play, IN ORDER OF SKILL inside each group: the first thing to learn comes first, and each game builds on the one before.
+   Keyboard and mouse: the mouse, then clicking and dragging, then the keys, then words, then the desktop (which uses all of them).
+   Arrow keys: one key (jump), then five keys (piano), then keys in order (pattern), then moving and firing together. */
 const YEARS = {
-  '1': { modes: ['mouseclub', 'buildclick', 'paint', 'magic', 'skills', 'desktop', 'fruit', 'jump', 'piano'] },
-  '2': { modes: ['buildtype', 'art', 'magic', 'skills', 'desktop', 'fruit', 'words', 'jump', 'blaster', 'piano'] },
-  '3': { modes: ['scene', 'magic', 'art', 'skills', 'desktop', 'words', 'fruit', 'blaster', 'jump', 'pattern', 'piano'] },
-  '4': { modes: ['typing', 'shortcuts', 'desktop', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
-  '5': { modes: ['typing', 'shortcuts', 'desktop', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'words', 'piano'] },
-  '6': { modes: ['typing', 'shortcuts', 'desktop', 'magiclab', 'design', 'commando', 'jump', 'blaster', 'pattern', 'piano'] }
+  '1': { modes: ['mouseclub', 'buildclick', 'skills', 'fruit', 'desktop', 'paint', 'magic', 'jump', 'piano'] },
+  '2': { modes: ['skills', 'fruit', 'buildtype', 'words', 'desktop', 'magic', 'art', 'jump', 'piano', 'blaster'] },
+  '3': { modes: ['skills', 'fruit', 'words', 'desktop', 'magic', 'art', 'scene', 'jump', 'piano', 'pattern', 'blaster'] },
+  '4': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
+  '5': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
+  '6': { modes: ['typing', 'shortcuts', 'desktop', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] }
 };
 /* the three groups in every year menu: learning with keyboard and mouse, painting and design, and the arrow-key / Makey Makey games */
 const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];

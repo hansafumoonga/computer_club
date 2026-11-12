@@ -162,3 +162,17 @@ button.tb-start:hover{background:rgba(255,255,255,.25)}
 .dk-certrow{margin-top:6px}
 @media (max-width:520px){.dk-quiz{grid-template-columns:1fr}}
 @media (max-width:520px){.dk-icons{right:80px;grid-template-rows:repeat(auto-fill,minmax(72px,72px));grid-auto-columns:68px;padding:6px}.dk-ico{width:66px;padding:4px 2px}.dk-ico .ig{font-size:1.9rem}.dk-ico .nm{font-size:.7rem}.dk-bin{width:66px;right:6px;bottom:6px}.dk-bin .ig{font-size:2rem}.dk-bin .nm{font-size:.7rem}}
+
+/* ---------- Bo, the Year 1 guide: his face beside the instruction, his pointer on the desktop ---------- */
+.dk-msg.bo{position:relative;padding-left:70px;padding-right:70px;cursor:pointer;background:#fff;border-color:#ffd23f;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.dk-msg.bo .say{color:#1f2a55}.dk-msg.bo .sub{color:#5a6190}
+.dk-msg.bo.good{background:#e6f8ea;border-color:#3f9a63}.dk-msg.bo.bad{background:#ffecec;border-color:#d9534f}
+.dk-bo{position:absolute;left:14px;top:50%;margin-top:-.55em;font-size:2.5rem}
+.dk-bobtn.off{opacity:.45}
+.dk-cur{z-index:9999}
+.dk-mouse{z-index:9998;top:12px;right:14px}
+.dk-bo-ghost{position:absolute;z-index:9997;pointer-events:none;transform:translate(-50%,-50%);font-size:2.4rem;opacity:.85;filter:drop-shadow(0 6px 8px rgba(0,0,0,.5))}
+.dk-bo-win{position:absolute;z-index:9997;pointer-events:none;border:4px dashed #ffe14d;border-radius:10px;background:rgba(255,225,77,.18)}
+.dk-key{position:absolute;z-index:9998;pointer-events:none;transform:translateX(-50%);background:#fff;color:#15163a;font-weight:bold;font-size:1.5rem;padding:.3em .8em;border-radius:12px;border:3px solid #15163a;border-bottom-width:7px;box-shadow:0 0 0 5px #ffe14d;animation:dkKey .6s ease-in-out infinite alternate}
+@keyframes dkKey{to{transform:translateX(-50%) translateY(5px);border-bottom-width:3px}}
+@media (prefers-reduced-motion:reduce){.dk-key{animation:none}}

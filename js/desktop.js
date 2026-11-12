@@ -126,7 +126,7 @@ function emit(ev) {
     if (S.miss >= 2 && !S.hintOn && !proHidden()) { S.hintOn = true; applyHint(); }
   } else if (t.oops && ev.t === 'rename') { const m = t.oops(ev, api()); if (m) { S.miss++; flash(m, 'bad'); } }
 }
-function flash(text, cls) { const m = $root().querySelector('.dk-msg'); if (!m) return; m.classList.remove('good', 'bad'); if (cls) m.classList.add(cls); m.querySelector('.say').textContent = text; m.querySelector('.sub').textContent = ''; clearTimeout(S.flashT); S.flashT = setTimeout(function () { showTask(); }, 1800); }
+function flash(text, cls) { const m = $root().querySelector('.dk-msg'); if (!m) return; m.classList.remove('good', 'bad'); if (cls) m.classList.add(cls); m.querySelector('.say').textContent = text; m.querySelector('.sub').textContent = ''; if (cls === 'bad') boSpeak(text); clearTimeout(S.flashT); S.flashT = setTimeout(function () { showTask(); }, 1800); }
 function showTask() {
   const m = $root().querySelector('.dk-msg'), t = S.tasks[S.ti]; if (!m || !t) return;
   const x = S.year >= 6 && t.y6 ? t.y6 : t;   /* Year 6 gets a shorter line that does not name the keys */
@@ -443,6 +443,7 @@ function startResize(e, node) {
 }
 function onDown(e) {
   if (S.view !== 'play' || CC.ui.active || e.button === 2) return;
+  boStop();   /* the child takes over: Bo's pointer goes away */
   const t = e.target;
   if (t.closest('.dk-menu, .dk-start, .dk-confirm, .dk-search, .dk-snapveil, .dk-quiz')) return;
   if (!t.closest('.tb-start')) closeMenu();
@@ -507,6 +508,94 @@ function onKeyDown(e) {
 }
 function onKeyUp(e) { if (S.view === 'play' && e.key === 'PrintScreen' && !S.locked && !CC.ui.active) shotKey(e); }
 
+/* ---------- Bo, the guide for Year 1: he SAYS every step out loud and SHOWS it with a moving pointer ----------
+   What he says and how he shows it is plain data on each task (voice, demo) in desktop_levels.js.
+   The pointer only shows the way: it never does the step for the child. */
+const BO = { voice: true, tok: 0, t: 0, nodes: [], pick: null };
+const BO_CURSOR = '<svg viewBox="0 0 24 30" aria-hidden="true"><path d="M2 2 L2 24 L8 18.5 L12.2 28 L16 26.4 L11.8 17 L20 17 Z" fill="#fff" stroke="#15163a" stroke-width="2" stroke-linejoin="round"/></svg><b class="ring"></b>';
+function boOn() { return S.year === 1; }
+function boVoice() {
+  if (!window.speechSynthesis) return null;
+  const vs = speechSynthesis.getVoices().filter(function (v) { return v.localService && /^en/i.test(v.lang); });
+  if (!vs.length) return null; if (BO.pick && vs.indexOf(BO.pick) >= 0) return BO.pick;
+  const prefs = [/aria|jenny|natural|neural/i, /zira|samantha|karen|moira|susan|hazel|libby|sonia|serena|tessa|fiona/i, /female/i];
+  for (let i = 0; i < prefs.length; i++) { const f = vs.filter(function (v) { return prefs[i].test(v.name); })[0]; if (f) return (BO.pick = f); }
+  return (BO.pick = vs[0]);
+}
+function boTalk(on) { const a = $root() && $root().querySelector('.dk-bo'); if (a) a.classList.toggle('talk', on); if (CC.music && CC.music.duck) CC.music.duck(on || !!CC.ui.active); }
+function boHush() { boTalk(false); if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } }
+function boSpeak(text) {
+  if (!boOn() || !BO.voice || !window.speechSynthesis) return;
+  const v = boVoice(), clean = String(text).replace(/[\u{1F000}-\u{1FFFF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, ' ').replace(/\s+/g, ' ').trim(); if (!v || !clean) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = 0.8; u.pitch = 1.1; u.volume = 1;
+    u.onstart = function () { boTalk(true); }; u.onend = function () { boTalk(false); }; u.onerror = function () { boTalk(false); };
+    speechSynthesis.speak(u);
+  } catch (e) { }
+}
+function boSayTask(first) { const t = S.tasks[S.ti]; if (!t) return; boSpeak((first && S.lv && S.lv.intro ? S.lv.intro + ' ' : '') + (t.voice || t.say)); }
+function boStop() { BO.tok++; clearTimeout(BO.t); BO.nodes.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); BO.nodes = []; }
+function boShow() {
+  const R = $root(), scr = R && R.querySelector('.dk-screen'), t = S.tasks[S.ti];
+  boStop(); if (!boOn() || !scr || !t || S.view !== 'play' || S.locked || CC.ui.active) return;
+  const tok = BO.tok, alive = function () { return tok === BO.tok && S.view === 'play' && !S.locked && scr.isConnected; };
+  const hints = [].concat(t.hint || []), kind = t.demo || (hints.length > 1 ? 'drag' : 'click');
+  const q = function (sel) { try { return sel ? R.querySelector(sel) : null; } catch (e) { return null; } };
+  const box = function () { return scr.getBoundingClientRect(); };
+  /* a point on the thing that can really be seen (a window at the back is half covered) */
+  const spot = function (n) {
+    const r = n.getBoundingClientRect(), s = box(), tries = [[.5, .5], [.2, .5], [.8, .5], [.5, .8], [.15, .85], [.85, .85], [.15, .2], [.85, .2]];
+    for (let i = 0; i < tries.length; i++) { const x = r.left + r.width * tries[i][0], y = r.top + r.height * tries[i][1], h = document.elementFromPoint(x, y); if (h && (h === n || n.contains(h))) return { x: x - s.left, y: y - s.top }; }
+    return { x: r.left + r.width / 2 - s.left, y: r.top + r.height / 2 - s.top };
+  };
+  const add = function (n) { scr.appendChild(n); BO.nodes.push(n); return n; };
+  const a = q(hints[0]); if (!a) return;
+  const cur = add(el('div', 'mc-cursor dk-cur', BO_CURSOR)), mouse = add(el('div', 'mc-mouse dk-mouse', '<i class="l"></i><i class="r"></i>')); mouse.dataset.btn = 'none';
+  let px = box().width * 0.82, py = box().height * 0.78, ghost = null, gdx = 0, gdy = 0;
+  const at = function (x, y) { px = x; py = y; cur.style.left = x + 'px'; cur.style.top = y + 'px'; if (ghost) { ghost.style.left = (x + gdx) + 'px'; ghost.style.top = (y + gdy) + 'px'; } };
+  const wait = function (ms) { return new Promise(function (res) { setTimeout(function () { res(alive()); }, ms); }); };
+  const go = function (x, y, ms) {
+    const x0 = px, y0 = py, t0 = performance.now();
+    return new Promise(function (res) {
+      (function f(now) {
+        if (!alive()) { res(false); return; }
+        const u = Math.min(1, (now - t0) / ms), e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; at(x0 + (x - x0) * e, y0 + (y - y0) * e);
+        if (u >= 1) { res(true); return; }
+        let fired = false; const tid = setTimeout(function () { if (!fired) { fired = true; f(performance.now()); } }, 90);   // a timer takes over if the browser pauses frames
+        requestAnimationFrame(function (ts) { if (fired) return; fired = true; clearTimeout(tid); f(ts); });
+      })(t0);
+    });
+  };
+  const press = function (btn) { mouse.dataset.btn = btn || 'left'; cur.classList.remove('click'); void cur.offsetWidth; cur.classList.add('click'); sfx('clink'); };
+  const rest = function () { mouse.dataset.btn = 'none'; cur.classList.remove('down'); };
+  (async function () {
+    at(px, py); if (!(await wait(350))) return;
+    let p = spot(a);
+    if (kind === 'enter') {
+      const r = a.getBoundingClientRect(), s = box(), key = add(el('div', 'dk-key', 'Enter ↵')); key.style.left = (r.left + r.width / 2 - s.left) + 'px'; key.style.top = (r.bottom - s.top + 10) + 'px';
+      cur.hidden = true; mouse.hidden = true; await wait(3200); return;
+    }
+    if (!(await go(p.x, p.y, 1200))) return; if (!(await wait(300))) return;
+    if (kind === 'dbl') { press('dbl'); if (!(await wait(260))) return; press('dbl'); await wait(1100); }
+    else if (kind === 'seq') {
+      press('left'); if (!(await wait(700))) return; rest(); const b = q(hints[1]); if (!b) return; p = spot(b);
+      if (!(await go(p.x, p.y, 1000))) return; if (!(await wait(250))) return; press('left'); await wait(1000);
+    } else if (kind === 'drag') {
+      const b = q(hints[1]); if (!b) return; let to = spot(b);
+      const win = a.closest('.dk-win'), s = box();
+      if (win && b.classList.contains('dk-target')) {   /* a window: the pointer holds the top bar, and a dotted outline of the window travels to the box */
+        const wr = win.getBoundingClientRect(), br = b.getBoundingClientRect();
+        to = { x: p.x + (br.left + br.width / 2) - (wr.left + wr.width / 2), y: p.y + (br.top + br.height / 2) - (wr.top + wr.height / 2) };
+        ghost = add(el('div', 'dk-bo-win')); ghost.style.width = wr.width + 'px'; ghost.style.height = wr.height + 'px'; gdx = wr.left - s.left - p.x; gdy = wr.top - s.top - p.y;
+      } else { const ig = a.querySelector('.ig'); ghost = add(el('div', 'dk-bo-ghost', ig ? ig.innerHTML : '')); gdx = 0; gdy = 0; }
+      cur.classList.add('down'); mouse.dataset.btn = 'hold'; sfx('clink'); at(px, py);
+      if (!(await wait(500))) return; if (!(await go(to.x, to.y, 1700))) return; if (!(await wait(350))) return;
+      rest(); press('none'); mouse.dataset.btn = 'none'; await wait(700);
+    } else { press('left'); await wait(1100); }
+  })().then(function () { if (tok === BO.tok) boStop(); }, function () { if (tok === BO.tok) boStop(); });
+}
+
 /* ---------- tasks and levels ---------- */
 function levelsFor() { return LEVELS.filter(function (l) { return !l.min || S.year >= l.min; }); }
 function allDone() { return levelsFor().every(function (l) { return S.done[l.id]; }); }
@@ -521,13 +610,15 @@ function beginTask(i, again) {
   if (S.os.rec && !again) { S.os.rec = null; clearInterval(S.recT); }
   const dots = $root().querySelector('.dk-dots'); dots.innerHTML = S.tasks.map(function (x, k) { return '<i class="' + (k < i ? 'd' : k === i ? 'c' : '') + '"></i>'; }).join('');
   showTask(); render();
+  boStop(); if (boOn()) { boSayTask(i === 0 && !again); BO.t = setTimeout(boShow, 900); }
 }
 function good() {
-  const t = S.tasks[S.ti]; S.locked = true; sfx('good'); applyHint();
+  const t = S.tasks[S.ti]; S.locked = true; sfx('good'); applyHint(); boStop();
+  const slow = boOn() && BO.voice && !!boVoice(); boSpeak(t.win || CHEERS[S.ti % CHEERS.length]);   /* Bo gets time to finish his sentence */
   const m = $root().querySelector('.dk-msg'); m.classList.remove('bad'); m.classList.add('good'); m.querySelector('.say').textContent = '✔ ' + (t.win || CHEERS[S.ti % CHEERS.length]); m.querySelector('.sub').textContent = '';
   const dots = $root().querySelector('.dk-dots'); if (dots.children[S.ti]) dots.children[S.ti].className = 'd';
   const last = S.ti >= S.tasks.length - 1;
-  S.timer = setTimeout(function () { if (last) finishLevel(); else beginTask(S.ti + 1); }, last ? 1000 : 1100);
+  S.timer = setTimeout(function () { if (last) finishLevel(); else beginTask(S.ti + 1); }, slow ? 2400 : last ? 1000 : 1100);
 }
 function gemSvg(lv, px) { return CC.SKILLS && CC.SKILLS.gem ? CC.SKILLS.gem(lv.gem, px) : '🏆'; }
 function gemName(lv) { return CC.SKILLS.gemName(lv.gem); }
@@ -551,6 +642,7 @@ function showCertificate(back) {
 function levelDone(lv, stars) {
   const vis = levelsFor(), idx = vis.indexOf(lv), last = idx === vis.length - 1, all = allDone();
   const next = !last && idx >= 0 ? vis[idx + 1] : null;
+  boStop(); boSpeak(all ? 'You are a Desktop Hero! Your medal is ready.' : 'Well done! You completed level ' + lv.id + '. You win a new gem!');
   CC.ui.show($stage(), { emoji: '<span class="gem-pop">' + gemSvg(lv, 150) + '</span>', stars: stars, title: all ? 'You are a Desktop Hero!' : 'You completed Level ' + lv.id + '!', text: all ? 'All ' + vis.length + ' levels done! Your medal is ready.' : 'New gem: ' + gemName(lv),
     buttons: [
       all ? { icon: '🎓', label: 'My medal', primary: true, keys: ['Enter', 'Space'], fn: function () { showCertificate(function () { levelDone(lv, stars); }); } } : next ? { icon: '▶', label: 'Next', primary: true, keys: ['Enter', 'Space'], fn: function () { startLevel(next.id); } } : { icon: '🗺️', label: 'Levels', primary: true, keys: ['Enter', 'Space'], fn: showHome },
@@ -573,13 +665,22 @@ function buildPlay() {
   p.querySelector('.dk-hint').addEventListener('click', function (e) { e.currentTarget.blur(); S.hintOn = !S.hintOn; applyHint(); });
   p.querySelector('.dk-lv').textContent = 'Level ' + S.lv.id + ' · ' + S.lv.title;
   if (proHidden()) p.querySelector('.dk-hint').style.display = 'none';   /* Year 6: no hints on the pro levels */
+  if (boOn()) {   /* Year 1: Bo sits beside the instruction, with buttons to watch him again, hear him again, or turn his voice off */
+    const msg = p.querySelector('.dk-msg'), av = el('span', 'mc-av dk-bo', '🐻'); av.setAttribute('aria-hidden', 'true'); msg.classList.add('bo'); msg.insertBefore(av, msg.firstChild);
+    msg.title = 'Click to hear Bo again'; msg.addEventListener('click', function () { boSayTask(false); });
+    const top = p.querySelector('.dk-top'), hint = p.querySelector('.dk-hint');
+    const mk = function (ico, label, fn) { const b = el('button', 'btn dk-bobtn', ico); b.type = 'button'; b.title = label; b.setAttribute('aria-label', label); b.addEventListener('click', function () { b.blur(); fn(b); }); top.insertBefore(b, hint); return b; };
+    mk('🖱️', 'Show me with the mouse', function () { if (!CC.ui.active) { boSayTask(false); boShow(); } });
+    mk('🔊', 'Say it again', function () { boSayTask(false); });
+    const vb = mk('🗣️', 'Bo voice on or off', function (b) { BO.voice = !BO.voice; b.classList.toggle('off', !BO.voice); if (!BO.voice) boHush(); else boSpeak('Hello! I am Bo.'); }); vb.classList.toggle('off', !BO.voice);
+  }
 }
 function startLevel(id) {
   CC.ui.close(); clearTimers(); S.lv = LEVELS[id - 1]; S.tasks = tasksFor(S.lv); S.levelMiss = 0; S.view = 'play'; S.os = newOS();
   buildPlay(); beginTask(0);
 }
 function showHome() {
-  CC.ui.close(); clearTimers(); closeMenu(); S.view = 'home'; S.lv = null;
+  CC.ui.close(); clearTimers(); closeMenu(); boStop(); boHush(); S.view = 'home'; S.lv = null;
   const R = $root(); R.innerHTML = '';
   const h = el('div', 'dk-home');
   h.innerHTML = '<div class="dk-h1">🪟 Desktop Skills</div><p class="dk-h2">' + (S.year >= 4 ? 'Be a real computer pro! Win a gem for every level, then your medal.' : 'Windows, folders and files, just like a real computer. Win a gem for every level!') + '</p><div class="dk-map"></div><div class="dk-certrow"></div>';
@@ -602,7 +703,7 @@ CC.modes.desktop = {
   enter: function (o) {
     S.year = Math.max(1, Math.min(6, Number(o && o.year) || 1)); CC.audio.init(); CC.watchStage($stage()); showHome();
   },
-  exit: function () { clearInterval(S.recT); clearTimers(); closeMenu(); CC.ui.close(); S.view = 'home'; },
+  exit: function () { clearInterval(S.recT); clearTimers(); closeMenu(); boStop(); boHush(); CC.ui.close(); S.view = 'home'; },
   onKeyDown: onKeyDown,
   onKeyUp: onKeyUp,
   /* test hooks (used only by the automated checks) */
