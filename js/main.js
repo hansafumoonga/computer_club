@@ -4,9 +4,9 @@
 const app = CC.app;
 
 const MODES = {
-  skills:   { icon: '🖱️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', group: 'kb', color: '#ff7ac8', cert: true },
+  skills:   { icon: '🗺️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', group: 'kb', color: '#ff7ac8', cert: true },
   fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', group: 'kb', color: '#ff6b86' },
-  words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Computer words crossword',        group: 'kb', color: '#22c6c6' },
+  words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Find the computer words',       group: 'kb', color: '#22c6c6' },
   jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', group: 'arrow', color: '#ffd23f' },
   blaster:  { icon: '🚀', name: 'Star Blaster',  desc: 'Pop the friendly space rocks',    group: 'arrow', color: '#6bcb77' },
   piano:    { icon: '🎹', name: 'Piano',         desc: 'Play songs on 5 keys',            group: 'arrow', color: '#ff9f45' },
@@ -123,7 +123,13 @@ document.querySelectorAll('.mode > .topbar').forEach(function (tb) {
 document.querySelectorAll('.topbar').forEach(function (tb) {
   const b = document.createElement('button'); b.className = 'btn music-btn'; b.textContent = '🎵'; b.setAttribute('aria-label', 'music on or off');
   b.addEventListener('click', function () { b.blur(); CC.music.toggleMute(); });
+  b.title = 'Music on or off';
   const last = tb.lastElementChild; if (last && last.tagName === 'SPAN' && !last.textContent.trim() && !last.id) tb.replaceChild(b, last); else tb.insertBefore(b, last);
+  /* everything after the title goes in one group on the right, so the title stays in the middle */
+  const right = document.createElement('span'); right.className = 'tb-right'; const h = tb.querySelector('h2');
+  while (h && h.nextSibling) right.appendChild(h.nextSibling);
+  tb.appendChild(right);
+  const home = tb.firstElementChild; if (home && home.tagName === 'BUTTON') { home.title = home.id === 'btn-change-session' ? 'Choose a year' : 'Back to the games'; home.setAttribute('aria-label', home.title); }
 });
 
 /* ---- keyboard routing ---- */
@@ -131,7 +137,7 @@ window.addEventListener('keydown', function (e) {
   CC.held[e.code] = true;
   if (CC.audio.ctx && CC.audio.ctx.state === 'suspended') CC.audio.ctx.resume();
   if (CC.ui.handleKey(e)) return;
-  if (e.code === 'Escape' && !e.repeat && CC.pausable[app.mode] && ['jump', 'blaster', 'commando', 'pattern', 'typing'].indexOf(app.mode) >= 0) { CC.togglePause(app.mode); return; }
+  if (e.code === 'Escape' && !e.repeat && CC.pausable[app.mode] && !(e.target && e.target.closest && e.target.closest('input, textarea'))) { CC.togglePause(app.mode); return; }
   const m = CC.modes[app.mode]; if (!m) return;
   // Only the 5 Makey Makey keys are blocked, and only in the Makey modes. Full-keyboard modes keep normal key behaviour.
   if (m.makey && CC.MAKEY_KEYS.indexOf(e.code) >= 0) e.preventDefault();

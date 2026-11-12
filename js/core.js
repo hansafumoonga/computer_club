@@ -225,6 +225,8 @@ CC.createLoop = function (update, draw) {
 
 /* ---------- Stage helper: --u scales overlay text with the stage width ---------- */
 CC.watchStage = function (stage) {
+  if (stage._watched) return;          // games call this every time they open: one watcher per stage is enough
+  stage._watched = true;
   function set() { stage.style.setProperty('--u', (stage.clientWidth / 100) + 'px'); }
   set();
   if (window.ResizeObserver) new ResizeObserver(set).observe(stage);
@@ -359,7 +361,15 @@ CC.makeLevelGame = function (cfg) {
     loop = CC.createLoop(function (dt) {
       g.t += dt; g.particles.update(dt); if (g.banner > 0) g.banner -= dt;
       if (g.state === 'play') cfg.update(g, dt); else if (cfg.idle) cfg.idle(g, dt);
-    }, function () { cfg.draw(g); if (g.banner > 0) drawBanner(); });
+    }, function () { g.ctx.setTransform(g.scale, 0, 0, g.scale, 0, 0); cfg.draw(g); if (g.banner > 0) drawBanner(); });
+    /* sharp picture on big screens: the game still thinks in 800 x 450, the canvas just holds more pixels (up to 2x) */
+    g.scale = 1;
+    g.fit = function () {
+      const s = Math.round(CC.clamp(stage.clientWidth * (window.devicePixelRatio || 1) / g.W, 1, 2) * 4) / 4;
+      if (!stage.clientWidth || s === g.scale) return;
+      g.scale = s; canvas.width = g.W * s; canvas.height = g.H * s;
+    };
+    window.addEventListener('resize', g.fit);
     function drawBanner() {
       const c = g.ctx, a = Math.min(1, g.banner, (2 - g.banner) * 3 + 0.2), ic = cfg.levelIcon ? cfg.levelIcon(g.level) : cfg.emoji;
       c.save(); c.globalAlpha = Math.max(0, Math.min(1, a)); c.textAlign = 'center'; c.font = 'bold 54px "Trebuchet MS",sans-serif';
@@ -393,7 +403,7 @@ CC.makeLevelGame = function (cfg) {
     };
   }
   return {
-    enter: function () { CC.audio.init(); build(); loop.start(); g.goto(0, false); },
+    enter: function () { CC.audio.init(); build(); g.fit(); loop.start(); g.goto(0, false); },
     exit: function () { if (!built) return; clearTimeout(g.pending); loop.stop(); UI.close(); g.state = 'intro'; },
     onKeyDown: function (e) { cfg.onKeyDown && cfg.onKeyDown(g, e); },
     onKeyUp: function (e) { cfg.onKeyUp && cfg.onKeyUp(g, e); },

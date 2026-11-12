@@ -2,3 +2,9 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# css and js are loaded with ?v=NUMBER in index.html, so they can be kept for a long time: bump the number when a file changes
+/css/*
+  Cache-Control: public, max-age=2592000
+/js/*
+  Cache-Control: public, max-age=2592000
