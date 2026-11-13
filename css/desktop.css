@@ -176,3 +176,16 @@ button.tb-start:hover{background:rgba(255,255,255,.25)}
 .dk-key{position:absolute;z-index:9998;pointer-events:none;transform:translateX(-50%);background:#fff;color:#15163a;font-weight:bold;font-size:1.5rem;padding:.3em .8em;border-radius:12px;border:3px solid #15163a;border-bottom-width:7px;box-shadow:0 0 0 5px #ffe14d;animation:dkKey .6s ease-in-out infinite alternate}
 @keyframes dkKey{to{transform:translateX(-50%) translateY(5px);border-bottom-width:3px}}
 @media (prefers-reduced-motion:reduce){.dk-key{animation:none}}
+
+/* ---------- helpers: the written steps under the instruction, and the label beside the demo pointer ---------- */
+.dk-help{flex:none;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:7px 14px;border-radius:14px;background:#fff8d9;color:#1f2a55;border:3px solid #ffd23f;animation:dkHelpIn .35s ease-out}
+.dk-help[hidden]{display:none}
+.dk-help .hl{font-weight:900;white-space:nowrap}
+.dk-help ol{flex:1 1 300px;margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px 14px;counter-reset:dkh}
+.dk-help li{counter-increment:dkh;display:flex;align-items:center;gap:7px;font-weight:bold;font-size:clamp(.85rem,1.5vw,1rem)}
+.dk-help li::before{content:counter(dkh);flex:none;width:1.6em;height:1.6em;border-radius:50%;background:#4d8dff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85em}
+.dk-help .dk-showme{flex:none;padding:.3em .8em;font-size:.95rem;background:#4d8dff;color:#fff;border-color:#2a5bb8;font-weight:bold}
+@keyframes dkHelpIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.dk-chip{position:absolute;z-index:9999;pointer-events:none;transform:translate(26px,18px);background:#15163a;color:#ffe14d;font-weight:900;font-size:1.05rem;padding:.25em .7em;border-radius:99px;border:2px solid #ffe14d;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.dk-chip[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.dk-help{animation:none}}

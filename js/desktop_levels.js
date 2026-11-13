@@ -454,5 +454,38 @@ LEVELS.forEach(function (lv) {
   lv.tasks.filter(function (t) { return !t.min || t.min <= 1; }).forEach(function (t, i) { if (list[i]) { t.voice = list[i][0]; if (list[i][1]) t.demo = list[i][1]; } });
 });
 
+/* ---------- exact "how to do it" steps for the tasks with more than one move (shown by the helper after two slips or a long wait).
+   The key is the start of the task's "say" line. Every other task gets its steps worked out from its words (helpFor in desktop.js). ---------- */
+const HOW = [
+  ['Click the Story, then press ENTER', 'keys', 'Enter ↵', ['Click the Story once. It turns blue.', 'Do not click again.', 'Press the ENTER key on the keyboard.']],
+  ['Open all three pictures', 'dbl', '', ['Double-click the first picture: two quick clicks.', 'Its window opens. The folder is still there behind it.', 'Double-click the next picture, then the last one.']],
+  ['Click the window at the BACK', 'click', '', ['Two windows are on top of each other.', 'Find the one that is partly hidden.', 'Click any part of it that you can see.']],
+  ['Use the bar to open the Song', 'click', '', ['Look at the bar along the bottom of the screen.', 'Every open window has a button there.', 'Click the button that says Song.']],
+  ['Open the bin and put the picture back', 'dbl', '', ['Double-click the Bin to open it.', 'Click the picture inside once.', 'Click ♻ Put back at the top of the window.']],
+  ['Delete the old file', 'rclick', '', ['Right-click the old file: press the RIGHT mouse button on it.', 'A small menu opens. Click Delete with the LEFT button.', 'Another way: click the file once, then press the DELETE key.']],
+  ['Delete all three OLD files', 'keys', 'Delete', ['Click one OLD file once.', 'Press the DELETE key on the keyboard.', 'Do the same for the other two OLD files. Leave the pictures.']],
+  ['Delete the old files', 'drag', '', ['Press on an old file and hold the button down.', 'Slide it onto the Bin and let go.', 'Do the same for the other old file.']],
+  ['Empty the bin', 'dbl', '', ['If the Bin window is not open, double-click the Bin.', 'Click 🗑 Empty at the top of the Bin window.']],
+  ['Open SCHOOL and make the window BIG', 'dbl', '', ['Double-click the SCHOOL folder to open it.', 'Find the ▢ button at the top right of its window.', 'Click ▢ once.']],
+  ['Open PHOTOS. Inside it', 'dbl', '', ['Double-click the PHOTOS folder to open it.', 'Right-click the empty space inside the window.', 'Click New folder in the menu.', 'Type 2025 and press ENTER.']],
+  ['Open PROJECT. Inside it', 'dbl', '', ['Double-click the PROJECT folder to open it.', 'Right-click the empty space inside the window.', 'Click New folder in the menu.', 'Type BACKUP and press ENTER.']],
+  ['Rename this folder to GAMES', 'rclick', '', ['Right-click the folder: press the RIGHT mouse button on it.', 'Click Rename in the menu with the LEFT button.', 'Type GAMES and press ENTER.']],
+  ['Copy the Story into Backup', 'rclick', '', ['Right-click the Story and click Copy.', 'Right-click the empty space in the Backup window.', 'Click Paste.']],
+  ['Copy the Story into Backup with the keyboard', 'keys', 'CTRL + C', ['Click the Story once.', 'Hold CTRL, tap C, let go. That copies it.', 'Click the empty space in the Backup window.', 'Hold CTRL, tap V, let go. That pastes it.']],
+  ['Copy the Story into BACKUP', 'keys', 'CTRL + C', ['Click the Story once, then hold CTRL and tap C.', 'Double-click PROJECT, then double-click BACKUP to open it.', 'Click the empty space in BACKUP, then hold CTRL and tap V.']],
+  ['Make the window fit the dotted box', 'drag', '', ['Drag the top bar of the window to move it over the dotted box.', 'Then drag the bottom right corner to change its size.', 'Keep going until the window covers the box.']],
+  ['Pictures on the LEFT. Music on the RIGHT.', 'drag', '', ['Press on the top bar of the Pictures window and hold.', 'Slide it to the left side and let go.', 'Do the same with Music, to the right side.']],
+  ['Close both pictures. Keep the Story open.', 'click', '', ['Read the name at the top of each window.', 'Click the red ✖ on the Dog window.', 'Click the red ✖ on the Sun window. Do not close the Story.']],
+  ['Hide every window except the Song', 'click', '', ['Read the name at the top of each window.', 'Click — on the Dog window.', 'Click — on the Story window. Leave the Song alone.']],
+  ['Select the 3 OLD files with CTRL', 'seq', 'CTRL', ['Click the first OLD file.', 'Hold the CTRL key down and click the other two OLD files.', 'Let go of CTRL, then press the DELETE key.']],
+  ['Drag a box around the 3 pictures', 'drag', '', ['Put the pointer on the empty desktop, above and left of the pictures.', 'Press and hold, then slide down and right. A box appears.', 'Let go when all 3 pictures are inside the box.']],
+  ['Move the Song into Music: click it', 'keys', 'CTRL + X', ['Click the Song once.', 'Hold CTRL, tap X, let go. That cuts it.', 'Click the empty space in the Music window.', 'Hold CTRL, tap V, let go. That pastes it.']],
+  ['Swap sides', 'drag', '', ['Drag the top bar of Pictures to the RIGHT edge and let go.', 'Drag the top bar of Music to the LEFT edge and let go.']],
+  ['Click ✂️ on the bar', 'click', '', ['Click the ✂️ on the bar at the bottom.', 'Press at one corner of the window you want.', 'Hold and slide to the opposite corner, then let go.']],
+  ['Press ⏺ to record', 'click', '', ['Click the ⏺ on the bar at the bottom. Recording starts.', 'Double-click the Story to open it.', 'Click the ⏺ again to stop.']],
+  ['Click 🪟, then Settings', 'click', '', ['Click the 🪟 button at the left of the bar.', 'Click Settings in the menu.', 'Find Games Hub in the list and click Uninstall.']]
+];
+LEVELS.forEach(function (lv) { lv.tasks.forEach(function (t) { let best = null; HOW.forEach(function (h) { if (t.say.indexOf(h[0]) === 0 && (!best || h[0].length > best[0].length)) best = h; }); if (best) { t.how = best[3]; if (!t.demo) t.demo = best[1]; t.keys = best[2]; } }); });
+
 CC.DESKTOP = { NAME: 'Desktop Skills', LEVELS: LEVELS };
 })();

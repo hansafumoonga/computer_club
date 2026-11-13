@@ -24,25 +24,30 @@ const MODES = {
   shortcuts:{ icon: '⚡', name: 'Shortcut Lab',  desc: 'Learn keyboard shortcuts that really work', group: 'kb', color: '#a77bff' },
   desktop:  { icon: '🪟', name: 'Desktop Skills', desc: 'Windows, folders and files, like a real computer', group: 'kb', color: '#4d8dff', cert: true },
   paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', group: 'design', color: '#ff7ac8' },
+  parts:    { icon: '🖥️', name: 'Parts of a Computer', desc: 'Name the parts, plug them in and power on', group: 'pc', color: '#4d8dff', cert: true },
+  letter:   { icon: '📝', name: 'Type a Letter', desc: 'A real word processor', group: 'pc', color: '#ff7a45', cert: true },
+  grid:     { icon: '🔢', name: 'Number Grid',   desc: 'A real spreadsheet with formulas and charts', group: 'pc', color: '#3fa84f', cert: true },
+  network:  { icon: '🌐', name: 'Network Builder', desc: 'Join computers with a switch and a router', group: 'pc', color: '#22c6c6', cert: true },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss, catch the rain', group: 'kb', color: '#5ac8ff', cert: true }
 };
 /* what each year can play, IN ORDER OF SKILL inside each group: the first thing to learn comes first, and each game builds on the one before.
    Keyboard and mouse: the mouse, then clicking and dragging, then the keys, then words, then the desktop (which uses all of them).
+   Computers and apps: the parts of a computer, then word processing, then spreadsheets, then networks.
    Arrow keys: one key (jump), then five keys (piano), then keys in order (pattern), then moving and firing together. */
 const YEARS = {
-  '1': { modes: ['mouseclub', 'buildclick', 'skills', 'fruit', 'desktop', 'paint', 'magic', 'jump', 'piano'] },
-  '2': { modes: ['skills', 'fruit', 'buildtype', 'words', 'desktop', 'magic', 'art', 'jump', 'piano', 'blaster'] },
-  '3': { modes: ['skills', 'fruit', 'words', 'desktop', 'magic', 'art', 'scene', 'jump', 'piano', 'pattern', 'blaster'] },
-  '4': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
-  '5': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
-  '6': { modes: ['typing', 'shortcuts', 'desktop', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] }
+  '1': { modes: ['mouseclub', 'buildclick', 'skills', 'fruit', 'desktop', 'parts', 'paint', 'magic', 'jump', 'piano'] },
+  '2': { modes: ['skills', 'fruit', 'buildtype', 'words', 'desktop', 'parts', 'magic', 'art', 'jump', 'piano', 'blaster'] },
+  '3': { modes: ['skills', 'fruit', 'words', 'desktop', 'parts', 'letter', 'network', 'magic', 'art', 'scene', 'jump', 'piano', 'pattern', 'blaster'] },
+  '4': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'parts', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
+  '5': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
+  '6': { modes: ['typing', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] }
 };
-/* the three groups in every year menu: learning with keyboard and mouse, painting and design, and the arrow-key / Makey Makey games */
-const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
+/* the four groups in every year menu: learning with keyboard and mouse, how computers and their programs work, painting and design, and the arrow-key / Makey Makey games */
+const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['pc', '💻', 'Computers and apps'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
-const MUSIC = { mouseclub: 'gentle', skills: null, desktop: 'gentle', fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, shortcuts: null, magiclab: 'words', design: 'words', magic: 'words', art: 'words', scene: 'words', paint: 'words', buildclick: 'words', buildtype: 'words' };
+const MUSIC = { mouseclub: 'gentle', skills: null, desktop: 'gentle', fruit: 'fruit', words: 'words', jump: 'jump', blaster: 'blaster', commando: 'commando', pattern: 'pattern', piano: null, typing: null, shortcuts: null, magiclab: 'words', design: 'words', magic: 'words', art: 'words', scene: 'words', paint: 'words', buildclick: 'words', buildtype: 'words', parts: 'gentle', network: 'gentle', letter: null, grid: null };
 
 function showOnly(el) {
   document.querySelectorAll('.screen, .mode').forEach(function (s) { s.hidden = true; });

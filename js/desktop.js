@@ -122,9 +122,9 @@ function emit(ev) {
   if (COUNT[ev.t]) {
     S.miss++; S.levelMiss++;
     const m = t.oops ? t.oops(ev, api()) : (ev.t === 'pick' ? (t.wrong || 'Not that one. Think about the keys!') : ev.t === 'blocked' ? 'Apps are not deleted. They are UNINSTALLED!' : '');
-    sfx('softMiss'); flash(m || (S.miss >= 3 ? 'Try the glowing thing, or press ↺ to start again.' : 'Not quite. Try again!'), 'bad');
-    if (S.miss >= 2 && !S.hintOn && !proHidden()) { S.hintOn = true; applyHint(); }
-  } else if (t.oops && ev.t === 'rename') { const m = t.oops(ev, api()); if (m) { S.miss++; flash(m, 'bad'); } }
+    sfx('softMiss'); flash(m || (S.miss >= 2 ? 'Not quite. Look at the steps below.' : 'Not quite. Try again!'), 'bad');
+    helpAfterMiss();
+  } else if (t.oops && ev.t === 'rename') { const m = t.oops(ev, api()); if (m) { S.miss++; flash(m, 'bad'); helpAfterMiss(); } }
 }
 function flash(text, cls) { const m = $root().querySelector('.dk-msg'); if (!m) return; m.classList.remove('good', 'bad'); if (cls) m.classList.add(cls); m.querySelector('.say').textContent = text; m.querySelector('.sub').textContent = ''; if (cls === 'bad') boSpeak(text); clearTimeout(S.flashT); S.flashT = setTimeout(function () { showTask(); }, 1800); }
 function showTask() {
@@ -442,6 +442,7 @@ function startResize(e, node) {
   window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
 }
 function onDown(e) {
+  if (S.view === 'play') idleArm();
   if (S.view !== 'play' || CC.ui.active || e.button === 2) return;
   boStop();   /* the child takes over: Bo's pointer goes away */
   const t = e.target;
@@ -491,6 +492,7 @@ function onEditKey(e) {
 }
 function shotKey(e) { const now = Date.now(); if (S.psAt && now - S.psAt < 600) return; S.psAt = now; fullShot('key'); }
 function onKeyDown(e) {
+  if (S.view === 'play') idleArm();
   if (S.view !== 'play' || CC.ui.active || S.locked) return;
   if (e.key === 'PrintScreen') { e.preventDefault(); shotKey(e); return; }
   const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA') return;
@@ -507,6 +509,60 @@ function onKeyDown(e) {
   else if (e.key === 'Enter' && id && fileOf(id) && fileOf(id).parent !== 'bin') { e.preventDefault(); openFile(id, 'key'); }
 }
 function onKeyUp(e) { if (S.view === 'play' && e.key === 'PrintScreen' && !S.locked && !CC.ui.active) shotKey(e); }
+
+/* ---------- helpers for every year: a learner who slips twice, or who waits a long time, gets the steps in plain words;
+   a third slip (or more waiting) plays the pointer demo. The steps come from the words of the task, or from task.how in desktop_levels.js. ---------- */
+const IDLE_MS = 25000;
+function helpFor(t) {
+  if (!t) return { kind: null, steps: [] };
+  if (t.how) return { kind: t.demo || null, steps: [].concat(t.how), keys: t.keys || '' };
+  if (t.choices) return { kind: null, steps: ['Read all four answers.', 'Think about what each key does.', 'Click the answer you think is right. You can try again.'] };
+  const txt = (t.say || '') + ' ' + (t.sub || ''), hints = [].concat(t.hint || []), s = [], has = function (re) { return re.test(txt); };
+  const combo = txt.match(/\b(CTRL|SHIFT|ALT)\s*\+\s*[A-Z]\b/gi) || [], many = has(/\b(all|both|every|three|3)\b/i);
+  const holdKey = (txt.match(/Hold (CTRL|SHIFT)/i) || [])[1], single = has(/\bF2\b/) ? 'F2' : has(/PRINT SCREEN/i) ? 'PrtScn' : has(/DELETE key/i) ? 'Delete' : (!combo.length && has(/\bENTER\b/) && !has(/type/i)) ? 'Enter ↵' : '';
+  let kind = null, keys = '';
+  if (hints[0] === '.dk-edit') { kind = 'keys'; keys = 'Type, then Enter ↵'; s.push('The name box is ready. You do not need to click.'); }
+  else if (/double-click/i.test(t.say || '')) { kind = 'dbl'; s.push('Put the pointer on the glowing thing.', 'Click the LEFT button two times, quickly: click-click.', 'Keep the mouse still while you click.'); }
+  else if (has(/right-click/i)) { kind = 'rclick'; s.push('Put the pointer on ' + (has(/empty|desktop/i) ? 'an empty space' : 'the glowing thing') + '.', 'Press the RIGHT mouse button once. A small menu opens.', 'Click the word you need in the menu with the LEFT button.'); }
+  else if (has(/find the file/i)) { kind = 'click'; s.push('Click the 🔍 on the bar at the bottom.', 'Type part of the name. You do not need the whole word.', 'Click the file in the list of results.'); }
+  else if (combo.length) {
+    kind = 'keys'; keys = combo[0].replace(/\s+/g, ' ').toUpperCase();
+    if (hints.length) s.push('Click the glowing thing once, so the computer knows which one you mean.');
+    combo.forEach(function (c, i) { const k = c.replace(/\s+/g, '').toUpperCase().split('+'); if (i === 1 && hints.length > 1) s.push('Click the place it should go.'); s.push('Hold the ' + k[0] + ' key down, tap ' + k[1] + ', then let go.'); });
+  }
+  else if (holdKey) { kind = 'seq'; keys = holdKey.toUpperCase(); s.push('Click the first one.', 'Hold the ' + keys + ' key down on the keyboard.', 'While you hold it, click the other one. Then let go.'); }
+  else if (single) { kind = 'keys'; keys = single; if (!has(/keep the name/i)) s.push('Click the glowing thing once.'); s.push('Press the ' + single.replace(' ↵', '').toUpperCase() + ' key on the keyboard.'); }
+  else if (has(/\bdrag|stretch|\bput\b|\bsort|swap|\bmove\b|bigger|smaller|fit the|\bLEFT\b.*\bRIGHT\b/i) && !has(/then click/i)) {
+    kind = 'drag'; s.push('Put the pointer on the thing you want to move.', 'Press the LEFT button and keep holding it down.', 'Slide the mouse to where it should go.', 'Let go of the button.');
+  }
+  else if (hints.length > 1) { kind = 'seq'; s.push('Click the first glowing thing once.', 'Then click the second glowing thing.'); }
+  else { kind = 'click'; s.push('Find the thing that glows.', 'Put the pointer on it.', 'Click the LEFT button once.'); }
+  const nm = txt.match(/\b(?:named?|type(?: the name)?|to) ([A-Z0-9]{3,})\b/);
+  if ((nm || has(/\btype\b/i)) && !has(/find the file/i)) s.push('Type ' + (nm ? nm[1] : 'the name') + ' on the keyboard.', 'Press the ENTER key.');
+  if (many && kind !== 'keys') s.push('Do the same for each one.');
+  return { kind: kind, steps: s, keys: keys };
+}
+function helpBox() { const R = $root(); return R && R.querySelector('.dk-help'); }
+function helpHide() { const b = helpBox(); if (b) b.hidden = true; }
+function helpShow() {
+  const b = helpBox(), t = S.tasks[S.ti]; if (!b || !t) return;
+  const h = helpFor(t), canDemo = !proHidden() && [].concat(t.hint || []).length > 0;
+  b.innerHTML = '<span class="hl">💡 How to do it</span><ol>' + h.steps.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>' + (canDemo ? '<button type="button" class="btn dk-showme">▶ Show me</button>' : '');
+  const sm = b.querySelector('.dk-showme'); if (sm) sm.addEventListener('click', function () { sm.blur(); helpDemo(); });
+  b.hidden = false;
+}
+function helpDemo() { if (CC.ui.active || S.locked) return; if (S.year > 1) S.levelDemo = (S.levelDemo || 0) + 1; boShow(true); }
+/* level 1 = the glow and the written steps; level 2 = the pointer shows the move */
+function helpUp(to) {
+  const t = S.tasks[S.ti]; if (!t || S.locked || S.view !== 'play') return;
+  S.help = Math.max(S.help || 0, to);
+  if (!proHidden() && !S.hintOn) { S.hintOn = true; applyHint(); }
+  helpShow();
+  if (boOn()) boSpeak(helpFor(t).steps.join(' '));
+  if (S.help >= 2 && !proHidden()) { clearTimeout(BO.t); BO.t = setTimeout(helpDemo, boOn() ? 300 : 1900); }   /* after the "not quite" message has been read */
+}
+function helpAfterMiss() { if (S.miss >= (proHidden() ? 3 : 2)) helpUp(S.miss >= 3 && !proHidden() ? 2 : 1); idleArm(); }
+function idleArm() { clearTimeout(S.idleT); if (S.view !== 'play') return; S.idleT = setTimeout(function () { if (S.view === 'play' && !S.locked && !CC.ui.active && !document.hidden && !$root().querySelector('.dk-edit')) helpUp(Math.min(2, (S.help || 0) + 1)); idleArm(); }, IDLE_MS); }
 
 /* ---------- Bo, the guide for Year 1: he SAYS every step out loud and SHOWS it with a moving pointer ----------
    What he says and how he shows it is plain data on each task (voice, demo) in desktop_levels.js.
@@ -536,11 +592,11 @@ function boSpeak(text) {
 }
 function boSayTask(first) { const t = S.tasks[S.ti]; if (!t) return; boSpeak((first && S.lv && S.lv.intro ? S.lv.intro + ' ' : '') + (t.voice || t.say)); }
 function boStop() { BO.tok++; clearTimeout(BO.t); BO.nodes.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); BO.nodes = []; }
-function boShow() {
+function boShow(force) {
   const R = $root(), scr = R && R.querySelector('.dk-screen'), t = S.tasks[S.ti];
-  boStop(); if (!boOn() || !scr || !t || S.view !== 'play' || S.locked || CC.ui.active) return;
+  boStop(); if (!(force || boOn()) || !scr || !t || S.view !== 'play' || S.locked || CC.ui.active) return;
   const tok = BO.tok, alive = function () { return tok === BO.tok && S.view === 'play' && !S.locked && scr.isConnected; };
-  const hints = [].concat(t.hint || []), kind = t.demo || (hints.length > 1 ? 'drag' : 'click');
+  const hints = [].concat(t.hint || []), hp = helpFor(t), kind = t.demo || hp.kind || (hints.length > 1 ? 'drag' : 'click');
   const q = function (sel) { try { return sel ? R.querySelector(sel) : null; } catch (e) { return null; } };
   const box = function () { return scr.getBoundingClientRect(); };
   /* a point on the thing that can really be seen (a window at the back is half covered) */
@@ -567,7 +623,10 @@ function boShow() {
       })(t0);
     });
   };
-  const press = function (btn) { mouse.dataset.btn = btn || 'left'; cur.classList.remove('click'); void cur.offsetWidth; cur.classList.add('click'); sfx('clink'); };
+  /* a small label beside the pointer says what the hand is doing */
+  const chip = add(el('div', 'dk-chip')); chip.hidden = true;
+  const label = function (txt) { chip.hidden = !txt; chip.textContent = txt || ''; chip.style.left = px + 'px'; chip.style.top = py + 'px'; };
+  const press = function (btn) { mouse.dataset.btn = btn || 'left'; cur.classList.toggle('orange', btn === 'right'); cur.classList.remove('click'); void cur.offsetWidth; cur.classList.add('click'); sfx('clink'); };
   const rest = function () { mouse.dataset.btn = 'none'; cur.classList.remove('down'); };
   (async function () {
     at(px, py); if (!(await wait(350))) return;
@@ -577,22 +636,29 @@ function boShow() {
       cur.hidden = true; mouse.hidden = true; await wait(3200); return;
     }
     if (!(await go(p.x, p.y, 1200))) return; if (!(await wait(300))) return;
-    if (kind === 'dbl') { press('dbl'); if (!(await wait(260))) return; press('dbl'); await wait(1100); }
+    if (kind === 'dbl') { label('click-click!'); press('dbl'); if (!(await wait(260))) return; press('dbl'); await wait(1400); }
+    else if (kind === 'rclick') { label('RIGHT button'); press('right'); if (!(await wait(1500))) return; label('then pick from the menu'); await wait(1600); }
+    else if (kind === 'keys') { label('click'); press('left'); if (!(await wait(800))) return; rest(); label(''); const r = a.getBoundingClientRect(), s = box(), key = add(el('div', 'dk-key', hp.keys || 'Keyboard')); key.style.left = Math.max(90, Math.min(s.width - 90, r.left + r.width / 2 - s.left)) + 'px'; key.style.top = Math.min(s.height - 70, r.bottom - s.top + 10) + 'px'; await wait(3200); }
     else if (kind === 'seq') {
-      press('left'); if (!(await wait(700))) return; rest(); const b = q(hints[1]); if (!b) return; p = spot(b);
-      if (!(await go(p.x, p.y, 1000))) return; if (!(await wait(250))) return; press('left'); await wait(1000);
+      label('click'); press('left'); if (!(await wait(700))) return; rest(); label(''); const b = q(hints[1]); if (!b) return; p = spot(b);
+      if (!(await go(p.x, p.y, 1000))) return; if (!(await wait(250))) return; label(hp.keys ? hp.keys + ' + click' : 'click'); press('left'); await wait(1200);
     } else if (kind === 'drag') {
-      const b = q(hints[1]); if (!b) return; let to = spot(b);
-      const win = a.closest('.dk-win'), s = box();
-      if (win && b.classList.contains('dk-target')) {   /* a window: the pointer holds the top bar, and a dotted outline of the window travels to the box */
+      const b = q(hints[1]), win = a.closest('.dk-win'), s = box(), txt = (t.say || '') + ' ' + (t.sub || ''); let to = b ? spot(b) : null;
+      if (!to) {   /* one glowing thing only: where the drag ends comes from the words of the task */
+        const grip = a.classList.contains('dk-grip');
+        if (/LEFT/.test(txt)) to = { x: 6, y: p.y }; else if (/RIGHT/.test(txt)) to = { x: s.width - 6, y: p.y }; else if (/TOP/.test(txt)) to = { x: p.x, y: 4 };
+        else if (grip && /SMALLER/i.test(txt)) to = { x: p.x * 0.6, y: p.y * 0.6 }; else if (grip) to = { x: Math.min(s.width - 20, p.x + s.width * 0.3), y: Math.min(s.height - 70, p.y + s.height * 0.3) };
+        else to = { x: Math.min(s.width - 40, p.x + s.width * 0.25), y: p.y + 40 };
+      }
+      if (win && b && b.classList.contains('dk-target')) {   /* a window: the pointer holds the top bar, and a dotted outline of the window travels to the box */
         const wr = win.getBoundingClientRect(), br = b.getBoundingClientRect();
         to = { x: p.x + (br.left + br.width / 2) - (wr.left + wr.width / 2), y: p.y + (br.top + br.height / 2) - (wr.top + wr.height / 2) };
         ghost = add(el('div', 'dk-bo-win')); ghost.style.width = wr.width + 'px'; ghost.style.height = wr.height + 'px'; gdx = wr.left - s.left - p.x; gdy = wr.top - s.top - p.y;
-      } else { const ig = a.querySelector('.ig'); ghost = add(el('div', 'dk-bo-ghost', ig ? ig.innerHTML : '')); gdx = 0; gdy = 0; }
-      cur.classList.add('down'); mouse.dataset.btn = 'hold'; sfx('clink'); at(px, py);
-      if (!(await wait(500))) return; if (!(await go(to.x, to.y, 1700))) return; if (!(await wait(350))) return;
-      rest(); press('none'); mouse.dataset.btn = 'none'; await wait(700);
-    } else { press('left'); await wait(1100); }
+      } else { const ig = a.querySelector('.ig'); if (ig) { ghost = add(el('div', 'dk-bo-ghost', ig.innerHTML)); gdx = 0; gdy = 0; } }
+      cur.classList.add('down'); mouse.dataset.btn = 'hold'; sfx('clink'); at(px, py); label('hold the button down…');
+      if (!(await wait(900))) return; label(''); if (!(await go(to.x, to.y, 1700))) return; label('let go!'); if (!(await wait(350))) return;
+      rest(); press('none'); mouse.dataset.btn = 'none'; await wait(1000);
+    } else { label('click'); press('left'); await wait(1300); }
   })().then(function () { if (tok === BO.tok) boStop(); }, function () { if (tok === BO.tok) boStop(); });
 }
 
@@ -600,9 +666,9 @@ function boShow() {
 function levelsFor() { return LEVELS.filter(function (l) { return !l.min || S.year >= l.min; }); }
 function allDone() { return levelsFor().every(function (l) { return S.done[l.id]; }); }
 function tasksFor(lv) { return lv.tasks.filter(function (t) { return (!t.min || S.year >= t.min) && (!t.max || S.year <= t.max); }); }
-function clearTimers() { clearTimeout(S.timer); clearTimeout(S.flashT); }
+function clearTimers() { clearTimeout(S.timer); clearTimeout(S.flashT); clearTimeout(S.idleT); }
 function beginTask(i, again) {
-  clearTimers(); S.ti = i; S.locked = false; S.miss = 0; closeMenu(); closePanels();
+  clearTimers(); S.ti = i; S.locked = false; S.miss = 0; S.help = 0; helpHide(); closeMenu(); closePanels();
   const t = S.tasks[i];
   if (again && S.snap) S.os = JSON.parse(JSON.stringify(S.snap));
   else { if (t.scene) loadScene(t.scene); S.snap = JSON.parse(JSON.stringify(S.os)); }
@@ -611,9 +677,10 @@ function beginTask(i, again) {
   const dots = $root().querySelector('.dk-dots'); dots.innerHTML = S.tasks.map(function (x, k) { return '<i class="' + (k < i ? 'd' : k === i ? 'c' : '') + '"></i>'; }).join('');
   showTask(); render();
   boStop(); if (boOn()) { boSayTask(i === 0 && !again); BO.t = setTimeout(boShow, 900); }
+  idleArm();
 }
 function good() {
-  const t = S.tasks[S.ti]; S.locked = true; sfx('good'); applyHint(); boStop();
+  const t = S.tasks[S.ti]; S.locked = true; sfx('good'); applyHint(); boStop(); helpHide(); clearTimeout(S.idleT);
   const slow = boOn() && BO.voice && !!boVoice(); boSpeak(t.win || CHEERS[S.ti % CHEERS.length]);   /* Bo gets time to finish his sentence */
   const m = $root().querySelector('.dk-msg'); m.classList.remove('bad'); m.classList.add('good'); m.querySelector('.say').textContent = '✔ ' + (t.win || CHEERS[S.ti % CHEERS.length]); m.querySelector('.sub').textContent = '';
   const dots = $root().querySelector('.dk-dots'); if (dots.children[S.ti]) dots.children[S.ti].className = 'd';
@@ -623,7 +690,7 @@ function good() {
 function gemSvg(lv, px) { return CC.SKILLS && CC.SKILLS.gem ? CC.SKILLS.gem(lv.gem, px) : '🏆'; }
 function gemName(lv) { return CC.SKILLS.gemName(lv.gem); }
 function finishLevel() {
-  clearTimers(); S.locked = true; const lv = S.lv, m = S.levelMiss, stars = m <= 2 ? 3 : m <= 6 ? 2 : 1;
+  clearTimers(); S.locked = true; const lv = S.lv, m = S.levelMiss, stars = Math.min(m <= 2 ? 3 : m <= 6 ? 2 : 1, S.levelDemo ? 2 : 3);   /* watching the pointer demo still passes the level, with one star fewer */
   S.done[lv.id] = true; S.stars[lv.id] = Math.max(S.stars[lv.id] || 0, stars); keepProgress();
   sfx('levelComplete'); levelDone(lv, stars);
 }
@@ -654,7 +721,7 @@ function buildPlay() {
   const R = $root(); R.innerHTML = '';
   const p = el('div', 'dk-play');
   p.innerHTML = '<div class="dk-top"><button type="button" class="btn dk-back" aria-label="levels">🗺️</button><b class="dk-lv"></b><span class="dk-dots"></span><button type="button" class="btn dk-again" title="Start this step again" aria-label="start this step again">↺</button><button type="button" class="btn dk-hint" title="Show me" aria-label="show me">💡</button></div>' +
-    '<div class="dk-msg"><b class="say"></b><i class="sub"></i></div>' +
+    '<div class="dk-msg"><b class="say"></b><i class="sub"></i></div><div class="dk-help" hidden></div>' +
     '<div class="dk-screen"><div class="dk-area"><div class="dk-icons"></div><div class="dk-bin" aria-label="Recycle Bin"></div><div class="dk-target" hidden></div><div class="dk-wins"></div></div><div class="dk-taskbar"></div></div>';
   R.appendChild(p);
   const scr = p.querySelector('.dk-screen');
@@ -662,7 +729,7 @@ function buildPlay() {
   scr.addEventListener('focusout', function (e) { if (e.target.classList && e.target.classList.contains('dk-edit') && S.os.edit && !S.locked) { const ed = e.target; setTimeout(function () { if (S.os.edit && $root().contains(ed) && ed === $root().querySelector('.dk-edit') && document.activeElement !== ed) finishEdit(S.os.edit, ed.value, true); }, 0); } });
   p.querySelector('.dk-back').addEventListener('click', function (e) { e.currentTarget.blur(); showHome(); });
   p.querySelector('.dk-again').addEventListener('click', function (e) { e.currentTarget.blur(); if (!CC.ui.active) beginTask(S.ti, true); });
-  p.querySelector('.dk-hint').addEventListener('click', function (e) { e.currentTarget.blur(); S.hintOn = !S.hintOn; applyHint(); });
+  p.querySelector('.dk-hint').addEventListener('click', function (e) { e.currentTarget.blur(); S.hintOn = !S.hintOn; applyHint(); if (S.hintOn) helpShow(); else helpHide(); });
   p.querySelector('.dk-lv').textContent = 'Level ' + S.lv.id + ' · ' + S.lv.title;
   if (proHidden()) p.querySelector('.dk-hint').style.display = 'none';   /* Year 6: no hints on the pro levels */
   if (boOn()) {   /* Year 1: Bo sits beside the instruction, with buttons to watch him again, hear him again, or turn his voice off */
@@ -676,7 +743,7 @@ function buildPlay() {
   }
 }
 function startLevel(id) {
-  CC.ui.close(); clearTimers(); S.lv = LEVELS[id - 1]; S.tasks = tasksFor(S.lv); S.levelMiss = 0; S.view = 'play'; S.os = newOS();
+  CC.ui.close(); clearTimers(); S.lv = LEVELS[id - 1]; S.tasks = tasksFor(S.lv); S.levelMiss = 0; S.levelDemo = 0; S.view = 'play'; S.os = newOS();
   buildPlay(); beginTask(0);
 }
 function showHome() {
@@ -707,6 +774,6 @@ CC.modes.desktop = {
   onKeyDown: onKeyDown,
   onKeyUp: onKeyUp,
   /* test hooks (used only by the automated checks) */
-  _S: S, _emit: emit, _begin: beginTask, _start: startLevel, _home: showHome, _api: api, _ops: { openFile: openFile, closeWin: closeWin, minWin: minWin, restoreWin: restoreWin, toggleMax: toggleMax, moveFile: moveFile, newFolder: newFolder, finishEdit: finishEdit, deleteFile: deleteFile, putBack: putBack, emptyBin: emptyBin, copyFile: copyFile, pasteInto: pasteInto, openBin: openBin, raise: raise, moveFiles: moveFiles, copyFiles: copyFiles, selectAll: selectAll, setSel: setSel, toggleSel: toggleSel, selectRange: selectRange, doUndo: doUndo, uninstall: uninstall, openSearch: openSearch, searchPick: searchPick, snapWin: snapWin, shotRect: shotRect, fullShot: fullShot, toggleRec: toggleRec, openSettings: openSettings, deleteSel: deleteSel }
+  _S: S, _emit: emit, _helpFor: helpFor, _helpUp: helpUp, _begin: beginTask, _start: startLevel, _home: showHome, _api: api, _ops: { openFile: openFile, closeWin: closeWin, minWin: minWin, restoreWin: restoreWin, toggleMax: toggleMax, moveFile: moveFile, newFolder: newFolder, finishEdit: finishEdit, deleteFile: deleteFile, putBack: putBack, emptyBin: emptyBin, copyFile: copyFile, pasteInto: pasteInto, openBin: openBin, raise: raise, moveFiles: moveFiles, copyFiles: copyFiles, selectAll: selectAll, setSel: setSel, toggleSel: toggleSel, selectRange: selectRange, doUndo: doUndo, uninstall: uninstall, openSearch: openSearch, searchPick: searchPick, snapWin: snapWin, shotRect: shotRect, fullShot: fullShot, toggleRec: toggleRec, openSettings: openSettings, deleteSel: deleteSel }
 };
 })();
