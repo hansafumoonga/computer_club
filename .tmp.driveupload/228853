@@ -1,0 +1,228 @@
+COMPUTER CLUB & KEYBOARD SKILLS SUITE - teacher notes (version 2)
+=================================================================
+
+HOW TO USE
+  Open index.html (double-click), or upload this whole folder to any free static host (live site: Cloudflare Pages, https://techexplorers.pages.dev/) as-is
+  (index.html + the css and js folders and the small files next to index.html).
+  No server, no install, no network calls, nothing is sent anywhere. A short-lived copy of progress is kept in the browser (see CC.keep in js/core.js, 3 hours).
+
+WORD HUNT + SLICE & POP (version 8)
+  - Word Hunt now has 10 levels you can pick from (numbers along the top). Easy short words first (MOUSE, FILE, SAVE), then everyday
+    computing words, then longer technical words (PASSWORD, ALGORITHM, TOUCHSCREEN). Grids grow from 6x6 to 12x12, then diagonals and
+    backwards words arrive, and in levels 9-10 some words are MYSTERIES (only a picture and the number of letters show). The word list is
+    always on the right. Found words get a coloured highlight that matches their chip. Edit WORD_LIST (tier 1-5) and LEVELS in js/words.js.
+  - Fruit Slice is now SLICE & POP: 10 levels you choose from. Level 1 is super slow (34 seconds to fall) with only the letters F J D K;
+    each level is faster with more letters (home row, top row, bottom row, all letters, then numbers). The things to hit change too:
+    fruit, balloons, bugs, and a mix. Fun extras: streaks (🔥), and golden ones that pop everything on screen. Still no lives and no
+    game over. Edit SLICE_LEVELS (theme, letters, fall seconds, spawn gap, max on screen, goal) and GOLDEN_CHANCE in js/fruit.js.
+
+LOOK UPGRADE (version 6)
+  - The soldier has a different costume for every stage scenery (parka, diving mask, desert shades, space bubble helmet, hard hat, cape...),
+    rank stripes and a medal as the stages go on, a run cycle with a swinging arm, recoil when he fires, a glow and ring when he picks up a
+    weapon, a staggered pose when hurt and a victory hop when a stage is won. Costumes are the COSTUMES list in js/sprites.js.
+  - Every weapon has its own big, detailed gun, its own muzzle flash, a glowing bullet trail, and weapon-coloured sparks on impact.
+    Normal / rapid / spread guns eject shell casings. Damaged giant robots, tanks and helicopters smoke. Slow motion when a boss falls.
+  - Weather: northern lights over the snow stages, rain in the swamp.
+
+COMMANDO RUN UPGRADE (version 5)
+  - Stages are about 20% longer (8,400 to 18,000 pixels).
+  - New big enemies: a GIANT ROBOT that slams the ground (and sends a wave) if you get near, a TANK that lobs bombs that leave fire patches,
+    a bomber HELICOPTER that hovers over you dropping bombs, and a CHARGING BEAST that crouches then rushes you (jump over it!).
+  - Old enemies are more aggressive: walkers lunge, flyers swoop down at you, hoppers hop faster, gunners fire bursts. They also look nastier
+    (horns, spikes, bat wings) and walkers change colour with the scenery. Every stage's half-way mini-boss is now an armoured guard, a giant
+    robot or a tank in turn.
+  - Bosses are bigger (x1.2), glow, and fight in 3 PHASES (the health bar shows the two marks). At 2/3 health they add new attacks, at 1/3 they
+    get angry (red aura, embers, faster). New attacks: summon helpers, lunge at you, lobbed bombs that leave fire, a fast barrage of shots,
+    and a LASER ACROSS CHEST HEIGHT - press Down to DUCK under it (or jump). Dragon breathes fire, UFO shines a beam, etc.
+  - The nastier boss moves only appear from later stages (MOVE_MIN in js/commando.js), so stages 1 and 2 stay friendly.
+  - When the boss arrives a friendly invisible wall keeps you in the left part of the arena.
+  - Boss hit points: BOSS_HP_BASE / BOSS_HP_PER_STAGE. Boss moves per creature: BOSS_DEF.
+
+MUSIC (version 4)
+  Every game has its own synthesized background tune (js/music.js, no audio files): menu (bouncy), Jump Over (bright running chiptune,
+  speeds up each level), Star Blaster (space arpeggios in a different key per level + a faster boss tune), Commando Run (heavy action riffs,
+  a different key every stage + a darker, faster boss tune when the big creature arrives), Pattern Pop (quiet and playful so the pad tones
+  stand out), Fruit Slice (relaxed marimba), Word Hunt (calm thinking music). The Piano has no background music - the child is the music.
+  A music button in every top bar turns it on/off. Music gets quieter automatically while a menu / level-complete screen is showing.
+  To change a tune edit TRACKS in js/music.js (bpm = speed, key, vol = loudness, and the chord / bass / drum / melody patterns).
+
+WHAT CHANGED IN VERSION 3
+  - New landing page: keycap logo, a mini keyboard for Session 1 and a Makey Makey board (pads + fruit) for Session 2.
+  - Commando Run is longer (stages are 7,000 to 15,000 pixels long) and busier from the first stage: packs of enemies rushing in, a half-way
+    mini-boss (an extra-big armoured guard) in every stage, long chasms crossed on stepping platforms, 3 checkpoint flags, weather and
+    richer scenery, screen shake, muzzle flash and dust.
+  - Fall off a platform or into a pit: you lose one heart and a friendly bubble floats you back to the last safe ground, still in the stage.
+  - The bosses and enemies now look fierce (angry eyes, fangs, horns, spikes) - still cartoon, never gory. The lion was redone first.
+  - Keyboard / Makey Makey learning: little key-caps along the bottom of Commando Run, Jump Over and Star Blaster light up in the same colours
+    as the piano notes whenever a key or pad is pressed. In the first 3 stages of Commando Run, key pictures pop up above the soldier
+    (-> to start, up arrow before a pit, Space when an enemy is near). Change KEY_HINT_STAGES in js/commando.js (0 = off).
+
+WHAT CHANGED IN VERSION 2
+  - Commando Run: 15 stages, a scrolling world you run through (enemies wait for you - you go and find them), floating platforms to jump
+    and stand on (press Down on a platform to drop through), pits to jump (a friendly rescue costs one heart), checkpoint flags,
+    hearts to find, a cartoon soldier with a rifle, 7 weapons, 7 enemy types and a different big boss at the end of every stage.
+  - Word Hunt is now a WORD SEARCH (6 rounds, getting bigger and trickier).
+  - Jump Over!: 12 levels, 12 different scenery themes, new obstacles (rolling ball, hanging swing, tall wall, gaps in the ground),
+    patterns that combine them, and stars to collect. Levels take about 35-60 seconds each.
+  - Star Blaster: 12 levels, 5 kinds of falling things (new: zig-zagger, splitter), laser pickup, 3 big bosses (levels 4, 8, 12).
+  - Much less text: pictures, big round buttons, keys shown as little key-caps.
+
+KEYS
+  The arrow-key games (Jump, Star Blaster, Piano, Commando, Pattern Pop) use only the 5 keys Left / Up / Down / Right / Space (a Makey Makey presses these). Typing Club, Slice & Pop and Type & Build need a full keyboard.
+  Commando Run: Left/Right run, Up jump (hold Up while standing still to aim UP), Down duck (or drop through a platform), Space shoot (hold to keep firing).
+
+THE 7 COMMANDO WEAPONS (pick up the glowing capsules; you keep a weapon until you lose a heart)
+  normal (yellow ball)  rapid (orange streaks, twin barrels)  spread (green 3-way)  big (purple, passes through 3 enemies)
+  laser (cyan beam, passes through everything)  homing (pink stars that curve toward enemies)  fire (flames, short range).
+  The soldier's rifle and the bullet look different for every weapon. New weapons unlock as the stages go on.
+
+FILES
+  index.html        the page (hub + every game's screen, shown/hidden)
+  css/style.css     look and feel
+  js/core.js        shared sound synth, drums, particles, game loop, the Level Complete / Try Again / intro screens
+  js/sprites.js     characters, enemies, obstacles, bullets, fruit (hero, ship, walker, hopper, gunner, bomber ...)
+  js/sprites_world.js  the 15 stage backgrounds, ground / pits / platforms, and the 12 big boss creatures
+  js/piano.js  jump.js  blaster.js  commando.js  pattern.js  fruit.js  words.js   one file per game
+  js/main.js        year/game picker + keyboard routing. YEARS = which games each year gets; MODES = the game cards.
+
+WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SETTINGS")
+  Commando Run  js/commando.js
+    COMMANDO_LIVES, COMMANDO_INVINCIBLE_SECONDS, COMMANDO_HITBOX_PAD (bigger = more forgiving), RUN_SPEED, JUMP_POWER, GRAVITY,
+    ORB_SPEED, TURRET_WARNING_SECONDS, DROP_CHANCE, BOSS_HP_BASE / BOSS_HP_PER_STAGE (boss toughness),
+    WEAPONS (fire rate, damage, how many enemies a shot passes through),
+    COMMANDO_LEVELS: one line per stage - len (length), d (0 gentle ... 1 hardest: more and tougher enemies, faster shots),
+    theme (scenery), boss and pal (which creature and colours).
+    BOSS_DEF: how each boss fights (moves: orbs, fan, rain, wave).
+    Every stage is built the same way each time (so replays and checkpoints work); change len/d to make it longer/easier.
+  Jump Over!    js/jump.js
+    JUMP_LIVES, JUMP_INVINCIBLE_SECONDS, JUMP_HITBOX_PAD, JUMP_STOMP_SLACK (landing on a bush bounces), JUMP_GRAVITY / JUMP_POWER,
+    JUMP_LEVELS: speed, count (how many obstacle groups), gap (seconds between), theme.
+    PATTERNS: which obstacle groups exist, from which level (min) and how common (w).
+  Star Blaster  js/blaster.js
+    BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, BLASTER_WEAPON_SECONDS, FIRE_DELAY,
+    ENEMIES (size/speed/hits), BLASTER_LEVELS: count, gap, types, speedMul, rockHp, boss (hit points).
+  Studio look   js/studio.js + css/studio.css: the shared layout and helpers (shell, tool rail, side-panel sections, palette, sliders, history for undo and redo).
+                Every painting program is built from these, so they look the same; to change the look for all of them, change these two files.
+                js/magiclab.js (STYLES, HARMONIES: add a style by adding a painter function), js/art.js (BASIC and ADVANCED tool lists; Design Studio is the same file with more tools).
+  Painting games js/paint_common.js (COLOURS and BACKGROUNDS shared by Paint Studio, Art Studio, Scene Maker and Magic Mix: add a background by adding one entry),
+                js/magic.js (PALS = the base colours that mix; DUR = how long each stage takes), js/art.js (TOOLS, STAMPS), js/scene_items.js (ITEMS = the things to drag: add one entry).
+  Paint Studio  js/paint_data.js (every colouring picture is plain SVG: copy one entry in PICS; each part is a shape with class "r") and js/paint.js
+                (COLOURS = the palette; blank paper brush sizes are in openBlank()). No levels: the learner chooses what to paint.
+  Shortcut Lab  js/shortcuts.js + css/shortcuts.css (Years 4-6): the shortcuts are rows of TASKS at the top of the file (cat = group, win / mac = the keys shown, real = happens on the
+                computer itself, need = which key the lab watches for when the computer takes over). Add a shortcut by adding a row (and, for the notes, a function in OPS).
+  Rewards       js/rewards.js + css/rewards.css: the 3D reward pictures for games without a certificate (Jump Over!, Star Blaster, Commando Run, Slice & Pop, Word Hunt,
+                Pattern Pop!, Piano, Shortcut Lab). Each drawing is a function in EMB (SVG); REWARDS holds the title and colours. A game earns its reward by calling
+                CC.rewards.earn('id') (or CC.rewards.note for parts, like the piano songs) and offers CC.rewards.show('id'). Pattern Pop! needs PATTERN_REWARD_LENGTH (7) in js/pattern.js.
+  Mouse Club    js/mouseclub.js + css/mouseclub.css (Year 1 only). GAMES at the top of the file holds all 60 stages: each stage is one row (t = the kind of stage,
+                n = how many, sz = how big (bigger is easier), speed = how fast things move, text = what Bo says and the screen shows). Change a row to make a stage
+                easier or harder. The slow music is the 'gentle' tune in js/music.js. Bo speaks a little slower on Chrome for Mac (MAC_CHROME). Stars: 0-2 hints = 3 stars.
+  Builder Club  js/builder_data.js (every picture is plain SVG: add a build by copying one entry; each piece has a short word) and js/builder.js
+                (KINDS: which mouse skill each level asks for; hint/assist times are in update(); stars: 0 assists / few misses = 3).
+  Typing Club   js/typing_data.js (TARGET_WPM per year: 4=12, 5=18, 6=24; every level's words and sentences) and js/typing.js
+                (stars: 90% accuracy = 2, 95% = 3; Word Pop/Boss pace come from the year's target). Full keyboard, Years 4-6.
+                Word Rain (a timed challenge, no levels): the words per year are RAIN in js/typing_data.js (letters only; the game keeps falling words on different
+                first letters). Thunder: sounds/thunder.mp3 (a recording, 8.8 s; credit: Friendly Free Sounds, https://youtu.be/xK_m77VZYnc - keep the credit in the About page and README) is played in slices by S.thunder in js/core.js; bigger combos play longer, louder and lower. If it cannot load the game falls back to a synthesized thunder. The rain hiss and the lightning crack are synthesized.
+                The five speeds are RAIN_SPEEDS (fall time, gap between balloons, score factor). Pace, spawn rate, and the combo bonus (2 to 5 copies fall together; bonus = number of balloons) are in the rain* functions in js/typing.js; bronze/silver/gold need 50%/80%/110% of
+                the year's target wpm x minutes (rainNeeds).
+  Pattern Pop!  js/pattern.js   PATTERN_START_LENGTH, PATTERN_LIT_SECONDS, PATTERN_GAP_SECONDS, PATTERN_GRACE_RETRIES.
+  Fruit Slice   js/fruit.js     FRUIT_FALL_SECONDS (BIGGER = SLOWER), FRUIT_LETTERS, FRUIT_SPAWN_SECONDS, FRUIT_MAX_ON_SCREEN.
+                                (an endless practice game - it never ends, by design)
+  Word Hunt     js/words.js     WORD_LIST (word + picture), ROUNDS (grid size, how many words, which directions).
+  Piano         js/piano.js     SONGS, BEATS.
+
+USING YOUR OWN PICTURES LATER
+  All drawing is in js/sprites.js and js/sprites_world.js - one function per thing, each taking (ctx, x, y, ...state):
+    SP.runner, SP.bush / rockFriend / stump / bee / ball / swing / wall / coin   (Jump Over)
+    SP.ship, SP.rockBig / comet / jelly / zig / splitter / megaBoss              (Star Blaster)
+    SP.hero (the soldier), SP.walker / hopper / gunner / flyer / bomber / turret / armoured, SP.bossDraw (12 bosses),
+    SP.capsule, SP.bullet, SP.platform, SP.ground, SP.pit, SP.world (backgrounds), SP.flag     (Commando Run)
+    SP.fruit, SP.pad, SP.heart.
+  To swap one, replace its body with ctx.drawImage(...). The game files never draw shapes themselves. (Image loading is not built in.)
+
+HOW IT WAS TESTED  (automated: headless Chrome driven over DevTools, opened from file://; games also run faster-than-real-time by test bots)
+  - Commando Run: all 15 stages were played start to finish by a test bot in "can't be hurt" mode: every stage (all 12 boss creatures,
+    pits, platforms, checkpoints, every pickup type) reached Level Complete, so nothing blocks progress. With normal hearts a simple bot
+    cleared stages 1-8 and lost to some of the harder ones - the difficulty rises steadily. A bug found and fixed: a bomber hovering
+    beside the hero could not be hit when aiming up; bombers now centre over the hero.
+  - Jump Over!: a perfect-play bot cleared all 12 levels (34-61 s each) with no hearts lost; ducking, pits, rolling balls, swings and
+    walls all worked. Earlier checks: key-mashing, doing nothing -> gentle "Nice try", one key restarts.
+  - Star Blaster: a simple bot cleared levels 1-7, 11 and failed some of 8, 9, 10 and 12 (including 2 of the 3 bosses) - so it is a real challenge.
+  - Word Hunt: dragged across a hidden word with the mouse -> word found and ticked, finished the round -> "Round done" -> next round.
+  - Fruit Slice, Pattern Pop, Piano (including a real, non-silent recording and no microphone prompt) re-checked after the changes.
+  - Layout: stage stays 16:9 with no gap and no scrolling at 700x900, 1280x800, 1920x1080 (and the smaller sizes checked before).
+  - Searched for localStorage, cookies, fetch, XMLHttpRequest, http(s):// and external links: none (only the project's own css and js files are linked).
+
+WHAT I COULD NOT CHECK / SIMPLIFIED
+  - I could not listen to the sound (no speakers in the test setup) - sounds are triggered and the recording has audio, but please
+    give the volume a listen. Only tested in Chrome, with simulated key presses; not on a real Makey Makey.
+  - "Challenging" is a judgement call: I tested with bots, not children. If it is too hard or too easy, change the numbers above
+    (COMMANDO_LEVELS d / len, COMMANDO_LIVES, BOSS_HP_*, JUMP_LEVELS speed, BLASTER_LEVELS gap/speedMul).
+  - A level picker (small numbered circles) is on every level's start screen, so you can jump to any stage; to lock levels you would
+    need to remove that (and progress is kept in the browser only for 3 hours, CC.keep.hours in js/core.js).
+  - Functions starting with an underscore (e.g. CC.modes.commando._sim) are test hooks only.
+  - I overwrote your old index.html (the previous piano page) at the start of version 1; it was not in files.zip so it could not be restored.
+
+
+COMPUTER SKILLS ADVENTURE (Session 1, first card)
+  - 10 levels teaching the mouse (move, click, choose, drag and drop, connect, double-click, right-click) and the keyboard
+    (find letters, small/BIG letters, CAPS LOCK, words, SPACE, BACKSPACE, ENTER). Pick Year 1, 2 or 3 on the first screen: higher years
+    get smaller targets and extra tasks (double-click timing, right-click, CAPS LOCK, SPACE, BACKSPACE, sentences).
+  - All content is in js/skills_levels.js. To add a level, add one object to LEVELS (title, world, intro, tasks[]). Each task is
+    {type: move|pick|drag|connect|dbl|right|type|capsstate|enter, say, win, min (first year), ...}. No engine changes needed.
+  - Buddy shows a short instruction, a cursor demonstrates it, the target glows, then the child tries. Mistakes get gentle hints; after 3 misses
+    Buddy says "Let's try together!", makes things bigger/slower, removes extras and shows the demo again.
+  - Buttons on every level: map, show-me-again, restart this part, pause, sound. Home screen: Voice (reads Buddy aloud with voices already
+    on the computer - never the internet), High contrast, Slow animations, Click-to-place (drag alternative), Unlock all levels.
+  - Teacher report (home screen): stars per skill, recommended practice, Download (.txt) or Print. Progress is kept only while the page is open
+    (kept in the browser for 3 hours, no network) - download the report before finishing.
+  - Drag and drop alternatives: click a piece then click its spot, or Tab to a piece, press Enter, Tab to its spot, press Enter.
+
+  - CERTIFICATE: after all 10 levels are done, a graduation screen button (and a button on the home screen) opens an A4 landscape certificate with the Tech Explorers keycap logo, the learner name (type it, or leave blank to write by hand), year, stars, date and a teacher line. Print it (landscape) or Download picture (PNG). The game name is one value: CC.SKILLS.NAME in js/skills_levels.js (plus the title in index.html and the card name in js/main.js).
+
+Click & Type Quest: gems, and the new game Desktop Skills
+  - Badges are gone. Every finished level wins a drawn gem (js/skills_gems.js, plain SVG): Diamond, Ruby, Emerald, Sapphire, Amethyst, Topaz,
+    Rose Quartz, Aquamarine, Citrine, Opal. The gem shows on the level-complete screen, on the finished level tile and on a gem shelf under the level
+    map (locked gems are dark). A level names its gem with gem: 'ruby'; badge is the gem's name (used in the teacher report).
+    To add a gem: add an entry to GEMS in skills_gems.js (cut, hue, saturation, lightness).
+  - GEMS TO LOOK AT AND SAVE (nothing is printed per level): the 'My gem' button on the level-complete screen, a click on a finished gem on the shelf
+    (Quest) or on the gem badge of a finished tile (Desktop Skills) opens the gem BIG. 'Save gem (no background)' downloads a see-through PNG
+    (1024 px); 'Save with background' adds a soft colour. Code: showGem() / saveGem() in js/rewards.js, CC.rewards.gem(kind, {title, game}, afterClose).
+  - DESKTOP SKILLS MEDAL (the certificate): a gold medal on A4 PORTRAIT (Golden Crown in the middle, TECH EXPLORERS keycaps, the name on a ribbon).
+    It is unlocked only when EVERY level for the year is done (8 levels in Years 1-3, 13 in Years 4-6). Same screen as the other rewards: name box, Print,
+    Download picture. Code: medalCert() in js/rewards.js, opened by showCertificate() in js/desktop.js.
+  - RULE FOR ALL CERTIFICATES AND REWARD PICTURES: they come only when ALL the levels / stages / pictures are done, not just the last one.
+    Click & Type Quest: questAllDone(); Mouse Club: doneCount(game) >= 10; Click & Build: finalDone() = every picture; Typing Club: finishedGame() = all levels
+    of one game; Jump, Blaster, Commando, Fruit, Word Hunt: CC.rewards.note(id, level, total) in CC.ui.levelComplete / words.js; Piano and Shortcut Lab already needed everything.
+  - DESKTOP SKILLS (Years 1 to 6, its own game: js/desktop.js, js/desktop_levels.js, css/desktop.css). A pretend desktop with windows, folders, files,
+    a taskbar and a Recycle Bin that really work with the mouse. 8 levels, each wins a gem: 1 Open & Close (Garnet), 2 Hide & Show (Peridot),
+    3 Move & Resize (Moonstone), 4 Many Windows (Tanzanite), 5 Make a Folder (Jade), 6 Organise (Star Gem), 7 Delete & Bring Back (Amber),
+    8 Tidy Up! (Golden Crown). A task has min / max (school year), a start scene (files and windows), a glowing hint and a goal function; to add a
+    level or task, edit js/desktop_levels.js only. Year 1 gets the simplest steps, glowing hints from the start and toolbar buttons (New folder,
+    Delete); Years 2 and 3 use right-click menus, Delete / F2 / Ctrl+C / Ctrl+V and the window corner; Years 4 to 6 get harder
+    tasks (keyboard only, many windows, folders inside folders, sort everything, rescue one file) marked min: 4 in the levels file. The arrow button restarts a step, the
+    lightbulb shows the glow. Progress (levels, stars) is kept for about 3 hours like the other games.
+
+UPDATE: TECH EXPLORERS (new name), COMMANDO, PIANO, VOICE
+  - The club/app name is one value: CC.APP_NAME in js/core.js. The big keycap logo on the landing page is set in js/main.js (row('logo1','TECH') and row('logo2','EXPLORERS')),
+    the page title is in index.html. The certificate reads CC.APP_NAME automatically.
+  - Piano: Christmas songs are marked with a green outline: Jingle Bells, Silent Night, Merry Christmas (We Wish You a Merry Christmas). Songs are written with real notes
+    (e.g. 'G4'). In Learn mode the five pads act like game buttons: the glowing pad is the one to press and it plays the REAL note of the tune, sliding up or down when the
+    tune goes beyond C-G. So any carol can be learned on the five Makey Makey keys. To add a song, add an entry to SONGS in js/piano.js.
+  - Commando Run: the last stage ends with the Inferno Dragon King (fire breath, beating wings, much more aggressive: see 'aggr' in COMMANDO_LEVELS), stage 14 has an Alien Queen
+    (acid spit) and the first dragon (stage 5) now breathes fire too. Bosses arrive with a WARNING alarm and a proper entrance (they fly or stomp in and land with a shake).
+    The screen no longer shakes while a stage-complete screen is showing. The scenery has parallax mountains, haze, clouds, a sun with light rays, and richer ground.
+  - Click & Type Quest (Tech Explorers > Session 1): Buddy now talks (a calm voice that already exists on the computer - never the internet). Each demonstration is narrated
+    step by step ("press and hold the left button... now drag it...") and the cursor, piece and voice move together. Turn the voice on/off with the 🗣️ button.
+    If a computer has no English voice installed, the demonstrations still run, with the words shown on screen.
+
+  - PAUSE: every game has a pause button in the top bar (next to the music button): Fruit, Word Hunt, Jump Over, Star Blaster, Commando Run, Pattern Pop. The Escape key also pauses/resumes the arrow-key games.
+    Pausing freezes the game and the sound; Play carries on exactly where you were; Menu leaves. (The piano is free play, and the Click & Type Quest lessons have their own pause button.)
+
+DESKTOP SKILLS PRO LEVELS (Years 4 to 6; levels 9 to 13 in js/desktop_levels.js have pro: true, min: 4)
+  - 9 Select Many (Turquoise), 10 Split Screen (Rhodolite), 11 Search & Find (Sunstone), 12 Shortcut Pro (Iolite), 13 Screenshots & Apps (Spinel).
+  - New engine parts in js/desktop.js: a selection list (Ctrl+click, Shift+click, Ctrl+A, rubber-band box) and group moves/deletes/copies (one event with ids),
+    cut (Ctrl+X) and undo (Ctrl+Z, snapshot based), snapping a window by dragging its title bar to the left/right/top edge, a Start menu, a search box
+    (Ctrl+F or the magnifier; searchpick reveals a file in its folder), a snipping tool (drag a box; reports which windows are inside), PrtScn, a screen recorder,
+    apps (kind 'app': right-click > Uninstall, or Settings > Apps; the bin refuses them) and keys quizzes (task.choices + task.answer).
+  - Tiers: Year 4 = glowing hints from the start; Year 5 = keys named in the task, hints on the lightbulb; Year 6 = task.y6 (shorter, no key names) and no hints at all
+    (the lightbulb is hidden). Windows-key shortcuts and screenshots cannot be caught in a web page, so those are keycap quizzes plus the simulated tools.

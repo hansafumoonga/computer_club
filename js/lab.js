@@ -31,6 +31,17 @@ L.say = function (text) {
   try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = 0.82; u.pitch = 1.1; speechSynthesis.speak(u); } catch (e) { }
 };
 
+/* wait for the voice to finish its sentence before moving on (never less than minMs, never more than maxMs). Returns a function that cancels the wait. */
+L.afterSpeech = function (cb, minMs, maxMs) {
+  const t0 = performance.now(); let dead = false, quietAt = 0;
+  const id = setInterval(function () {
+    if (dead) return; const now = performance.now(), el = now - t0, sp = !!(window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending));
+    if (sp) quietAt = 0; else if (!quietAt) quietAt = now;
+    if ((el >= minMs && !sp && now - quietAt >= 450) || el >= maxMs) { dead = true; clearInterval(id); cb(); }
+  }, 120);
+  return function () { dead = true; clearInterval(id); };
+};
+
 /* ---------- progress ---------- */
 L.load = function (id, year) { return CC.keep.load(id + '_y' + year) || { done: {}, stars: {} }; };
 L.save = function (id, year, p) { CC.keep.save(id + '_y' + year, p); };
@@ -118,12 +129,14 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
     if (cfg.speak) L.say(s.win || 'Well done!');
     const d = q('.lb-dots').children[st.i]; if (d) d.className = 'd';
     const last = st.i >= steps.length - 1;
-    st.timer = setTimeout(function () {
+    const go = function () {
       if (st.dead) return;
       if (!last) { begin(st.i + 1); return; }
       const stars = st.tips + Math.floor(st.missAll / 3) <= 1 ? 3 : st.tips + Math.floor(st.missAll / 3) <= 4 ? 2 : 1;
       L.sfx('levelComplete'); cfg.onDone(stars);
-    }, s.wait || (cfg.speak ? 2200 : 1300));
+    };
+    /* with the voice on, the next step waits until the sentence has been said: nothing is cut off */
+    if (cfg.speak && L.voiceOn && window.speechSynthesis) st.cancelWait = L.afterSpeech(go, Math.min(s.wait || 1300, 2200), 14000); else st.timer = setTimeout(go, s.wait || 1300);
   }
   st.missAll = 0;
   const api = {
@@ -141,7 +154,7 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
     },
     note: function (text) { if (st.locked) return; msg.classList.remove('good', 'bad'); msg.querySelector('.sub').textContent = text; },
     tip: tip, touch: arm,
-    stop: function () { st.dead = true; clearTimeout(st.idle); clearTimeout(st.flash); clearTimeout(st.timer); L.hush(); }
+    stop: function () { st.dead = true; clearTimeout(st.idle); clearTimeout(st.flash); clearTimeout(st.timer); if (st.cancelWait) st.cancelWait(); L.hush(); }
   };
   q('.lb-back').addEventListener('click', function (e) { e.currentTarget.blur(); api.stop(); cfg.onHome(); });
   q('.lb-again').addEventListener('click', function (e) { e.currentTarget.blur(); if (CC.ui.active) return; api.stop(); L.play(cfg); });

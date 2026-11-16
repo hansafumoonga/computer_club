@@ -80,7 +80,14 @@ function tag(svg, id) {
   g.innerHTML = '<rect x="' + (p.at[0] - w / 2) + '" y="' + (p.at[1] - 15) + '" width="' + w + '" height="24" rx="12" fill="#15163a"/><text x="' + p.at[0] + '" y="' + (p.at[1] + 3) + '" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffe14d">' + p.name + '</text>';
   svg.querySelector('.pc-tags').appendChild(g);
 }
-function glow(svg, id, on) { const n = svg.querySelector('[data-part="' + id + '"]'); if (n) n.classList.toggle('glow', on); }
+/* a glowing part gets a bright pulsing halo, and a big arrow bounces above it so it cannot be missed */
+function glow(svg, id, on) {
+  const n = svg.querySelector('[data-part="' + id + '"]'); if (!n) return; n.classList.toggle('glow', on);
+  const old = svg.querySelector('.pc-arrow[data-for="' + id + '"]'); if (old) old.remove(); if (!on) return;
+  const b = PARTS[id].box, g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'pc-arrow'); g.dataset.for = id; g.setAttribute('transform', 'translate(' + (b[0] + b[2] / 2) + ' ' + Math.max(80, b[1] + 6) + ')');
+  g.innerHTML = '<g class="bob"><path d="M-17 -56 h34 v24 h15 l-32 32 l-32 -32 h15 z" fill="#ffd23f" stroke="#15163a" stroke-width="5" stroke-linejoin="round"/><path d="M-9 -49 h10 v20" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/></g>';
+  svg.querySelector('.pc-tags').appendChild(g);
+}
 
 /* ---------- levels 1 to 3: click the right part ---------- */
 function findLevel(kind) {
@@ -100,7 +107,7 @@ function findLevel(kind) {
 function findSteps(kind) {
   return ORDER.map(function (id) {
     const p = PARTS[id], nm = p.name.toLowerCase(), ok = function (ev) { return ev.part === id; };
-    if (kind === 'meet') return { part: id, say: 'This is the ' + p.name + '. Click it!', sub: p.does, voice: 'This is the ' + nm + '. ' + p.does + ' It is glowing. Click the ' + nm + '.', win: 'The ' + nm + '! ' + p.does, wait: 3200, tip: [p.look, 'It is the part that glows. Click it once.'], ok: ok };
+    if (kind === 'meet') return { part: id, say: 'This is the ' + p.name + '. Click it!', sub: p.does, voice: 'This is the ' + nm + '. ' + p.does + ' It is glowing. Click the ' + nm + '.', win: 'The ' + nm + '! ' + p.does, wait: 2200, tip: [p.look, 'It is the part that glows. Click it once.'], ok: ok };
     if (kind === 'find') return { part: id, say: 'Click the ' + p.name, voice: 'Where is the ' + nm + '? Click the ' + nm + '.', win: 'That is the ' + nm + '!', tip: [p.look, 'It is glowing now. Click it once.'], ok: ok };
     return { part: id, say: p.job, win: p.fact, tip: ['Think: ' + p.look, 'The right part is glowing now. Click it once.'], ok: ok };
   });

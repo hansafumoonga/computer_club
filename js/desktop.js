@@ -666,7 +666,7 @@ function boShow(force) {
 function levelsFor() { return LEVELS.filter(function (l) { return !l.min || S.year >= l.min; }); }
 function allDone() { return levelsFor().every(function (l) { return S.done[l.id]; }); }
 function tasksFor(lv) { return lv.tasks.filter(function (t) { return (!t.min || S.year >= t.min) && (!t.max || S.year <= t.max); }); }
-function clearTimers() { clearTimeout(S.timer); clearTimeout(S.flashT); clearTimeout(S.idleT); }
+function clearTimers() { clearTimeout(S.timer); clearTimeout(S.flashT); clearTimeout(S.idleT); if (S.waitOff) { S.waitOff(); S.waitOff = null; } }
 function beginTask(i, again) {
   clearTimers(); S.ti = i; S.locked = false; S.miss = 0; S.help = 0; helpHide(); closeMenu(); closePanels();
   const t = S.tasks[i];
@@ -685,7 +685,8 @@ function good() {
   const m = $root().querySelector('.dk-msg'); m.classList.remove('bad'); m.classList.add('good'); m.querySelector('.say').textContent = '✔ ' + (t.win || CHEERS[S.ti % CHEERS.length]); m.querySelector('.sub').textContent = '';
   const dots = $root().querySelector('.dk-dots'); if (dots.children[S.ti]) dots.children[S.ti].className = 'd';
   const last = S.ti >= S.tasks.length - 1;
-  S.timer = setTimeout(function () { if (last) finishLevel(); else beginTask(S.ti + 1); }, slow ? 2400 : last ? 1000 : 1100);
+  const go = function () { if (last) finishLevel(); else beginTask(S.ti + 1); };
+  if (slow && CC.lab && CC.lab.afterSpeech) S.waitOff = CC.lab.afterSpeech(go, 1300, 12000); else S.timer = setTimeout(go, slow ? 2400 : last ? 1000 : 1100);   /* Bo finishes his sentence before the next step */
 }
 function gemSvg(lv, px) { return CC.SKILLS && CC.SKILLS.gem ? CC.SKILLS.gem(lv.gem, px) : '🏆'; }
 function gemName(lv) { return CC.SKILLS.gemName(lv.gem); }
