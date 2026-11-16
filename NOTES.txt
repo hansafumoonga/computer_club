@@ -236,3 +236,8 @@ CODE REVIEW (all games checked together)
   - lab.js: a level's idle timer now stops once the level is gone; the 'again' button keeps the game in step with the new level (so leaving the game stops it);
     L.say(text, {force, rate, onstart, onend}) is the one voice for the lessons AND for Bo in Desktop Skills (the second copy in desktop.js is gone).
   - .tmp.driveupload/ (Google Drive's temporary copies) had been committed by mistake; it is removed and listed in .gitignore. Three unused style rules were removed.
+  - LEAK CHECK: a delayed 'level done' or reward screen (Word Hunt, Slice & Pop, Shortcut Lab, Piano) now only appears if the game is still on screen (CC.modeShown(id) in core.js), so it cannot pop up over the menu after a child leaves.
+
+LEARNING PATH (js/main.js)
+  - PATH is the one list of every game in skill order (mouse, clicking and building, parts of a computer, mouse + keyboard, letters, words, proper typing, desktop, shortcuts, letter, spreadsheet, network, then design, then the arrow-key games).
+  - YEAR_SETS says which games each year gets; each year's menu is PATH filtered by that set, so the ORDER is set in one place. The menu opens on the Learning path tab (numbered cards, 'Start here' on step 1); the other tabs show the same games by kind with the same step numbers.

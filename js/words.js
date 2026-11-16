@@ -144,7 +144,7 @@ function check(cells) {
   if (!w) return false;
   found[w.word] = true; CC.sfx.good(); CC.audio.tone(1175, { delay: 0.12, dur: 0.25, vol: 0.12 });
   sel = null; firstClick = null; paint();
-  if (words.every(function (x) { return found[x.word]; })) setTimeout(levelDone, 700);
+  if (words.every(function (x) { return found[x.word]; })) setTimeout(function () { if (CC.modeShown('words')) levelDone(); }, 700);
   return true;
 }
 function levelDone() {

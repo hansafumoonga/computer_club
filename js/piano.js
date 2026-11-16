@@ -140,7 +140,7 @@ function press(n) {
   if (mode === 'learn') {
     if (want && want.pad === n) {
       learnIdx++;
-      if (learnIdx >= SONGS[song].notes.length) { clearGuide(); msg('🎉 Wow! You played the whole song!'); CC.sfx.levelComplete(); if (CC.rewards && CC.rewards.note('piano', song, Object.keys(SONGS).length)) setTimeout(rewardScreen, 1200); setTimeout(function () { if (mode === 'learn') { learnIdx = 0; msg('Want to play it again? Follow the lights!'); showGuide(); } }, 3500); }
+      if (learnIdx >= SONGS[song].notes.length) { clearGuide(); msg('🎉 Wow! You played the whole song!'); CC.sfx.levelComplete(); if (CC.rewards && CC.rewards.note('piano', song, Object.keys(SONGS).length)) setTimeout(function () { if (CC.modeShown('piano')) rewardScreen(); }, 1200); setTimeout(function () { if (CC.modeShown('piano') && mode === 'learn') { learnIdx = 0; msg('Want to play it again? Follow the lights!'); showGuide(); } }, 3500); }
       else { msg('Nice! Keep going…'); showGuide(); }
     } else if (want) msg('Almost! Try the glowing key.');
   }

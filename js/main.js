@@ -30,20 +30,27 @@ const MODES = {
   network:  { icon: '🌐', name: 'Network Builder', desc: 'Join computers with a switch and a router', group: 'pc', color: '#22c6c6', cert: true },
   typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss, catch the rain', group: 'kb', color: '#5ac8ff', cert: true }
 };
-/* what each year can play, IN ORDER OF SKILL inside each group: the first thing to learn comes first, and each game builds on the one before.
-   Keyboard and mouse: the mouse, then clicking and dragging, then the keys, then words, then the desktop (which uses all of them).
-   Computers and apps: the parts of a computer, then word processing, then spreadsheets, then networks.
-   Arrow keys: one key (jump), then five keys (piano), then keys in order (pattern), then moving and firing together. */
-const YEARS = {
-  '1': { modes: ['mouseclub', 'buildclick', 'skills', 'fruit', 'desktop', 'parts', 'paint', 'magic', 'jump', 'piano'] },
-  '2': { modes: ['skills', 'fruit', 'buildtype', 'words', 'desktop', 'parts', 'magic', 'art', 'jump', 'piano', 'blaster'] },
-  '3': { modes: ['skills', 'fruit', 'words', 'desktop', 'parts', 'letter', 'network', 'magic', 'art', 'scene', 'jump', 'piano', 'pattern', 'blaster'] },
-  '4': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'parts', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
-  '5': { modes: ['typing', 'words', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] },
-  '6': { modes: ['typing', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'] }
+/* THE LEARNING PATH: every game in the order a learner needs the skills, from the very first one to the hardest.
+   Each game builds on the ones before it, so each year's menu is this list with only that year's games in it, numbered 1, 2, 3 ...
+     1 the mouse (move, click, drag, scroll)        2 clicking and dragging to build        3 what the parts of a computer are
+     4 mouse and keyboard together (the Quest)      5 single letter keys                    6 typing whole words
+     7 computer words                               8 proper typing                         9 windows, folders and files
+    10 keyboard shortcuts                          11 writing a letter                     12 numbers and spreadsheets
+    13 networks                                     then painting and design (easy to hard), then the arrow-key games (one key, five keys, keys in order, moving and firing). */
+const PATH = ['mouseclub', 'buildclick', 'parts', 'skills', 'fruit', 'buildtype', 'words', 'typing', 'desktop', 'shortcuts', 'letter', 'grid', 'network',
+  'paint', 'magic', 'art', 'scene', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'];
+/* which games each year gets (the ORDER comes from PATH, so a game is placed once, in one place) */
+const YEAR_SETS = {
+  '1': ['mouseclub', 'buildclick', 'skills', 'fruit', 'desktop', 'parts', 'paint', 'magic', 'jump', 'piano'],
+  '2': ['skills', 'fruit', 'buildtype', 'words', 'desktop', 'parts', 'magic', 'art', 'jump', 'piano', 'blaster'],
+  '3': ['skills', 'fruit', 'words', 'desktop', 'parts', 'letter', 'network', 'magic', 'art', 'scene', 'jump', 'piano', 'pattern', 'blaster'],
+  '4': ['typing', 'words', 'shortcuts', 'desktop', 'parts', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'],
+  '5': ['typing', 'words', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'],
+  '6': ['typing', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando']
 };
-/* the four groups in every year menu: learning with keyboard and mouse, how computers and their programs work, painting and design, and the arrow-key / Makey Makey games */
-const GROUPS = [['kb', '⌨️🖱️', 'Keyboard and mouse'], ['pc', '💻', 'Computers and apps'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
+const YEARS = {}; Object.keys(YEAR_SETS).forEach(function (n) { YEARS[n] = { modes: PATH.filter(function (id) { return YEAR_SETS[n].indexOf(id) >= 0; }) }; });
+/* the tabs in every year menu: the whole learning path first, then the same games sorted by kind (keyboard and mouse, how computers and their programs work, painting and design, arrow-key / Makey Makey) */
+const GROUPS = [['path', '🧭', 'Learning path'], ['kb', '⌨️🖱️', 'Keyboard and mouse'], ['pc', '💻', 'Computers and apps'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
@@ -65,20 +72,21 @@ function showMenu() {
   leaveMode();
   const y = YEARS[app.session], tabs = $('group-tabs'), box = $('mode-cards');
   $('menu-title').textContent = 'Year ' + app.session;
-  if (!app.group) app.group = 'kb';
+  if (!app.group) app.group = 'path';
   function draw() {
     tabs.innerHTML = ''; box.innerHTML = '';
     GROUPS.forEach(function (g) {
-      const n = y.modes.filter(function (id) { return MODES[id].group === g[0]; }).length, t = document.createElement('button');
+      const n = y.modes.filter(function (id) { return g[0] === 'path' || MODES[id].group === g[0]; }).length, t = document.createElement('button');
       t.type = 'button'; t.className = 'group-tab' + (app.group === g[0] ? ' on' : ''); t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', app.group === g[0] ? 'true' : 'false');
       t.innerHTML = '<span class="gi">' + g[1] + '</span><span class="gn">' + g[2] + '</span><span class="gc">' + n + '</span>';
       t.addEventListener('click', function () { app.group = g[0]; draw(); });
       tabs.appendChild(t);
     });
-    y.modes.filter(function (id) { return MODES[id].group === app.group; }).forEach(function (id) {
-      const m = MODES[id], b = document.createElement('button');
+    if (app.group === 'path') { const note = document.createElement('p'); note.className = 'path-note'; note.textContent = 'Follow the numbers. Each game builds on the one before it.'; box.appendChild(note); }
+    y.modes.filter(function (id) { return app.group === 'path' || MODES[id].group === app.group; }).forEach(function (id) {
+      const m = MODES[id], b = document.createElement('button'), step = y.modes.indexOf(id) + 1;
       b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;
-      b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
+      b.innerHTML = '<span class="stp" title="Step ' + step + '">' + step + '</span><span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (step === 1 ? '<span class="tg start">▶ Start here</span>' : '') + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
       if (CC.rewards && CC.rewards.has(id)) { const tr = document.createElement('span'); tr.className = 'rw-badge'; tr.setAttribute('role', 'button'); tr.setAttribute('tabindex', '0'); tr.setAttribute('aria-label', 'my reward'); tr.title = 'My reward'; tr.textContent = '🏆'; tr.addEventListener('click', function (e) { e.stopPropagation(); CC.rewards.show(id); }); tr.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); CC.rewards.show(id); } }); b.appendChild(tr); }
       b.addEventListener('click', function () { startMode(id); });
       box.appendChild(b);
@@ -105,7 +113,7 @@ CC.goMenu = showMenu;
   Object.keys(YEARS).forEach(function (n, i) {
     const b = document.createElement('button'); b.className = 'year-card'; b.style.setProperty('--c', YEAR_COLORS[i]); b.dataset.year = n; b.setAttribute('aria-label', 'Year ' + n);
     b.innerHTML = '<span class="yk">' + n + '</span><span class="yn">Year ' + n + '</span>';
-    b.addEventListener('click', function () { CC.audio.init(); app.session = n; app.group = 'kb'; CC.sfx.good(); showMenu(); });
+    b.addEventListener('click', function () { CC.audio.init(); app.session = n; app.group = 'path'; CC.sfx.good(); showMenu(); });
     box.appendChild(b);
   });
 })();

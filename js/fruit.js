@@ -110,7 +110,7 @@ function pop(f, fromGolden) {
     else say({ fruit: ['Yum! 🍓', 'Tasty!', 'Juicy!', 'Nice slice!'], balloon: ['Pop!', 'Boing! 🎈', 'Nice pop!', 'Pop pop!'], bug: ['Squashed!', 'Got it! 🐞', 'Bug gone!', 'Nice one!'] }[f.theme][popped % 4]);
   }
   highlight();
-  if (popped >= SLICE_LEVELS[lvIdx].goal && state === 'play') { state = 'done'; setTimeout(levelDone, 900); }
+  if (popped >= SLICE_LEVELS[lvIdx].goal && state === 'play') { state = 'done'; setTimeout(function () { if (CC.modeShown('fruit')) levelDone(); }, 900); }
 }
 function levelDone() {
   const st = missed <= 1 ? 3 : missed <= 4 ? 2 : 1; best[lvIdx] = Math.max(best[lvIdx] || 0, st);

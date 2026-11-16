@@ -123,7 +123,7 @@ function finish(id) {
   refresh();
   if (!S.rewarded && core().every(function (x) { return S.done[x.id]; })) {
     S.rewarded = true;
-    setTimeout(function () { CC.sfx.levelComplete(); say('🏆 Shortcut Hero!', true); if (CC.rewards && CC.rewards.earn('shortcuts')) setTimeout(rewardScreen, 1200); }, 500);
+    setTimeout(function () { if (!CC.modeShown('shortcuts')) return; CC.sfx.levelComplete(); say('🏆 Shortcut Hero!', true); if (CC.rewards && CC.rewards.earn('shortcuts')) setTimeout(function () { if (CC.modeShown('shortcuts')) rewardScreen(); }, 1200); }, 500);
   }
 }
 function nextActive() {   // move on to the next task in this group that is not done yet

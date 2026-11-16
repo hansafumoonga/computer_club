@@ -438,6 +438,8 @@ CC.outlineText = function (ctx, txt, x, y, size, color, align) {
 };
 /* escape text before it goes into innerHTML (names typed by learners, file names, ...) */
 CC.esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+/* is this game's screen showing? (a delayed "level done" must not pop up after the child has left the game) */
+CC.modeShown = function (id) { const e = document.getElementById('mode-' + id); return !!e && !e.hidden; };
 CC.rand = function (a, b) { return a + Math.random() * (b - a); };
 CC.clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
 /* the coloured keycap letters of the landing-page logo, as SVG text for the certificates (centred on cx, top edge at top, key size ks) */
