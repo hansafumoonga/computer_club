@@ -9,7 +9,7 @@ const CC = window.CC, clamp = CC.clamp;
 const $stage = function () { return document.getElementById('stage-mouseclub'); };
 const $root = function () { return document.getElementById('mc-root'); };
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+const esc = CC.esc;
 function rnd(a) { return a[Math.floor(Math.random() * a.length)]; }
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 

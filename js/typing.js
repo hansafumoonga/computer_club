@@ -633,7 +633,7 @@ function showReport() {
 }
 
 /* ---------- certificate: earned by finishing level 10 of any one game. A4 landscape, printable, downloadable as a picture ---------- */
-function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+const esc = CC.esc;
 function starPath(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
 function finishedGame() {
   return LEVEL_GAMES.filter(function (g) { return LEVELS.every(function (l) { const b = bestOf(g.id, l.id); return b && b.stars >= 1; }); })[0] || null;   /* ALL levels of one game, not just the last */

@@ -21,6 +21,17 @@ function at(c, r) { return COLS[c] + (r + 1); }
 function pos(ref) { return { c: COLS.indexOf(ref[0]), r: +ref.slice(1) - 1 }; }
 function rangeRefs(a, b) { const A = pos(a), B = pos(b), out = []; for (let r = Math.min(A.r, B.r); r <= Math.max(A.r, B.r); r++) for (let c = Math.min(A.c, B.c); c <= Math.max(A.c, B.c); c++) out.push(at(c, r)); return out; }
 function round(v) { return Math.round(v * 100) / 100; }
+/* + - * / and brackets on plain numbers. A small parser, so nothing a learner types is ever run as code. Returns null for anything it cannot read. */
+function calc(src) {
+  const t = src.match(/\d+\.?\d*|\.\d+|[()+\-*/]/g) || [];
+  if (t.join('') !== src) return null;
+  let i = 0, bad = false;
+  const expr = function () { let v = term(); while (t[i] === '+' || t[i] === '-') { const o = t[i++], r = term(); v = o === '+' ? v + r : v - r; } return v; };
+  const term = function () { let v = unary(); while (t[i] === '*' || t[i] === '/') { const o = t[i++], r = unary(); v = o === '*' ? v * r : v / r; } return v; };
+  const unary = function () { if (t[i] === '-') { i++; return -unary(); } if (t[i] === '+') { i++; return unary(); } return atom(); };
+  const atom = function () { if (t[i] === '(') { i++; const v = expr(); if (t[i++] !== ')') bad = true; return v; } const n = Number(t[i++]); if (isNaN(n)) { bad = true; return 0; } return n; };
+  const v = expr(); return bad || i !== t.length ? null : v;
+}
 /* a copied formula keeps pointing at "the cell two to the left", so every cell name moves with it */
 function shift(raw, dc, dr) {
   if (String(raw)[0] !== '=') return raw; let bad = false;
@@ -45,7 +56,7 @@ function build(body, api, year, lv) {
     while (FNRE.test(x) && guard++ < 12) x = x.replace(FNRE, function (m, f, args) { const v = FN[f](nums(args)); if (isNaN(v)) { err = err || '#DIV/0!'; return '(0)'; } return '(' + v + ')'; });
     x = x.replace(REF, function (m) { const v = get(m); if (v === '') return '(0)'; if (typeof v !== 'number') { err = err || '#VALUE!'; return '(0)'; } return '(' + v + ')'; });
     if (err) return err; if (!x || !/^[\d+\-*/().]+$/.test(x)) return '#NAME?';
-    try { const v = Function('"use strict";return (' + x + ')')(); return typeof v !== 'number' || isNaN(v) ? '#VALUE!' : !isFinite(v) ? '#DIV/0!' : round(v); } catch (e) { return '#NAME?'; }
+    const v = calc(x); return v === null ? '#NAME?' : !isFinite(v) ? '#DIV/0!' : round(v);   // 0/0 and 1/0 both divide by zero
   }
   const isF = function (ref) { return (G.cells[ref] || '').trim()[0] === '='; };
   const ERRTEXT = { '#NAME?': 'has a spelling mistake. Check the function name and the brackets.', '#VALUE!': 'uses a cell with words in it. Formulas need numbers.', '#DIV/0!': 'is dividing by zero or by an empty cell.', '#LOOP!': 'uses its own cell, so it goes round in a circle.', '#REF!': 'points at a cell that does not exist.' };

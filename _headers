@@ -1,7 +1,9 @@
+# the Content-Security-Policy lets only this site's own files run and loads nothing from anywhere else (the formulas in Number Grid are read by a small parser, never evaluated)
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'
 
 # css and js are loaded with ?v=NUMBER in index.html, so they can be kept for a long time: bump the number when a file changes
 /css/*

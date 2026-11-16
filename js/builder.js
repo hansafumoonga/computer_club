@@ -9,7 +9,7 @@ const CC = window.CC, BUILDS = CC.BUILDER.BUILDS;
 const $stage = function () { return document.getElementById('stage-builder'); };
 const $root = function () { return document.getElementById('bd-root'); };
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+const esc = CC.esc;
 
 const S = { year: 2, name: '', door: 'type', level: 1, best: {}, run: null, timers: [], loop: null, view: 'home', voice: true, kindSeen: {}, howSeen: {}, fixed: false };
 function later(fn, ms) { const id = setTimeout(function () { const i = S.timers.indexOf(id); if (i >= 0) S.timers.splice(i, 1); fn(); }, ms); S.timers.push(id); return id; }

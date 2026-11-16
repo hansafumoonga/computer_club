@@ -7,7 +7,7 @@
 const CC = window.CC;
 const W = 1123, H = 794, mid = W / 2;
 const SERIF = "Georgia,'Palatino Linotype','Book Antiqua',serif", SANS = "'Trebuchet MS','Segoe UI',Arial,sans-serif", SCRIPT = "'Segoe Script','Brush Script MT','Apple Chancery','Comic Sans MS',cursive";
-function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+const esc = CC.esc;
 function starPts(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
 function spark(x, y, r, c) { c = c || '#fff'; return '<path d="M' + x + ' ' + (y - r) + ' Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + ' Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + ' Z" fill="' + c + '"/>'; }
 function glint(x, y, r, u) { return '<circle cx="' + x + '" cy="' + y + '" r="' + (r * 1.1) + '" fill="#fff" opacity=".55" filter="url(#bl' + u + ')"/>' + spark(x, y, r) + spark(x, y, r * .5, '#fff7b0'); }

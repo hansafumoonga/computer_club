@@ -9,7 +9,7 @@ const CC = window.CC, DATA = CC.DESKTOP, LEVELS = DATA.LEVELS;
 const $root = function () { return document.getElementById('dk-root'); };
 const $stage = function () { return document.getElementById('stage-desktop'); };
 function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
-function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+const esc = CC.esc;
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 function sfx(n) { try { CC.sfx[n] && CC.sfx[n](); } catch (e) { } }
 
@@ -567,28 +567,14 @@ function idleArm() { clearTimeout(S.idleT); if (S.view !== 'play') return; S.idl
 /* ---------- Bo, the guide for Year 1: he SAYS every step out loud and SHOWS it with a moving pointer ----------
    What he says and how he shows it is plain data on each task (voice, demo) in desktop_levels.js.
    The pointer only shows the way: it never does the step for the child. */
-const BO = { voice: true, tok: 0, t: 0, nodes: [], pick: null };
+const BO = { voice: true, tok: 0, t: 0, nodes: [] };
 const BO_CURSOR = '<svg viewBox="0 0 24 30" aria-hidden="true"><path d="M2 2 L2 24 L8 18.5 L12.2 28 L16 26.4 L11.8 17 L20 17 Z" fill="#fff" stroke="#15163a" stroke-width="2" stroke-linejoin="round"/></svg><b class="ring"></b>';
 function boOn() { return S.year === 1; }
-function boVoice() {
-  if (!window.speechSynthesis) return null;
-  const vs = speechSynthesis.getVoices().filter(function (v) { return v.localService && /^en/i.test(v.lang); });
-  if (!vs.length) return null; if (BO.pick && vs.indexOf(BO.pick) >= 0) return BO.pick;
-  const prefs = [/aria|jenny|natural|neural/i, /zira|samantha|karen|moira|susan|hazel|libby|sonia|serena|tessa|fiona/i, /female/i];
-  for (let i = 0; i < prefs.length; i++) { const f = vs.filter(function (v) { return prefs[i].test(v.name); })[0]; if (f) return (BO.pick = f); }
-  return (BO.pick = vs[0]);
-}
 function boTalk(on) { const a = $root() && $root().querySelector('.dk-bo'); if (a) a.classList.toggle('talk', on); if (CC.music && CC.music.duck) CC.music.duck(on || !!CC.ui.active); }
-function boHush() { boTalk(false); if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } }
+function boHush() { boTalk(false); if (CC.lab) CC.lab.hush(); }
 function boSpeak(text) {
-  if (!boOn() || !BO.voice || !window.speechSynthesis) return;
-  const v = boVoice(), clean = String(text).replace(/[\u{1F000}-\u{1FFFF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, ' ').replace(/\s+/g, ' ').trim(); if (!v || !clean) return;
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = 0.8; u.pitch = 1.1; u.volume = 1;
-    u.onstart = function () { boTalk(true); }; u.onend = function () { boTalk(false); }; u.onerror = function () { boTalk(false); };
-    speechSynthesis.speak(u);
-  } catch (e) { }
+  if (!boOn() || !BO.voice || !CC.lab) return;
+  CC.lab.say(text, { force: true, rate: 0.8, onstart: function () { boTalk(true); }, onend: function () { boTalk(false); } });
 }
 function boSayTask(first) { const t = S.tasks[S.ti]; if (!t) return; boSpeak((first && S.lv && S.lv.intro ? S.lv.intro + ' ' : '') + (t.voice || t.say)); }
 function boStop() { BO.tok++; clearTimeout(BO.t); BO.nodes.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); BO.nodes = []; }
@@ -681,7 +667,7 @@ function beginTask(i, again) {
 }
 function good() {
   const t = S.tasks[S.ti]; S.locked = true; sfx('good'); applyHint(); boStop(); helpHide(); clearTimeout(S.idleT);
-  const slow = boOn() && BO.voice && !!boVoice(); boSpeak(t.win || CHEERS[S.ti % CHEERS.length]);   /* Bo gets time to finish his sentence */
+  const slow = boOn() && BO.voice && !!CC.lab && CC.lab.hasVoice(); boSpeak(t.win || CHEERS[S.ti % CHEERS.length]);   /* Bo gets time to finish his sentence */
   const m = $root().querySelector('.dk-msg'); m.classList.remove('bad'); m.classList.add('good'); m.querySelector('.say').textContent = '✔ ' + (t.win || CHEERS[S.ti % CHEERS.length]); m.querySelector('.sub').textContent = '';
   const dots = $root().querySelector('.dk-dots'); if (dots.children[S.ti]) dots.children[S.ti].className = 'd';
   const last = S.ti >= S.tasks.length - 1;

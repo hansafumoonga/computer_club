@@ -9,7 +9,7 @@
 const CC = window.CC;
 const L = CC.lab = {};
 L.el = function (tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
-L.esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+L.esc = CC.esc;
 L.sfx = function (n) { try { CC.sfx[n] && CC.sfx[n](); } catch (e) { } };
 L.tone = function (f, o) { try { CC.audio.tone(f, o || { dur: .15, vol: .12 }); } catch (e) { } };
 
@@ -24,11 +24,18 @@ function voice() {
   return (pick = vs[0]);
 }
 L.voiceOn = true;
+L.hasVoice = function () { return !!voice(); };
 L.hush = function () { if (window.speechSynthesis) try { speechSynthesis.cancel(); } catch (e) { } };
-L.say = function (text) {
-  if (!L.voiceOn || !window.speechSynthesis) return;
+/* say(text) reads a line out loud. o: { force (ignore L.voiceOn), rate, onstart, onend } - the guide in Desktop Skills uses force and the callbacks */
+L.say = function (text, o) {
+  o = o || {};
+  if ((!L.voiceOn && !o.force) || !window.speechSynthesis) return;
   const v = voice(), clean = String(text).replace(/[\u{1F000}-\u{1FFFF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, ' ').replace(/\s+/g, ' ').trim(); if (!v || !clean) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = 0.82; u.pitch = 1.1; speechSynthesis.speak(u); } catch (e) { }
+  try {
+    speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(clean); u.voice = v; u.rate = o.rate || 0.82; u.pitch = 1.1; u.volume = 1;
+    if (o.onstart) u.onstart = o.onstart; if (o.onend) { u.onend = o.onend; u.onerror = o.onend; }
+    speechSynthesis.speak(u);
+  } catch (e) { }
 };
 
 /* wait for the voice to finish its sentence before moving on (never less than minMs, never more than maxMs). Returns a function that cancels the wait. */
@@ -109,7 +116,7 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
   const cur = function () { return steps[st.i]; };
   function dots() { q('.lb-dots').innerHTML = steps.map(function (x, k) { return '<i class="' + (k < st.i ? 'd' : k === st.i ? 'c' : '') + '"></i>'; }).join(''); }
   function show() { const s = cur(); if (!s) return; msg.classList.remove('good', 'bad'); msg.querySelector('.say').textContent = s.say; msg.querySelector('.sub').textContent = s.sub || ''; }
-  function arm() { clearTimeout(st.idle); st.idle = setTimeout(function () { if (!st.dead && !st.locked && !CC.ui.active && !document.hidden && p.isConnected) tip(true); arm(); }, IDLE_MS); }
+  function arm() { clearTimeout(st.idle); st.idle = setTimeout(function () { if (st.dead || !p.isConnected) return; if (!st.locked && !CC.ui.active && !document.hidden) tip(true); arm(); }, IDLE_MS); }   /* stops by itself once the level is gone */
   function tip(auto) {
     const s = cur(); if (!s || st.locked) return;
     const lines = [].concat(s.tip || []); if (!lines.length) return;
@@ -157,7 +164,7 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
     stop: function () { st.dead = true; clearTimeout(st.idle); clearTimeout(st.flash); clearTimeout(st.timer); if (st.cancelWait) st.cancelWait(); L.hush(); }
   };
   q('.lb-back').addEventListener('click', function (e) { e.currentTarget.blur(); api.stop(); cfg.onHome(); });
-  q('.lb-again').addEventListener('click', function (e) { e.currentTarget.blur(); if (CC.ui.active) return; api.stop(); L.play(cfg); });
+  q('.lb-again').addEventListener('click', function (e) { e.currentTarget.blur(); if (CC.ui.active) return; api.stop(); const again = L.play(cfg); if (cfg.onApi) cfg.onApi(again); });
   q('.lb-tipb').addEventListener('click', function (e) { e.currentTarget.blur(); if (help.hidden) tip(false); else help.hidden = true; });
   const bk = q('.lb-book'); if (bk) bk.addEventListener('click', function () { if (CC.ui.active) return; api.stop(); cfg.onLesson(); });
   const vb = q('.lb-voice'); if (vb) vb.addEventListener('click', function () { vb.blur(); const s = cur(); if (s) L.say(s.voice || s.say); });
@@ -189,7 +196,7 @@ L.game = function (g) {   // { id, icon, title, sub, color, stage(), root(), lev
     if (S.api) S.api.stop(); S.api = null;
     const teach = typeof lv.teach === 'function' ? lv.teach(S.year) : lv.teach, speak = g.speak ? g.speak(S.year) : false;
     if (teach && teach.length && !skip) { L.lesson({ root: g.root(), slides: teach, title: 'Level ' + n + ' · ' + lv.title, speak: speak, onHome: home, onDone: function () { start(lv, true); } }); return; }
-    S.api = L.play({ root: g.root(), stage: g.stage(), lv: lv, n: n, speak: g.speak ? g.speak(S.year) : false, build: function (body, api) { lv.build(body, api, S.year); }, onHome: home, onLesson: teach && teach.length ? function () { start(lv); } : null,
+    S.api = L.play({ onApi: function (a) { S.api = a; }, root: g.root(), stage: g.stage(), lv: lv, n: n, speak: g.speak ? g.speak(S.year) : false, build: function (body, api) { lv.build(body, api, S.year); }, onHome: home, onLesson: teach && teach.length ? function () { start(lv); } : null,
       onDone: function (stars) {
         S.prog.done[lv.id] = true; S.prog.stars[lv.id] = Math.max(S.prog.stars[lv.id] || 0, stars); L.save(g.id, S.year, S.prog);
         const next = list[n] || null, all = allDone();

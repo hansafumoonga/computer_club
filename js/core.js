@@ -16,7 +16,8 @@ CC.keep = {
   },
   save: function (k, v) { try { localStorage.setItem('te_' + k, JSON.stringify({ t: Date.now(), v: v })); } catch (e) {} }
 };
-['typing', 'builder', 'skills', 'desktop'].forEach(function (k) { CC.keep.load(k); });   /* clear anything that has expired */
+/* clear everything that has expired, for every game, so a name typed on a shared computer does not linger */
+(function () { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('te_') === 0) CC.keep.load(k.slice(3)); }); } catch (e) { } })();
 CC.MAKEY_KEYS = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight', 'Space'];
 CC.KEY_MAP = { ArrowLeft: 'C', ArrowUp: 'D', ArrowDown: 'E', ArrowRight: 'F', Space: 'G' };
 CC.KEY_LABEL = { ArrowLeft: '←', ArrowUp: '↑', ArrowDown: '↓', ArrowRight: '→', Space: 'Space' };
@@ -435,6 +436,8 @@ CC.outlineText = function (ctx, txt, x, y, size, color, align) {
   ctx.save(); ctx.font = 'bold ' + size + 'px "Trebuchet MS",sans-serif'; ctx.textAlign = align || 'left'; ctx.textBaseline = 'alphabetic';
   ctx.lineWidth = size / 5; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1a1b3f'; ctx.strokeText(txt, x, y); ctx.fillStyle = color || '#fff'; ctx.fillText(txt, x, y); ctx.restore();
 };
+/* escape text before it goes into innerHTML (names typed by learners, file names, ...) */
+CC.esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
 CC.rand = function (a, b) { return a + Math.random() * (b - a); };
 CC.clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
 /* the coloured keycap letters of the landing-page logo, as SVG text for the certificates (centred on cx, top edge at top, key size ks) */

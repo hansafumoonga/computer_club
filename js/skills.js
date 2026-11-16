@@ -935,7 +935,7 @@ function showReport() {
 
 /* ---------- certificate (unlocked when the last level is done): A4 landscape, printable, downloadable as a picture ---------- */
 const KEYC = [['#ff5c72', '#d8334e'], ['#ff9f45', '#e07a1a'], ['#ffd23f', '#e0a800'], ['#6bcb77', '#3fa84f'], ['#22c6c6', '#139a9a']];
-function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+const esc = CC.esc;
 function starPath(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
 function certSkills() {
   const a = ['Moving the mouse', 'Clicking', 'Drag and drop', 'Connecting', 'Double-click', 'Typing letters', 'Typing words'];
