@@ -52,13 +52,43 @@ L.home = function (cfg) {   // { root, icon, title, sub, levels: [{ id, title, i
   cfg.root.innerHTML = ''; cfg.root.appendChild(h);
 };
 
+/* ---------- the lesson: every level TEACHES first, then asks ----------
+   A lesson is a few slides: a picture, a heading and one to three short lines. Years 1 and 2 hear every slide read out loud;
+   older years can press the speaker. The level starts when the last slide is finished (or with Skip). */
+L.lesson = function (cfg) {   // { root, slides: [{ h, p: [lines], art (html), say }], title, speak, onDone, onHome }
+  L.hush(); CC.ui.close();
+  const slides = cfg.slides, w = L.el('div', 'lb-lesson'); let i = 0;
+  w.tabIndex = 0;
+  w.innerHTML = '<div class="lb-top"><button type="button" class="btn lb-back" title="Levels" aria-label="levels">🗺️</button><b class="lb-lv"></b><span class="lb-dots"></span><button type="button" class="btn lb-voice" title="Read it to me" aria-label="read it to me">🔊</button><button type="button" class="btn lb-skip" title="Skip the lesson">Skip ⏭</button></div>' +
+    '<div class="lb-slide"><div class="art"></div><div class="txt"><span class="tag">📖 First, let us learn</span><h3></h3><ul></ul></div></div>' +
+    '<div class="lb-nav"><button type="button" class="btn big lb-prev">◀ Back</button><button type="button" class="btn big primary lb-next"></button></div>';
+  const q = function (x) { return w.querySelector(x); };
+  q('.lb-lv').textContent = cfg.title || '';
+  const read = function () { const s = slides[i]; L.say(s.say || (s.h + '. ' + (s.p || []).join(' '))); };
+  function show() {
+    const s = slides[i]; q('.art').innerHTML = s.art || ''; q('h3').textContent = s.h; q('ul').innerHTML = (s.p || []).map(function (x) { return '<li>' + L.esc(x) + '</li>'; }).join('');
+    q('.lb-dots').innerHTML = slides.map(function (x, k) { return '<i class="' + (k < i ? 'd' : k === i ? 'c' : '') + '"></i>'; }).join('');
+    q('.lb-prev').style.visibility = i ? 'visible' : 'hidden'; q('.lb-next').textContent = i === slides.length - 1 ? 'Start ▶' : 'Next ▶';
+    const sl = q('.lb-slide'); sl.classList.remove('in'); void sl.offsetWidth; sl.classList.add('in');
+    if (cfg.speak) read(); else L.hush();
+  }
+  const done = function () { L.hush(); cfg.onDone(); };
+  const next = function () { if (i < slides.length - 1) { i++; L.sfx('tick'); show(); } else { L.sfx('good'); done(); } };
+  q('.lb-next').addEventListener('click', function (e) { e.currentTarget.blur(); w.focus(); next(); });
+  q('.lb-prev').addEventListener('click', function (e) { e.currentTarget.blur(); w.focus(); if (i) { i--; show(); } });
+  q('.lb-skip').addEventListener('click', done); q('.lb-back').addEventListener('click', function () { L.hush(); cfg.onHome(); });
+  q('.lb-voice').addEventListener('click', function (e) { e.currentTarget.blur(); const was = L.voiceOn; L.voiceOn = true; read(); L.voiceOn = was; });
+  w.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); next(); } else if (e.key === 'ArrowLeft' && i) { e.preventDefault(); i--; show(); } });
+  cfg.root.innerHTML = ''; cfg.root.appendChild(w); show(); setTimeout(function () { if (w.isConnected) w.focus(); }, 60);
+};
+
 /* ---------- one level ---------- */
 const IDLE_MS = 25000;
 L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level number), speak, build(body, api), onHome, onDone(stars) }
   L.hush(); CC.ui.close();
   const steps = cfg.lv.steps, p = L.el('div', 'lb-play');
   p.innerHTML = '<div class="lb-top"><button type="button" class="btn lb-back" title="Levels" aria-label="levels">🗺️</button><b class="lb-lv"></b><span class="lb-dots"></span>' +
-    (cfg.speak ? '<button type="button" class="btn lb-voice" title="Say it again" aria-label="say it again">🔊</button>' : '') +
+    (cfg.onLesson ? '<button type="button" class="btn lb-book" title="See the lesson again" aria-label="see the lesson again">📖</button>' : '') + (cfg.speak ? '<button type="button" class="btn lb-voice" title="Say it again" aria-label="say it again">🔊</button>' : '') +
     '<button type="button" class="btn lb-again" title="Start this level again" aria-label="start this level again">↺</button><button type="button" class="btn lb-tipb" title="How do I do it?" aria-label="how do I do it">💡</button></div>' +
     '<div class="lb-msg"><b class="say"></b><i class="sub"></i></div><div class="lb-help" hidden></div><div class="lb-body"></div>';
   cfg.root.innerHTML = ''; cfg.root.appendChild(p);
@@ -116,6 +146,7 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
   q('.lb-back').addEventListener('click', function (e) { e.currentTarget.blur(); api.stop(); cfg.onHome(); });
   q('.lb-again').addEventListener('click', function (e) { e.currentTarget.blur(); if (CC.ui.active) return; api.stop(); L.play(cfg); });
   q('.lb-tipb').addEventListener('click', function (e) { e.currentTarget.blur(); if (help.hidden) tip(false); else help.hidden = true; });
+  const bk = q('.lb-book'); if (bk) bk.addEventListener('click', function () { if (CC.ui.active) return; api.stop(); cfg.onLesson(); });
   const vb = q('.lb-voice'); if (vb) vb.addEventListener('click', function () { vb.blur(); const s = cur(); if (s) L.say(s.voice || s.say); });
   p.addEventListener('pointerdown', arm); p.addEventListener('keydown', arm);
   cfg.build(api.body, api);
@@ -140,15 +171,17 @@ L.game = function (g) {   // { id, icon, title, sub, color, stage(), root(), lev
   /* the certificate: a gold medal on A4 portrait, only when every level for this year is done (CC.rewards draws it: name box, print, save as a picture) */
   function allDone() { return levels().every(function (x) { return S.prog.done[x.id]; }); }
   function cert(back) { if (!allDone() || !CC.rewards) return; CC.rewards.show({ cert: g.id, portrait: true, art: g.cert.art, hue: g.cert.hue, ring: g.title, hero: g.cert.hero, title: g.cert.hero + ' certificate', game: g.title, year: S.year, levels: levels().length }, back); }
-  function start(lv) {
+  function start(lv, skip) {
     const list = levels(), n = list.findIndex(function (x) { return x.id === lv.id; }) + 1; S.lv = lv;
-    if (S.api) S.api.stop();
-    S.api = L.play({ root: g.root(), stage: g.stage(), lv: lv, n: n, speak: g.speak ? g.speak(S.year) : false, build: function (body, api) { lv.build(body, api, S.year); }, onHome: home,
+    if (S.api) S.api.stop(); S.api = null;
+    const teach = typeof lv.teach === 'function' ? lv.teach(S.year) : lv.teach, speak = g.speak ? g.speak(S.year) : false;
+    if (teach && teach.length && !skip) { L.lesson({ root: g.root(), slides: teach, title: 'Level ' + n + ' · ' + lv.title, speak: speak, onHome: home, onDone: function () { start(lv, true); } }); return; }
+    S.api = L.play({ root: g.root(), stage: g.stage(), lv: lv, n: n, speak: g.speak ? g.speak(S.year) : false, build: function (body, api) { lv.build(body, api, S.year); }, onHome: home, onLesson: teach && teach.length ? function () { start(lv); } : null,
       onDone: function (stars) {
         S.prog.done[lv.id] = true; S.prog.stars[lv.id] = Math.max(S.prog.stars[lv.id] || 0, stars); L.save(g.id, S.year, S.prog);
         const next = list[n] || null, all = allDone();
         const again = function () { L.done({ stage: g.stage(), stars: stars, emoji: lv.icon, title: all ? 'You finished ' + g.title + '!' : 'Level ' + n + ' complete!', text: all && g.cert ? 'Every level is done. Your certificate is ready!' : (lv.learned || ''),
-          next: next ? function () { start(next); } : null, again: function () { start(lv); }, home: home, cert: all && g.cert ? function () { cert(again); } : null }); };
+          next: next ? function () { start(next); } : null, again: function () { start(lv, true); }, home: home, cert: all && g.cert ? function () { cert(again); } : null }); };
         again();
       } });
   }

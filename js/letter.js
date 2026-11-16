@@ -167,6 +167,29 @@ function build(body, api, year, lv) {
   changed(); st.saved = false; setTimeout(function () { if (page.isConnected && !lv.html) page.focus(); }, 100);
 }
 
+/* ---------- the lessons (shown before each level) ---------- */
+const keysArt = function (list) { return '<div class="ls-row">' + list.map(function (k) { return '<div class="ls-card"><span class="ls-key">' + k[0] + '</span>' + k[1] + '</div>'; }).join('') + '</div>'; };
+const cards = function (list) { return '<div class="ls-row">' + list.map(function (k) { return '<div class="ls-card"><span class="ic">' + k[0] + '</span>' + k[1] + '</div>'; }).join('') + '</div>'; };
+const pageArt = function (html) { return '<div class="ls-page">' + html + '</div>'; };
+const slide = function (h, p, art) { return { h: h, p: p, art: art }; };
+const TEACH = {
+  type: [slide('What is a word processor?', ['It is a program for writing: letters, stories, posters.', 'You can change your writing as much as you like.', 'Then you can save it or print it.'], pageArt('<p>Dear Sam,</p><p>Thank you for the book.</p><p>From Tom<i class="cur"></i></p>')),
+    slide('The cursor', ['The thin blinking line is the cursor.', 'Your letters appear where the cursor is.', 'Click on the page to put the cursor there.'], pageArt('<p>Dear Sa<i class="cur"></i></p>')),
+    slide('Four keys you need', ['SHIFT + a letter makes a CAPITAL letter.', 'SPACE makes the gap between words.', 'ENTER starts a new line. BACKSPACE rubs out.'], keysArt([['Shift', 'capital letter'], ['Space', 'a gap'], ['Enter', 'new line'], ['⌫', 'rub out']]))],
+  fix: [slide('Mistakes are easy to fix', ['Click to put the cursor next to the mistake.', 'BACKSPACE rubs out the letter BEFORE the cursor.', 'DELETE rubs out the letter AFTER the cursor.'], keysArt([['⌫', 'letter before'], ['Delete', 'letter after']])),
+    slide('The red wavy line', ['A red wavy line means: check this spelling.', 'Right-click the word to see the right spelling.', 'Click the right spelling to fix it.'], pageArt('<p>My <u class="bad">scool</u> is big.</p>'))],
+  style: [slide('Select first, then change', ['To change words, you must select them first.', 'Double-click one word. Or press and drag across many.', 'Selected words turn blue.'], pageArt('<p>My <mark>Pet</mark></p><p>I have a dog.</p>')),
+    slide('Bold, italic, underline', ['B makes words thick and dark: bold.', 'I makes words lean over: italic.', 'U draws a line under words: underline.'], pageArt('<p><b>Bold</b> &nbsp; <i>Italic</i> &nbsp; <u>Underline</u></p>'))],
+  font: [slide('Fonts and sizes', ['The font is the shape of the letters.', 'The size is measured in points. 12 is normal. 24 is big.', 'Select the words first, then choose.'], pageArt('<p style="font-family:Comic Sans MS;font-size:1.7em">Party Time</p><p style="font-size:.8em">small</p>')),
+    slide('Colour and highlight', ['Colour changes the letters themselves.', 'Highlight paints behind the letters, like a marker pen.', 'Use them for the most important words.'], pageArt('<p>on <span style="color:#e02f44">Saturday</span></p><p><span style="background:#fff27a">Bring a friend!</span></p>'))],
+  layout: [slide('Lining up your writing', ['Left: normal writing starts on the left.', 'Centre: good for titles.', 'Right: good for your name or the date.'], pageArt('<p style="text-align:center"><b>Title</b></p><p>Writing on the left.</p><p style="text-align:right">From Alex</p>')),
+    slide('Lists', ['Bullets make a neat list of things.', 'Numbers are for things in order: 1, 2, 3.', 'Select the lines, then click the list button.'], pageArt('<ul><li>A hat</li><li>A game</li><li>A big smile</li></ul>'))],
+  copy: [slide('Copy, cut and paste', ['COPY makes another one. The first stays where it is.', 'CUT takes it away, ready to move.', 'PASTE puts it down where the cursor is.'], keysArt([['Ctrl+C', 'copy'], ['Ctrl+X', 'cut'], ['Ctrl+V', 'paste']])),
+    slide('The clipboard and undo', ['What you copy or cut waits on the clipboard.', 'You cannot see the clipboard, but it remembers.', 'Ctrl+Z undoes your last change. Use it when something goes wrong.'], keysArt([['Ctrl+Z', 'undo'], ['Ctrl+Y', 'redo']]))],
+  save: [slide('Why save?', ['Your work lives only on the screen until you save it.', 'Saving keeps it as a file with a name.', 'Save often: Ctrl+S.'], cards([['💾', 'Save'], ['📁', 'a file with a name']])),
+    slide('Check before you print', ['Print preview shows how the page will look.', 'Check it first. Paper and ink cost money.', 'Ctrl+P opens it.'], cards([['🖨️', 'Print'], ['👀', 'check first']]))],
+  own: [slide('The parts of a letter', ['A title at the top.', 'Dear and a name, then a comma.', 'Your sentences. Then From and your name.'], pageArt('<p style="text-align:center"><b>My News</b></p><p>Dear Sam,</p><p>I have a new bike. It is red.</p><p style="text-align:right">From Tom</p>'))]
+};
 /* ---------- the levels: each one builds on the one before ----------
    1 typing   2 correcting mistakes   3 selecting words: bold, italic, underline   4 font, size and colour   5 lining up the page and lists
    6 copy, cut and paste   7 save and print   8 a whole letter alone */
@@ -229,7 +252,7 @@ const LEVELS = [
       { say: 'Finish with  From  and your name on the right side', win: 'Signed!', btn: 'justifyRight', tip: ['Press ENTER for a new line.', 'Type From and your name.', 'Click Align right.'], ok: function (e, a) { const l = d(a).lines().slice(-1)[0] || ''; return /^from\s+\S{2,}/i.test(l) && d(a).styled(l.split(/\s+/)[1] || 'From', d(a).T.right); } },
       { say: 'Save your letter', sub: 'CTRL + S', win: 'Saved and finished!', btn: 'save', tip: ['Hold CTRL and tap S. Or click the 💾 button at the very top.', 'Type a name and click Save.'], ok: function (e) { return e.t === 'save'; } }] }
 ];
-LEVELS.forEach(function (lv) { lv.build = function (body, api, year) { build(body, api, year, lv); }; });
+LEVELS.forEach(function (lv) { lv.teach = TEACH[lv.id]; lv.build = function (body, api, year) { build(body, api, year, lv); }; });
 
 CC.modes.letter = L.game({
   id: 'letter', icon: '📝', title: 'Type a Letter', color: '#ff7a45', cert: { hero: 'Word Wizard', art: 'letter', hue: 18 },

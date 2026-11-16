@@ -284,6 +284,51 @@ function build(body, api, year, lv) {
   paint(); setTimeout(function () { if (sheet.isConnected) sheet.focus(); }, 100);
 }
 
+/* ---------- the lessons (shown before each level) ---------- */
+/* a small picture of the grid: mg({ col: 'B', row: 1, cell: 'B1', range: ['A1', 'B1'], cells: { A1: 'Fruit' }, handle: 'B2' }) */
+function mg(o) {
+  o = o || {}; const cw = 74, rh = 40, x0 = 46, y0 = 40, nc = 5, nr = 5, cells = o.cells || {}; let s = '<svg viewBox="0 0 ' + (x0 + nc * cw + 8) + ' ' + (y0 + nr * rh + 8) + '" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="' + (x0 + nc * cw) + '" height="' + (y0 + nr * rh) + '" rx="8" fill="#fff" stroke="#c7caef" stroke-width="2"/>';
+  const inR = function (c, r) { if (!o.range) return false; const A = pos(o.range[0]), B = pos(o.range[1]); return c >= A.c && c <= B.c && r >= A.r && r <= B.r; };
+  for (let c = 0; c < nc; c++) { const on = o.col === COLS[c]; s += '<rect x="' + (x0 + c * cw) + '" y="4" width="' + cw + '" height="' + (y0 - 4) + '" fill="' + (on ? '#217346' : '#eceef6') + '" stroke="#c7caef"/><text x="' + (x0 + c * cw + cw / 2) + '" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="' + (on ? '#fff' : '#55598f') + '">' + COLS[c] + '</text>'; }
+  for (let r = 0; r < nr; r++) { const on = o.row === r + 1; s += '<rect x="4" y="' + (y0 + r * rh) + '" width="' + (x0 - 4) + '" height="' + rh + '" fill="' + (on ? '#217346' : '#eceef6') + '" stroke="#c7caef"/><text x="25" y="' + (y0 + r * rh + 27) + '" text-anchor="middle" font-size="20" font-weight="bold" fill="' + (on ? '#fff' : '#55598f') + '">' + (r + 1) + '</text>'; }
+  for (let r = 0; r < nr; r++) for (let c = 0; c < nc; c++) { const ref = at(c, r), t = cells[ref], hot = o.cell === ref, band = o.col === COLS[c] || o.row === r + 1;
+    s += '<rect x="' + (x0 + c * cw) + '" y="' + (y0 + r * rh) + '" width="' + cw + '" height="' + rh + '" fill="' + (hot ? '#fff2a8' : inR(c, r) ? '#dcebe2' : band ? '#eaf5ee' : '#fff') + '" stroke="#dfe2f0"/>';
+    if (t != null) s += '<text x="' + (x0 + c * cw + (isNum(t) ? cw - 8 : 8)) + '" y="' + (y0 + r * rh + 27) + '" text-anchor="' + (isNum(t) ? 'end' : 'start') + '" font-size="17" font-weight="' + (String(t)[0] === '=' ? 'bold' : 'normal') + '" fill="' + (String(t)[0] === '=' ? '#0f5fd0' : '#1a1b3f') + '">' + L.esc(t) + '</text>';
+    else if (hot && !o.quiet) s += '<text x="' + (x0 + c * cw + cw / 2) + '" y="' + (y0 + r * rh + 28) + '" text-anchor="middle" font-size="20" font-weight="bold" fill="#217346">' + ref + '</text>'; }
+  const mark = o.cell || (o.range && o.range[0]); if (mark) { const A = pos(o.range ? o.range[0] : o.cell), B = pos(o.range ? o.range[1] : o.cell); s += '<rect x="' + (x0 + A.c * cw) + '" y="' + (y0 + A.r * rh) + '" width="' + ((B.c - A.c + 1) * cw) + '" height="' + ((B.r - A.r + 1) * rh) + '" fill="none" stroke="#217346" stroke-width="4"/>'; if (o.handle) s += '<rect x="' + (x0 + (B.c + 1) * cw - 7) + '" y="' + (y0 + (B.r + 1) * rh - 7) + '" width="13" height="13" fill="#217346" stroke="#fff" stroke-width="2"/>'; }
+  return s + '</svg>';
+}
+const fm = function (parts) { return '<div class="ls-formula">' + parts.map(function (p) { return '<span class="' + p[0] + '">' + p[1] + (p[2] ? '<small>' + p[2] + '</small>' : '') + '</span>'; }).join('') + '</div>'; };
+const keysArt = function (list) { return '<div class="ls-row">' + list.map(function (k) { return '<div class="ls-card"><span class="ls-key">' + k[0] + '</span>' + k[1] + '</div>'; }).join('') + '</div>'; };
+const slide = function (h, p, art) { return { h: h, p: p, art: art }; };
+const SHOP = { A1: 'Item', B1: 'Price', A2: 'Pencil', B2: '2', A3: 'Ruler', B3: '3', A4: 'Book', B4: '5' };
+const TEACH = {
+  cells: [slide('What is a spreadsheet?', ['A spreadsheet is a big grid of boxes.', 'People use it for lists, tables and sums.', 'Each box is called a cell.'], mg()),
+    slide('Columns have letters', ['A column goes DOWN the page.', 'Every column has a letter at the top: A, B, C.', 'This is column B.'], mg({ col: 'B' })),
+    slide('Rows have numbers', ['A row goes ACROSS the page.', 'Every row has a number at the side: 1, 2, 3.', 'This is row 1.'], mg({ row: 1 })),
+    slide('Every cell has a name', ['Column B and row 1 meet at one cell.', 'Its name is B1: the letter first, then the number.', 'No other cell has that name.'], mg({ col: 'B', row: 1, cell: 'B1' })),
+    slide('How to find a cell', ['To find C3: look along the top for the letter C.', 'Look down the side for the number 3.', 'Follow them until they meet. Click that box.'], mg({ col: 'C', row: 3, cell: 'C3' })),
+    slide('Typing in a cell', ['Click a cell and just type.', 'ENTER saves it and moves down.', 'TAB saves it and moves right. DELETE empties a cell.'], keysArt([['Enter', 'save, go down'], ['Tab', 'save, go right'], ['Delete', 'empty the cell']]))],
+  table: [slide('What is a table?', ['A table keeps facts tidy in rows and columns.', 'Row 1 holds the headings: they say what is below.', 'Each thing gets its own row.'], mg({ row: 1, cells: { A1: 'Fruit', B1: 'Number', A2: 'Apples', B2: '5', A3: 'Bananas', B3: '8' } })),
+    slide('Changing what is in a cell', ['To replace it: click the cell and type over it.', 'To change a little bit: double-click the cell.', 'Words sit on the left. Numbers sit on the right.'], mg({ cell: 'B3', quiet: 1, cells: { A1: 'Fruit', B1: 'Number', A2: 'Apples', B2: '5', A3: 'Bananas', B3: '12' } }))],
+  format: [slide('Select first, then act', ['To change several cells, select them all first.', 'Press on the first cell, drag to the last, let go.', 'A group of cells is called a range.'], mg({ range: ['A1', 'B1'], cells: { A1: 'Fruit', B1: 'Number', A2: 'Apples', B2: '5' } })),
+    slide('A range has a name too', ['A1:B1 means: from A1 to B1.', 'The : sign means "to".', 'B2:B5 is four cells in column B.'], mg({ range: ['B2', 'B5'], cells: { B1: 'Number', B2: '5', B3: '12', B4: '3', B5: '6' } })),
+    slide('Making a table easy to read', ['Bold makes headings stand out.', 'A fill colour paints the cell.', 'Ctrl+Z undoes your last change.'], keysArt([['B', 'bold'], ['A', 'fill colour'], ['Ctrl+Z', 'undo']]))],
+  add: [slide('What is a formula?', ['A formula is a sum that the computer works out.', 'It ALWAYS starts with the = sign.', 'Without =, the computer thinks it is just words.'], fm([['eq', '=', 'starts every formula'], ['rf', 'B2', 'a cell'], ['op', '+', 'add'], ['rf', 'B3', 'a cell']])),
+    slide('Use cell names, not numbers', ['=B2+B3 means: the number in B2 plus the number in B3.', 'If you change a number, the answer changes by itself.', 'That is the magic of a spreadsheet.'], mg({ cell: 'B5', quiet: 1, cells: Object.assign({ A5: 'Total', B5: '=B2+B3+B4' }, SHOP) })),
+    slide('The four signs', ['+ adds.   - takes away.', '* multiplies (times). It is SHIFT and 8.', '/ divides (shares).'], keysArt([['+', 'add'], ['-', 'take away'], ['*', 'times'], ['/', 'divide']])),
+    slide('How to write a formula', ['1. Click the cell where the answer should go.', '2. Type =', '3. Type the cell names with a sign between them.', '4. Press ENTER.'], fm([['eq', '=', '1st'], ['rf', 'B2', '2nd'], ['op', '*', '3rd'], ['rf', 'C2', '4th']]))],
+  fill: [slide('Do not type it again and again', ['One formula can be copied to the cells below.', 'The small square at the corner of the cell is the fill handle.', 'Drag it down to copy.'], mg({ cell: 'D2', quiet: 1, handle: 1, cells: { A1: 'Item', B1: 'Price', C1: 'Bought', D1: 'Cost', A2: 'Pencil', B2: '2', C2: '4', D2: '=B2*C2', A3: 'Ruler', B3: '3', C3: '2' } })),
+    slide('The cell names move with it', ['In row 2 the formula is =B2*C2.', 'Copied to row 3 it becomes =B3*C3.', 'The computer changes the names for you.'], mg({ range: ['D2', 'D4'], cells: { D1: 'Cost', D2: '=B2*C2', D3: '=B3*C3', D4: '=B4*C4' } }))],
+  sum: [slide('Adding a long list', ['Typing =B2+B3+B4+B5+B6 is slow.', 'SUM adds a whole range in one go.', 'B2:B6 means every cell from B2 to B6.'], fm([['eq', '=', 'start'], ['fn', 'SUM', 'add up'], ['op', '(', ''], ['rf', 'B2:B6', 'from B2 to B6'], ['op', ')', '']])),
+    slide('AutoSum does it for you', ['Click the empty cell under your numbers.', 'Click Σ AutoSum. It writes the formula.', 'Press ENTER to accept it.'], keysArt([['Σ', 'AutoSum'], ['Enter', 'accept']])),
+    slide('Biggest and smallest', ['=MAX(B2:B6) finds the biggest number.', '=MIN(B2:B6) finds the smallest number.', 'They are written just like SUM.'], fm([['eq', '=', ''], ['fn', 'MAX', 'biggest'], ['op', '(', ''], ['rf', 'B2:B6', 'the range'], ['op', ')', '']]))],
+  chart: [slide('What is a chart?', ['A chart is a picture of your numbers.', 'It is quicker to understand than a table.', 'Select the table first, then choose a chart.'], '<div class="ls-row"><div class="ls-card"><span class="ic">📊</span>Column</div><div class="ls-card"><span class="ic">🥧</span>Pie</div><div class="ls-card"><span class="ic">📈</span>Line</div></div>'),
+    slide('Which chart for which job?', ['Column: compare sizes. Taller means bigger.', 'Pie: show each share of the whole.', 'Line: show change over time.'], '<div class="ls-row"><div class="ls-card"><span class="ic">📊</span>compare</div><div class="ls-card"><span class="ic">🥧</span>shares</div><div class="ls-card"><span class="ic">📈</span>change</div></div>')],
+  avg: [slide('What is an average?', ['Add the numbers up, then share them out equally.', '8, 5 and 10 make 23. Shared by 3 that is 7.67.', '=AVERAGE(B2:B4) does both steps for you.'], fm([['eq', '=', ''], ['fn', 'AVERAGE', 'share equally'], ['op', '(', ''], ['rf', 'B2:B4', 'the range'], ['op', ')', '']])),
+    slide('Write once, copy across', ['Write the formula for the first one.', 'Use the fill handle to copy it down or sideways.', 'The cell names change by themselves.'], mg({ cell: 'D2', quiet: 1, handle: 1, cells: { A1: 'Name', B1: 'Maths', C1: 'English', D1: 'Total', A2: 'Amina', B2: '8', C2: '6', D2: '=B2+C2' } }))],
+  shop: [slide('Put it all together', ['Money = price times number sold.', 'Total = SUM of the money.', 'Profit = total take away costs.'], fm([['eq', '=', ''], ['rf', 'D6', 'total'], ['op', '-', 'take away'], ['rf', 'D7', 'costs']]))]
+};
 /* ---------- the levels: each one builds on the one before ----------
    1 cells and moving   2 typing a table   3 selecting and formatting   4 formulas   5 copying a formula (the fill handle)
    6 SUM and AutoSum    7 charts           8 totals and averages        9 a whole working sheet */
@@ -375,7 +420,7 @@ const LEVELS = [
       { say: 'The shop sold 30 crisps, not 20. Fix C3 and check the profit.', win: 'Every formula updated by itself. That is the power of a spreadsheet!', cell: 'C3', tip: typeTip('C3', '30'), ok: function (e, a) { return a.g.val('C3') === 30 && a.g.val('D8') === 108 && !a.g.editing(); } },
       { say: 'Make the headings bold with a fill colour, then draw a chart of the money', win: 'A finished report!', btn: ['bold', 'fill', 'bar'], tip: ['Drag from A1 to D1. Click B, then the fill colour button.', 'Drag from A1 to D4, then click 📊.'], ok: function (e, a) { return !!a.g.chart() && !!a.g.fmt('A1').fill && !!a.g.fmt('A1').b; } }] }
 ];
-LEVELS.forEach(function (lv) { lv.build = function (body, api, year) { build(body, api, year, lv); }; });
+LEVELS.forEach(function (lv) { lv.teach = TEACH[lv.id]; lv.build = function (body, api, year) { build(body, api, year, lv); }; });
 
 CC.modes.grid = L.game({
   id: 'grid', icon: '🔢', title: 'Number Grid', color: '#3fa84f', cert: { hero: 'Spreadsheet Star', art: 'grid', hue: 140 },
