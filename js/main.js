@@ -50,10 +50,11 @@ const YEAR_SETS = {
 };
 const YEARS = {}; Object.keys(YEAR_SETS).forEach(function (n) { YEARS[n] = { modes: PATH.filter(function (id) { return YEAR_SETS[n].indexOf(id) >= 0; }) }; });
 /* the tabs in every year menu are LEVELS of difficulty, easiest first. A year only shows the levels that have a game for it, and opens on the level of its first game. */
-const TIERS = [['b', '🌱', 'Beginner', ['mouseclub', 'buildclick', 'parts', 'paint', 'magic', 'piano', 'skills', 'fruit', 'jump']],
-  ['m', '⭐', 'Medium', ['buildtype', 'words', 'art', 'scene', 'pattern', 'typing', 'desktop']],
-  ['a', '🚀', 'Advanced', ['shortcuts', 'letter', 'design', 'blaster', 'grid']],
-  ['p', '🏆', 'Advanced Pro', ['network', 'magiclab', 'commando']]];
+const TIERS = [['b', '🌱', 'Beginner', ['mouseclub', 'buildclick', 'parts', 'paint', 'magic', 'skills']],
+  ['m', '⭐', 'Medium', ['buildtype', 'words', 'art', 'scene', 'typing', 'desktop']],
+  ['a', '🚀', 'Advanced', ['shortcuts', 'letter', 'design', 'grid']],
+  ['p', '🏆', 'Advanced Pro', ['network', 'magiclab']],
+  ['g', '⚡', 'Skill Games', ['fruit', 'jump', 'piano', 'pattern', 'blaster', 'commando']]];
 const TIER_OF = {}; TIERS.forEach(function (t) { t[3].forEach(function (id) { TIER_OF[id] = t[0]; }); });
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
