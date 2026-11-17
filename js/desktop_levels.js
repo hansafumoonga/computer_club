@@ -183,7 +183,7 @@ const LEVELS = [
   ] },
 
 /* ================= 6 · ORGANISE ================= */
-{ id: 6, title: 'Organise', icon: '🧺', gem: 'stargem', intro: 'Put things where they belong.',
+{ id: 6, title: 'Organise', icon: '🧺', gem: 'stargem', intro: 'Sort the files into the correct folders.',
   tasks: [
     { say: 'Drag the 🐶 into the folder', win: 'In the folder!', max: 3, hint: ['.dk-icons .dk-ico[data-id="p1"]', '.dk-icons .dk-ico[data-id="f1"]'],
       scene: { files: [F('f1', 'Pictures', '📁', 'folder'), DOG('desk')], wins: [] },
@@ -281,7 +281,7 @@ const LEVELS = [
    page cannot catch, like the Windows key). */
 
 /* ================= 9 · SELECT MANY ================= */
-{ id: 9, title: 'Select Many', icon: '☑️', gem: 'turquoise', pro: true, min: 4, intro: 'Pick lots of files at once, then move or delete them together.',
+{ id: 9, title: 'Select Many', icon: '☑️', gem: 'turquoise', pro: true, min: 4, intro: 'Select many files at once, then move or delete them together.',
   tasks: [
     { say: 'Click the Dog. Hold CTRL and click the Sun.', sub: 'Now two files are selected', win: 'Two files selected!', min: 4, max: 5, hint: ['.dk-icons .dk-ico[data-id="p1"]', '.dk-icons .dk-ico[data-id="p2"]'],
       scene: { files: [F('f1', 'Pictures', '📁', 'folder'), DOG('desk'), SUN('desk'), CAT('desk'), STORY('desk'), SONG('desk')], wins: [] },

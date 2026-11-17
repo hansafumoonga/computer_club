@@ -4,31 +4,31 @@
 const app = CC.app;
 
 const MODES = {
-  skills:   { icon: '🗺️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', group: 'kb', color: '#ff7ac8', cert: true },
-  fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', group: 'kb', color: '#ff6b86' },
-  words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Find the computer words',       group: 'kb', color: '#22c6c6' },
-  jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', group: 'arrow', color: '#ffd23f' },
-  blaster:  { icon: '🚀', name: 'Star Blaster',  desc: 'Pop the friendly space rocks',    group: 'arrow', color: '#6bcb77' },
-  piano:    { icon: '🎹', name: 'Piano',         desc: 'Play songs on 5 keys',            group: 'arrow', color: '#ff9f45' },
-  commando: { icon: '🤖', name: 'Commando Run',  desc: 'Run, jump and blast the bots',    group: 'arrow', color: '#a77bff' },
-  pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy',          group: 'arrow', color: '#22c6c6' },
+  skills:   { icon: '🗺️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', color: '#ff7ac8', cert: true },
+  fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', color: '#ff6b86' },
+  words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Find the computer words', color: '#22c6c6' },
+  jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', color: '#ffd23f' },
+  blaster:  { icon: '🚀', name: 'Star Blaster',  desc: 'Pop the friendly space rocks', color: '#6bcb77' },
+  piano:    { icon: '🎹', name: 'Piano',         desc: 'Play songs on 5 keys', color: '#ff9f45' },
+  commando: { icon: '🤖', name: 'Commando Run',  desc: 'Run, jump and blast the bots', color: '#a77bff' },
+  pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy', color: '#22c6c6' },
   /* Builder Club has two doors; each year gets the one that suits it (the same game, opened on the right door) */
-  mouseclub: { icon: '🖱️', name: 'Mouse Club', desc: 'Move, click, drag and scroll, one skill at a time', group: 'kb', color: '#22b8cf', cert: true },
-  buildclick: { icon: '🏗️', name: 'Click & Build', desc: 'Click, drag and build a car, a house, a city!', group: 'kb', color: '#22b8cf', cert: true, mode: 'builder', args: { door: 'click' } },
-  buildtype:  { icon: '🏗️', name: 'Type & Build',  desc: 'Type the word to build a car, a house, a city!', group: 'kb', color: '#ff7a45', cert: true, mode: 'builder', args: { door: 'type' } },
-  magic:    { icon: '✨', name: 'Magic Mix',     desc: 'Watch colours mix and paint a picture', group: 'design', color: '#ffb52e' },
-  art:      { icon: '🖌️', name: 'Art Studio',    desc: 'Brushes, shapes, stamps and more', group: 'design', color: '#ff7a45' },
-  scene:    { icon: '🖼️', name: 'Scene Maker',   desc: 'Drag, arrange and paint a scene', group: 'design', color: '#22b8cf' },
-  design:   { icon: '🎛️', name: 'Design Studio', desc: 'Layers, text, symmetry and more tools', group: 'design', color: '#ff7a45' },
-  magiclab: { icon: '🔮', name: 'Magic Lab',     desc: 'Kaleidoscopes, spirals and colour harmony', group: 'design', color: '#a77bff' },
-  shortcuts:{ icon: '⚡', name: 'Shortcut Lab',  desc: 'Learn keyboard shortcuts that really work', group: 'kb', color: '#a77bff' },
-  desktop:  { icon: '🪟', name: 'Desktop Skills', desc: 'Windows, folders and files, like a real computer', group: 'kb', color: '#4d8dff', cert: true },
-  paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', group: 'design', color: '#ff7ac8' },
-  parts:    { icon: '🖥️', name: 'Parts of a Computer', desc: 'Name the parts, plug them in and power on', group: 'pc', color: '#4d8dff', cert: true },
-  letter:   { icon: '📝', name: 'Type a Letter', desc: 'A real word processor', group: 'pc', color: '#ff7a45', cert: true },
-  grid:     { icon: '🔢', name: 'Number Grid',   desc: 'A real spreadsheet with formulas and charts', group: 'pc', color: '#3fa84f', cert: true },
-  network:  { icon: '🌐', name: 'Network Builder', desc: 'Join computers with a switch and a router', group: 'pc', color: '#22c6c6', cert: true },
-  typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss, catch the rain', group: 'kb', color: '#5ac8ff', cert: true }
+  mouseclub: { icon: '🖱️', name: 'Mouse Club', desc: 'Move, click, drag and scroll, one skill at a time', color: '#22b8cf', cert: true },
+  buildclick: { icon: '🏗️', name: 'Click & Build', desc: 'Click, drag and build a car, a house, a city!', color: '#22b8cf', cert: true, mode: 'builder', args: { door: 'click' } },
+  buildtype:  { icon: '🏗️', name: 'Type & Build',  desc: 'Type the word to build a car, a house, a city!', color: '#ff7a45', cert: true, mode: 'builder', args: { door: 'type' } },
+  magic:    { icon: '✨', name: 'Magic Mix',     desc: 'Watch colours mix and paint a picture', color: '#ffb52e' },
+  art:      { icon: '🖌️', name: 'Art Studio',    desc: 'Brushes, shapes, stamps and more', color: '#ff7a45' },
+  scene:    { icon: '🖼️', name: 'Scene Maker',   desc: 'Drag, arrange and paint a scene', color: '#22b8cf' },
+  design:   { icon: '🎛️', name: 'Design Studio', desc: 'Layers, text, symmetry and more tools', color: '#ff7a45' },
+  magiclab: { icon: '🔮', name: 'Magic Lab',     desc: 'Kaleidoscopes, spirals and colour harmony', color: '#a77bff' },
+  shortcuts:{ icon: '⚡', name: 'Shortcut Lab',  desc: 'Learn keyboard shortcuts that really work', color: '#a77bff' },
+  desktop:  { icon: '🪟', name: 'Desktop Skills', desc: 'Windows, folders and files, like a real computer', color: '#4d8dff', cert: true },
+  paint:    { icon: '🎨', name: 'Paint Studio',  desc: 'Colour animals, houses, cars and more', color: '#ff7ac8' },
+  parts:    { icon: '🖥️', name: 'Parts of a Computer', desc: 'Name the parts, plug them in and power on', color: '#4d8dff', cert: true },
+  letter:   { icon: '📝', name: 'Type a Letter', desc: 'A real word processor', color: '#ff7a45', cert: true },
+  grid:     { icon: '🔢', name: 'Number Grid',   desc: 'A real spreadsheet with formulas and charts', color: '#3fa84f', cert: true },
+  network:  { icon: '🌐', name: 'Network Builder', desc: 'Join computers with a switch and a router', color: '#22c6c6', cert: true },
+  typing:   { icon: '⌨️', name: 'Typing Club',   desc: 'Race, pop balloons, beat the boss, catch the rain', color: '#5ac8ff', cert: true }
 };
 /* THE LEARNING PATH: every game in the order a learner needs the skills, from the very first one to the hardest.
    Each game builds on the ones before it, so each year's menu is this list with only that year's games in it, numbered 1, 2, 3 ...
@@ -49,8 +49,12 @@ const YEAR_SETS = {
   '6': ['typing', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando']
 };
 const YEARS = {}; Object.keys(YEAR_SETS).forEach(function (n) { YEARS[n] = { modes: PATH.filter(function (id) { return YEAR_SETS[n].indexOf(id) >= 0; }) }; });
-/* the tabs in every year menu: the whole learning path first, then the same games sorted by kind (keyboard and mouse, how computers and their programs work, painting and design, arrow-key / Makey Makey) */
-const GROUPS = [['path', '🧭', 'Learning path'], ['kb', '⌨️🖱️', 'Keyboard and mouse'], ['pc', '💻', 'Computers and apps'], ['design', '🎨', 'Design'], ['arrow', '🍌', 'Arrow keys and Makey Makey']];
+/* the tabs in every year menu are LEVELS of difficulty, easiest first. A year only shows the levels that have a game for it, and opens on the level of its first game. */
+const TIERS = [['b', '🌱', 'Beginner', ['mouseclub', 'buildclick', 'parts', 'paint', 'magic', 'piano', 'skills', 'fruit', 'jump']],
+  ['m', '⭐', 'Medium', ['buildtype', 'words', 'art', 'scene', 'pattern', 'typing', 'desktop']],
+  ['a', '🚀', 'Advanced', ['shortcuts', 'letter', 'design', 'blaster', 'grid']],
+  ['p', '🏆', 'Advanced Pro', ['network', 'magiclab', 'commando']]];
+const TIER_OF = {}; TIERS.forEach(function (t) { t[3].forEach(function (id) { TIER_OF[id] = t[0]; }); });
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
@@ -72,17 +76,18 @@ function showMenu() {
   leaveMode();
   const y = YEARS[app.session], tabs = $('group-tabs'), box = $('mode-cards');
   $('menu-title').textContent = 'Year ' + app.session;
-  if (!app.group) app.group = 'path';
+  const shown = TIERS.filter(function (g) { return y.modes.some(function (id) { return TIER_OF[id] === g[0]; }); });
+  if (!app.group || !shown.some(function (g) { return g[0] === app.group; })) app.group = TIER_OF[y.modes[0]];
   function draw() {
     tabs.innerHTML = ''; box.innerHTML = '';
-    GROUPS.forEach(function (g) {
-      const n = y.modes.filter(function (id) { return g[0] === 'path' || MODES[id].group === g[0]; }).length, t = document.createElement('button');
+    shown.forEach(function (g) {
+      const n = y.modes.filter(function (id) { return TIER_OF[id] === g[0]; }).length, t = document.createElement('button');
       t.type = 'button'; t.className = 'group-tab' + (app.group === g[0] ? ' on' : ''); t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', app.group === g[0] ? 'true' : 'false');
       t.innerHTML = '<span class="gi">' + g[1] + '</span><span class="gn">' + g[2] + '</span><span class="gc">' + n + '</span>';
       t.addEventListener('click', function () { app.group = g[0]; draw(); });
       tabs.appendChild(t);
     });
-    y.modes.filter(function (id) { return app.group === 'path' || MODES[id].group === app.group; }).forEach(function (id) {
+    y.modes.filter(function (id) { return TIER_OF[id] === app.group; }).forEach(function (id) {
       const m = MODES[id], b = document.createElement('button'), step = y.modes.indexOf(id) + 1;
       b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;
       b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (step === 1 ? '<span class="tg start">▶ Start here</span>' : '') + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
@@ -112,7 +117,7 @@ CC.goMenu = showMenu;
   Object.keys(YEARS).forEach(function (n, i) {
     const b = document.createElement('button'); b.className = 'year-card'; b.style.setProperty('--c', YEAR_COLORS[i]); b.dataset.year = n; b.setAttribute('aria-label', 'Year ' + n);
     b.innerHTML = '<span class="yk">' + n + '</span><span class="yn">Year ' + n + '</span>';
-    b.addEventListener('click', function () { CC.audio.init(); app.session = n; app.group = 'path'; CC.sfx.good(); showMenu(); });
+    b.addEventListener('click', function () { CC.audio.init(); app.session = n; app.group = null; CC.sfx.good(); showMenu(); });
     box.appendChild(b);
   });
 })();

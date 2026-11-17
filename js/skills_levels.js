@@ -98,7 +98,7 @@ const LEVELS = [
 
 /* ================= 4 · DRAG AND DROP ================= */
 { id: 4, title: 'Drag and Drop', world: 'building', badge: 'Sapphire', gem: 'sapphire', icon: '🏗️',
-  intro: 'Move, hold the button, drag, then let go! Let us build things! 🧱',
+  intro: 'Move, hold the button, drag, then let go! Let us build with blocks! 🧱',
   tasks: [
     { type: 'drag', say: 'Drag the ball into the box ⚽➡️📦', win: 'Goal! You dragged it! ⚽', demo: true, drop: 'box',
       pieces: [{ id: 'ball', e: '⚽', s: 10, x: 20, y: 28 }], zones: [{ id: 'box', for: 'ball', e: '📦', x: 76, y: 32, s: 22 }] },
@@ -162,12 +162,12 @@ const LEVELS = [
 
 /* ================= 7 · DOUBLE-CLICK & RIGHT-CLICK ================= */
 { id: 7, title: 'Click Click!', world: 'magic', badge: 'Rose Quartz', gem: 'quartz', icon: '🎁',
-  intro: 'Some things open with TWO fast clicks. Ready for treasure? 🎁',
+  intro: 'Some objects open with TWO fast clicks. Ready for treasure? 🎁',
   tasks: [
     { type: 'dbl', say: 'Double-click the treasure box 🎁 Click, click!', win: 'You opened it! 💎', demo: true, reveal: '💎', item: { e: '🎁', x: 50, y: 30, s: 22, n: 'treasure box' } },
     { type: 'dbl', say: 'Double-click the treasure again! 🎁', win: 'Shiny! 👑', reveal: '👑', item: { e: '🎁', x: 24, y: 34, s: 18, n: 'treasure box' } },
     { type: 'dbl', say: 'One more! Double-click! 🎁', win: 'Treasure hunter! 🏆', min: 2, reveal: '🏆', item: { e: '🎁', x: 76, y: 24, s: 15, n: 'treasure box' } },
-    { type: 'right', say: 'Right-click the treasure box 🎁 to open the magic menu', win: 'Magic! ✨ The right button opens menus.', min: 3, demo: true, reveal: '✨', item: { e: '🎁', x: 40, y: 30, s: 20, n: 'treasure box' } }
+    { type: 'right', say: 'Right-click the treasure box 🎁 to open its menu', win: 'Correct! ✨ The right button opens menus.', min: 3, demo: true, reveal: '✨', item: { e: '🎁', x: 40, y: 30, s: 20, n: 'treasure box' } }
   ] },
 
 /* ================= 8 · FIND THE KEYS ================= */

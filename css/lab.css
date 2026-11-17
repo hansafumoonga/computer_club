@@ -284,6 +284,7 @@
 /* Parts of a Computer: cables with an outline, kinds of computer */
 .pc-cable-o{fill:none;stroke:#15163a;stroke-width:10;stroke-linecap:round}
 .pc-cable{stroke-width:6}
+.pc-hand{pointer-events:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.4))}
 .pc-kinds{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:14px;align-items:center}
 .pc-kind{font:inherit;display:flex;flex-direction:column;align-items:center;gap:8px;background:#fff;color:#1a1b3f;border:5px solid #c7caef;border-radius:22px;padding:18px 12px;cursor:pointer;transition:transform .12s,border-color .12s;box-shadow:0 8px 0 rgba(0,0,0,.3);min-height:230px;justify-content:center}
 .pc-kind:hover{transform:translateY(-4px);border-color:#4d8dff}
