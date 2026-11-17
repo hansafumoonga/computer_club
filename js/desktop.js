@@ -136,11 +136,11 @@ function showTask() {
 /* a keys quiz: the keys that cannot be caught in a web page (Windows key shortcuts, screenshots) are chosen from keycaps */
 function kbdHtml(label) { return label.split(' + ').map(function (k) { return '<kbd>' + esc(k) + '</kbd>'; }).join('<b>+</b>'); }
 function renderQuiz(t) {
-  const area = $root().querySelector('.dk-area'); if (!area) return; const old = area.querySelector('.dk-quiz'); if (old) old.remove();
+  const stageBox = $root().querySelector('.dk-area'); if (!stageBox) return; const old = stageBox.querySelector('.dk-quiz'); if (old) old.remove();
   if (!t || !t.choices) return;
   const q = el('div', 'dk-quiz'), opts = t.choices.map(function (c, i) { return { c: c, r: Math.random() + i * 0 }; }).sort(function (a, b) { return a.r - b.r; });
   opts.forEach(function (o) { const b = el('button', 'qz', kbdHtml(o.c)); b.type = 'button'; b.dataset.v = o.c; b.setAttribute('aria-label', o.c); q.appendChild(b); });
-  area.appendChild(q);
+  stageBox.appendChild(q);
 }
 
 /* ---------- windows ---------- */

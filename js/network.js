@@ -94,17 +94,17 @@ function build(body, api, year, lv) {
     /* every device needs an address on this network before it can send or receive */
     if (showIp) { const bad = [A, B].filter(function (n) { return HOST[n.type] && (!n.ip || n.ip.indexOf(NETPART + '.') !== 0); })[0];
       if (bad) { const why = !bad.ip ? bad.name + ' has no IP address, so nothing can find it. Give it one with the 🏷️ IP address tool.' : bad.name + ' is on the wrong network (' + bad.ip + '). Its address must start with ' + NETPART + '.'; L.sfx('softMiss'); bubble(bad.id, !bad.ip ? '❓ No address!' : '🚫 Wrong network!'); log(why, 'bad'); if (!api.check({ t: 'noip', id: bad.id, from: a, to: b })) api.miss(why); return; } }
-    const p = path(a, b), web = B.type === 'net', print = B.type === 'printer';
+    const p = path(a, b), toNet = B.type === 'net', print = B.type === 'printer';
     if (!p) { L.sfx('softMiss'); bubble(a, '❌ No way through!'); log('<b>' + A.name + '</b> cannot reach <b>' + B.name + '</b>. Check the cables.', 'bad'); const ok = api.check({ t: 'fail', from: a, to: b }); if (!ok) api.miss('No way through from ' + A.name + ' to ' + B.name + '. Check the cables.'); return; }
-    N.busy = true; log('<b>' + A.name + '</b> sends ' + (web ? 'a request for a website 🌐' : print ? 'a page to print 🖨️' : 'a message ✉️') + ' to <b>' + B.name + '</b>');
+    N.busy = true; log('<b>' + A.name + '</b> sends ' + (toNet ? 'a request for a website 🌐' : print ? 'a page to print 🖨️' : 'a message ✉️') + ' to <b>' + B.name + '</b>');
     const each = function (id, last) {
       const n = N.nodes[id]; if (last) return;
-      if (n.type === 'sw') { bubble(id, 'For ' + (web ? 'the router' : B.name) + '!', 900); log('<b>Switch</b>: this is for ' + (web ? 'the router' : B.name) + '. I send it down the right cable.'); }
-      if (n.type === 'router') { bubble(id, web ? 'Out to the internet!' : 'Passing it on!', 900); log('<b>Router</b>: ' + (web ? 'this is for the internet. I pass it out of your network.' : 'I pass it on to ' + B.name + '.')); }
+      if (n.type === 'sw') { bubble(id, 'For ' + (toNet ? 'the router' : B.name) + '!', 900); log('<b>Switch</b>: this is for ' + (toNet ? 'the router' : B.name) + '. I send it down the right cable.'); }
+      if (n.type === 'router') { bubble(id, toNet ? 'Out to the internet!' : 'Passing it on!', 900); log('<b>Router</b>: ' + (toNet ? 'this is for the internet. I pass it out of your network.' : 'I pass it on to ' + B.name + '.')); }
     };
-    fly(p, web ? '🌐' : print ? '📄' : '✉️', each).then(function (ok) {
+    fly(p, toNet ? '🌐' : print ? '📄' : '✉️', each).then(function (ok) {
       if (!ok) return;
-      if (web) { bubble(b, 'Here is the page!', 1000); log('<b>Internet</b>: here is the website. Sending it back.'); return fly(p.slice().reverse(), '📰').then(function () { bubble(a, '🌐 Website opened!'); log('<b>' + A.name + '</b> shows the website.', 'ok'); L.sfx('good'); N.busy = false; api.check({ t: 'web', from: a }); }); }
+      if (toNet) { bubble(b, 'Here is the page!', 1000); log('<b>Internet</b>: here is the website. Sending it back.'); return fly(p.slice().reverse(), '📰').then(function () { bubble(a, '🌐 Website opened!'); log('<b>' + A.name + '</b> shows the website.', 'ok'); L.sfx('good'); N.busy = false; api.check({ t: 'web', from: a }); }); }
       bubble(b, print ? '🖨️ Printing...' : '✉️ Got it!'); log('<b>' + B.name + '</b> ' + (print ? 'prints the page.' : 'got the message.'), 'ok'); N.busy = false; api.check({ t: 'sent', from: a, to: b });
     });
   }

@@ -97,7 +97,7 @@
 .nw-node .bg{fill:#1f2150;stroke:#4a50a8;stroke-width:3;transition:stroke .15s,fill .15s}
 .nw-node:hover .bg{stroke:#8f95e0}
 .nw-node.sel .bg{stroke:#ffd23f;fill:#2f3590}
-.nw-node.glow .bg{stroke:#ffe14d;animation:nwGlow 1s ease-in-out infinite}
+.nw-node.glow .bg{animation:nwGlow 1s ease-in-out infinite}
 .nw-node.flash .bg{fill:#3f9a63;stroke:#b6f0be}
 .nw-node.off{opacity:.45}
 .nw-node text{pointer-events:none;user-select:none}

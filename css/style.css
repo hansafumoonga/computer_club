@@ -3,7 +3,6 @@
 :root{
   --bg:#15163a; --panel:#1f2150; --panel-2:#272a63;
   --ink:#f5f4ff; --ink-dim:#b7b8de; --accent:#ffd23f; --good:#6bcb77;
-  --radius:18px;
   --key-c:#ff5c72; --key-d:#ff9f45; --key-e:#ffd23f; --key-f:#6bcb77; --key-g:#22c6c6;
 }
 *{box-sizing:border-box}
@@ -33,7 +32,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* ---- mode cards ---- */
 .mode-cards{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;max-width:1000px;margin-top:1vh}
 .mode-card:hover{transform:translateY(-4px) scale(1.02)}
-.mode-card{width:210px;padding:18px 12px;border-radius:24px;border:4px solid var(--c,#3a3e8a);background:var(--panel);
+.mode-card{width:210px;padding:18px 12px;border-radius:24px;border:4px solid var(--c,#3a3e8a);
   display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .12s}
 .mode-card .ic{font-size:3.4rem;line-height:1.1} .mode-card .nm{font-size:1.3rem;font-weight:bold}
 .mode-card .ds{color:var(--ink-dim);font-size:.9rem;text-align:center}
@@ -90,7 +89,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* ---- word hunt ---- */
 .words-wrap{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;align-items:flex-start;width:100%;max-width:1100px;margin-top:6px}
 .words-left{display:flex;flex-direction:column;align-items:center;max-width:100%}
-.wh-grid{display:grid;gap:2px;background:transparent;padding:4px}
+.wh-grid{display:grid;gap:2px;padding:4px}
 
 @media (max-width:700px){.topbar .hint{display:none}}
 
@@ -123,13 +122,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .dots i{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.2);display:block}
 .dots i.on{background:var(--accent)}
 .wh-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:10px;max-width:330px;align-content:flex-start}
-.wh-list li{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:3px solid #3a3e8a;border-bottom-width:5px;border-radius:16px;padding:6px 12px;font-weight:bold;font-size:1.05rem;letter-spacing:.05em}
+.wh-list li{display:flex;align-items:center;gap:8px;border:3px solid #3a3e8a;border-bottom-width:5px;border-radius:16px;padding:6px 12px;font-weight:bold;font-size:1.05rem;letter-spacing:.05em}
 .wh-list li .e{font-size:1.5rem}
-.wh-list li.done{background:#2f7a4a;border-color:#6bcb77;text-decoration:line-through;opacity:.8}
-.wh-grid{display:grid;gap:3px;padding:8px;background:rgba(255,255,255,.08);border-radius:18px;touch-action:none;user-select:none;-webkit-user-select:none}
+.wh-list li.done{text-decoration:line-through;opacity:.8}
+.wh-grid{display:grid;gap:3px;padding:8px;border-radius:18px;touch-action:none;user-select:none;-webkit-user-select:none}
 .ws-cell{width:clamp(30px,6.2vmin,52px);height:clamp(30px,6.2vmin,52px);display:flex;align-items:center;justify-content:center;border-radius:10px;background:#f5f4ff;color:#1a1b3f;
   font-weight:bold;font-size:clamp(16px,3.4vmin,28px);cursor:pointer;box-shadow:0 3px 0 #9aa0d8;transition:transform .08s}
-.ws-cell.sel{background:var(--accent);transform:scale(1.08)}
+.ws-cell.sel{transform:scale(1.08)}
 .ws-cell.cur{outline:4px solid #fff}
 .ws-cell.found{color:#1a1b3f;box-shadow:0 3px 0 rgba(0,0,0,.25)}
 .ws-cell.hint{animation:wsHint 1s ease-in-out 3}
@@ -275,10 +274,7 @@ a.btn.primary{color:#1a1b3f}
 .landing .site-head{position:absolute;top:12px;left:16px;right:16px;width:auto}
 .landing .top-nav,.about .top-nav{position:static;align-self:auto}
 .brand{display:flex;align-items:center;gap:6px;background:none;border:0;padding:4px;color:var(--ink);cursor:pointer}
-.brand .bkey{width:30px;height:30px;border-radius:8px;background:var(--c);box-shadow:0 4px 0 var(--d);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.05rem;color:#fff}
-.brand .bkey+.bkey{color:#1a1b3f}
 .brand .bname{margin-left:8px;font-size:1.15rem;font-weight:900;letter-spacing:.02em}
-.brand:hover .bkey{transform:translateY(-2px)}
 @media (max-width:600px){.landing .site-head{position:static;margin-top:6px}.brand .bname{font-size:1rem}}
 @media (max-width:860px){.landing .site-head{position:static;margin-top:6px}.landing .logo{margin-top:14px}}
 
@@ -291,9 +287,6 @@ a.btn.primary{color:#1a1b3f}
 
 /* the small Tech Explorers mark sits in a round badge */
 .brand .bcircle{display:flex;align-items:center;justify-content:center;gap:3px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3a3e8a,#1b1d4d);border:3px solid #6a6fd0;box-shadow:0 4px 0 rgba(0,0,0,.35)}
-.brand .bcircle .bkey{width:19px;height:19px;border-radius:5px;font-size:.78rem;box-shadow:0 3px 0 var(--d)}
-.brand:hover .bcircle{border-color:var(--accent)}
-.brand:hover .bkey{transform:none}
 
 /* ---- mobile friendly: the landing page scrolls, and the notes sit under the cards ---- */
 .landing{overflow-x:hidden;overflow-y:auto}

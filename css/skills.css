@@ -1,7 +1,7 @@
 /* Computer Skills Adventure - looks. Everything is scoped to #mode-skills so the other games are untouched. */
 #mode-skills .music-btn{display:none}
 #mode-skills{overflow:auto}
-.sk-root{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;flex:1;--ink2:#15163a}
+.sk-root{width:100%;max-width:1100px;display:flex;flex-direction:column;align-items:center;flex:1}
 .sk-root.hc{--panel:#000;--panel-2:#111;--ink:#fff;--accent:#ffff00}
 .sk-root.hc .sk-stage{filter:contrast(1.25) saturate(1.1);box-shadow:0 0 0 4px #fff}
 .sk-root.hc .sk-bubble,.sk-root.hc .btn{border-color:#fff}
@@ -63,17 +63,10 @@
 .sk-items>*{pointer-events:auto}
 .sk-lines{width:100%;height:100%;pointer-events:none}
 
-/* worlds */
-.w-playground{background:linear-gradient(#8fd3ff 0 62%,#5fbf5a 62%)}
-.w-classroom{background:linear-gradient(#f6e3b4 0 70%,#c99a63 70%);}
-.w-animalpark{background:linear-gradient(#a8e4ff 0 55%,#79c96b 55%)}
-.w-building{background:linear-gradient(#ffe3a0 0 75%,#c9a06a 75%)}
-.w-road{background:linear-gradient(#9fdcff 0 70%,#6fbf62 70%)}
-.w-village{background:linear-gradient(#c6ecff 0 66%,#84cc62 66%)}
-.w-magic{background:linear-gradient(#5ee0e0 0 62%,#f2dc9b 62%)}
-.w-space{background:radial-gradient(circle at 70% 30%,#3a2f90,#0a0830 70%)}
-.w-fantasy{background:linear-gradient(#ffb8e6,#b2a2ff 60%,#8fd1ff)}
-.w-lab{background:linear-gradient(#26407a,#10204a);}
+
+
+
+
 
 /* items */
 .sk-item{position:absolute;transform:translate(-50%,-50%) scale(var(--sc,1));display:flex;align-items:center;justify-content:center;line-height:1;cursor:pointer;
@@ -168,16 +161,16 @@
 .sk-caps.on b{background:#6bcb77;color:#fff}
 
 /* on-screen keyboard */
-.sk-kb{--k:min(5.6vw,5.2vh,56px);display:flex;flex-direction:column;gap:calc(var(--k)*.12);align-items:center;padding:calc(var(--k)*.2);background:#262a63;border-radius:14px;border:3px solid #3a3e8a}
+.sk-kb{--k:min(5.6vw,5.2vh,56px);display:flex;flex-direction:column;gap:calc(var(--k)*.12);align-items:center;padding:calc(var(--k)*.2);border-radius:14px;border:3px solid #3a3e8a}
 .sk-kb .kr{display:flex;gap:calc(var(--k)*.12);justify-content:center}
-.sk-kb .sk-key{width:var(--k);height:var(--k);border-radius:calc(var(--k)*.2);border:0;border-bottom:calc(var(--k)*.1) solid #8f93c9;background:#e8eaff;color:#15163a;font-weight:bold;font-size:calc(var(--k)*.46);padding:0;touch-action:manipulation}
+.sk-kb .sk-key{width:var(--k);height:var(--k);border-radius:calc(var(--k)*.2);border:0;border-bottom:calc(var(--k)*.1) solid #8f93c9;color:#15163a;font-weight:bold;font-size:calc(var(--k)*.46);padding:0;touch-action:manipulation}
 .sk-kb .sk-key:active,.sk-kb .sk-key.press{transform:translateY(3px);background:#ffe14d}
 .sk-kb .k-Backspace{width:calc(var(--k)*1.7);background:#ffc9d2}
 .sk-kb .k-CapsLock{width:calc(var(--k)*1.8);font-size:calc(var(--k)*.3);background:#d9c8ff}
 .sk-kb .k-CapsLock.lit{background:#6bcb77;color:#fff}
 .sk-kb .k-Enter{width:calc(var(--k)*1.6);background:#ffe9a8}
 .sk-kb .k-Space{width:calc(var(--k)*6.2);font-size:calc(var(--k)*.3);background:#c9f0ff}
-.sk-kb .sk-key.hl{background:#ffe14d;box-shadow:0 0 0 3px #fff,0 0 14px #ffd23f;animation:skkey 1s ease-in-out infinite;position:relative;z-index:2}
+.sk-kb .sk-key.hl{box-shadow:0 0 0 3px #fff,0 0 14px #ffd23f;animation:skkey 1s ease-in-out infinite;position:relative;z-index:2}
 .sk-kb .sk-key.wiggle{animation:skwig .45s}
 
 /* teacher report */

@@ -12,12 +12,12 @@
 .mc-name{font:inherit;font-size:1.1rem;padding:.5em .8em;border-radius:14px;border:3px solid #3a3e8a;background:#1a1b3f;color:var(--ink,#f5f4ff);width:12em;max-width:100%}
 .mc-name:focus{outline:none;border-color:var(--accent,#ffd23f)}
 .mc-games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;width:min(900px,100%)}
-.mc-gcard{display:flex;flex-direction:column;align-items:center;gap:3px;padding:18px 10px 14px;border-radius:24px;border:5px solid var(--c);background:var(--panel,#1f2150);color:var(--ink,#f5f4ff);transition:transform .12s;min-width:0}
+.mc-gcard{display:flex;flex-direction:column;align-items:center;gap:3px;padding:18px 10px 14px;border-radius:24px;border:5px solid var(--c);color:var(--ink,#f5f4ff);transition:transform .12s;min-width:0}
 .mc-gcard:hover{transform:translateY(-4px) scale(1.02)}
 .mc-gcard .gi{font-size:3.4rem;line-height:1.1}
-.mc-gcard .gn{font-size:1.3rem;font-weight:bold;color:var(--c)}
+.mc-gcard .gn{font-size:1.3rem;font-weight:bold;}
 .mc-gcard .gd{color:var(--ink-dim,#b7b8de);font-size:.95rem}
-.mc-gcard .gp{font-weight:bold;font-size:.9rem;background:rgba(255,255,255,.1);border-radius:99px;padding:.15em .8em;margin-top:4px}
+.mc-gcard .gp{font-weight:bold;font-size:.9rem;border-radius:99px;padding:.15em .8em;margin-top:4px}
 .mc-opts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .mc-opts .btn{font-size:1.05rem;padding:.6em 1.1em}
 .mc-opts .btn:disabled{background:#1f2358;color:#8a90c8;border-color:#3a3e8a;opacity:1;cursor:default}
@@ -25,13 +25,13 @@
 .mc-maptop h3{margin:0;flex:1;font-size:clamp(1.3rem,3.2vw,2rem);color:var(--ink,#f5f4ff)}
 .mc-maptop .btn:disabled{background:#1f2358;color:#8a90c8;border-color:#3a3e8a;opacity:1}
 .mc-levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;width:100%}
-.mc-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px 10px;border-radius:20px;border:4px solid #3a3e8a;background:var(--panel,#1f2150);color:var(--ink,#f5f4ff);min-width:0;transition:transform .12s,border-color .12s}
+.mc-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px 10px;border-radius:20px;border:4px solid #3a3e8a;color:var(--ink,#f5f4ff);min-width:0;transition:transform .12s,border-color .12s}
 .mc-tile:hover{transform:translateY(-3px);border-color:var(--c,#ffd23f)}
-.mc-tile .n{position:absolute;top:6px;left:10px;font-size:.85rem;font-weight:bold;color:var(--ink-dim,#b7b8de)}
+.mc-tile .n{position:absolute;top:6px;left:10px;font-size:.85rem;font-weight:bold;}
 .mc-tile .ic{font-size:2.6rem;line-height:1.15}
 .mc-tile .nm{font-size:1rem;font-weight:bold}
 .mc-tile .st{font-size:.85rem;min-height:1.2em}
-.mc-tile.done{background:#1b3a38;border-color:var(--good,#6bcb77)}
+.mc-tile.done{border-color:var(--good,#6bcb77)}
 .mc-note{margin:0;color:var(--ink-dim,#b7b8de);font-size:.95rem;text-align:center}
 
 /* ---------- playing ---------- */
@@ -46,11 +46,8 @@
 .mc-dots i.cur{background:#ffd23f;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
 .mc-dots i.on{background:#6bcb77}
 .mc-area{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;border-radius:20px;box-shadow:0 0 0 4px #3a3e8a,0 10px 24px rgba(0,0,0,.4);user-select:none;-webkit-user-select:none;color:#1f2a55}
-.mc-bg-move{background:linear-gradient(#bfe8ff,#e9f9d8 62%,#9fd88a)}
-.mc-bg-click{background:linear-gradient(#ffe3f3,#fff6d8)}
-.mc-bg-dbl{background:linear-gradient(#fff1c9,#ffd9a0 70%,#e0b078)}
-.mc-bg-right{background:linear-gradient(#e2d8ff,#cdebdc)}
-.mc-bg-drag{background:linear-gradient(#d6f1f3,#fdf0d5)}
+
+
 .mc-bg-scroll{background:#bfe8ff}
 .mc-area.mc-night{background:linear-gradient(#0b1033,#2a2f6e)}
 .mc-bar{position:absolute;left:12%;right:12%;top:10px;height:16px;border-radius:99px;background:rgba(31,42,85,.28);overflow:hidden;z-index:12}
@@ -127,7 +124,7 @@
 .mc-row.wob{animation:mcShake .3s}
 .mc-rocket{position:absolute;left:50%;transform:translateX(-50%);font-size:5.2rem;line-height:1;transition:bottom .2s;z-index:3}
 .mc-rocket.shake{animation:mcShakeX .12s}
-.mc-sbtns{position:absolute;right:34px;bottom:12px;display:flex;gap:8px;align-items:center;z-index:14;background:rgba(255,255,255,.85);padding:6px 10px;border-radius:99px;color:#1f2a55}
+.mc-sbtns{position:absolute;right:34px;bottom:12px;display:flex;gap:8px;align-items:center;z-index:14;padding:6px 10px;border-radius:99px;color:#1f2a55}
 .mc-sbtns .btn.ico{font-size:1.1rem;padding:.15em .6em}
 @keyframes mcShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @keyframes mcShakeX{25%{transform:translateX(calc(-50% - 4px))}75%{transform:translateX(calc(-50% + 4px))}}

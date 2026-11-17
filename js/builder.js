@@ -371,7 +371,7 @@ function certSvg(name) {
   const W = 1123, H = 794, n = (name || '').trim(), dt = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
   const both = finalDone('type') && finalDone('click'), what = both ? 'Click & Build and Type & Build' : finalDone('type') ? 'Type & Build, by typing words' : 'Click & Build, using the mouse';
   const stars = ['type', 'click'].reduce(function (t, d) { return t + BUILDS.reduce(function (u, b) { const x = bestOf(d, b.id); return u + (x ? x.stars : 0); }, 0); }, 0);
-  const rnd = "'Comic Sans MS','Chalkboard SE','Trebuchet MS',sans-serif", sans = "'Trebuchet MS','Segoe UI',Arial,sans-serif", mid = W / 2, city = BUILDS[9];
+  const comic = "'Comic Sans MS','Chalkboard SE','Trebuchet MS',sans-serif", sans = "'Trebuchet MS','Segoe UI',Arial,sans-serif", mid = W / 2, city = BUILDS[9];
   let g = '<style>.bdc rect,.bdc circle,.bdc ellipse,.bdc polygon,.bdc path{stroke:#3a2f5a;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.bdc .ns{stroke:none}.bdc .bg *{stroke:none}</style>';
   g += '<defs><linearGradient id="bk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9f6ff"/><stop offset="1" stop-color="#fff7de"/></linearGradient><clipPath id="pic"><rect x="' + (mid - 175) + '" y="458" width="350" height="219" rx="18"/></clipPath></defs>';
   g += '<rect width="' + W + '" height="' + H + '" fill="url(#bk)"/>';
@@ -379,11 +379,11 @@ function certSvg(name) {
   /* confetti */
   [[110, 120, '#ff5c72'], [180, 90, '#ffd23f'], [950, 110, '#a77bff'], [1010, 150, '#ff8ad8'], [90, 340, '#4f9bff'], [1030, 360, '#6bcb77'], [250, 70, '#ff9f45'], [860, 80, '#22c6c6']].forEach(function (c, i) { g += '<rect x="' + c[0] + '" y="' + c[1] + '" width="18" height="18" rx="4" fill="' + c[2] + '" transform="rotate(' + (i * 25) + ' ' + c[0] + ' ' + c[1] + ')"/>'; });
   g += CC.keycapsSvg(CC.APP_NAME, mid, 54, 32);
-  g += '<text x="' + mid + '" y="166" font-family="' + rnd + '" font-size="82" font-weight="bold" fill="#ff7a45" stroke="#fff" stroke-width="14" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">Super Builder!</text>';
+  g += '<text x="' + mid + '" y="166" font-family="' + comic + '" font-size="82" font-weight="bold" fill="#ff7a45" stroke="#fff" stroke-width="14" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">Super Builder!</text>';
   g += '<text x="' + mid + '" y="208" font-family="' + sans + '" font-size="26" font-weight="bold" letter-spacing="4" fill="#1d8f8f" text-anchor="middle">CERTIFICATE OF ACHIEVEMENT</text>';
   g += '<text x="' + mid + '" y="254" font-family="' + sans + '" font-size="22" fill="#555" text-anchor="middle">proudly presented to</text>';
   const fsz = n.length <= 14 ? 64 : n.length <= 20 ? 52 : 42;
-  g += '<text x="' + mid + '" y="324" font-family="' + rnd + '" font-size="' + fsz + '" font-weight="bold" fill="#ff5c72" text-anchor="middle">' + esc(n) + '</text>';
+  g += '<text x="' + mid + '" y="324" font-family="' + comic + '" font-size="' + fsz + '" font-weight="bold" fill="#ff5c72" text-anchor="middle">' + esc(n) + '</text>';
   g += '<line x1="260" y1="342" x2="863" y2="342" stroke="#ffc92e" stroke-width="4" stroke-linecap="round"/>';
   g += '<text x="' + mid + '" y="382" font-family="' + sans + '" font-size="22" fill="#333" text-anchor="middle">for completing ' + esc(what) + ':</text>';
   g += '<text x="' + mid + '" y="414" font-family="' + sans + '" font-size="19" fill="#1d8f8f" font-weight="bold" text-anchor="middle">a car, a house, a rocket, a farm, a castle, a robot, a boat, a garden, an airport and a whole city!</text>';

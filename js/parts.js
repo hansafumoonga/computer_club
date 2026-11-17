@@ -252,20 +252,20 @@ function connectLevel(kind) {
 }
 /* the computer starts: the light, the fan, the start-up words, the loading bar, then the desktop and a little tune */
 function boot(svg, kind, done) {
-  const scr = svg.querySelector('.pc-screen'), t = function (ms, f) { setTimeout(function () { if (svg.isConnected) f(); }, ms); }, aio = kind === 'aio';
+  const screen = svg.querySelector('.pc-screen'), t = function (ms, f) { setTimeout(function () { if (svg.isConnected) f(); }, ms); }, aio = kind === 'aio';
   const set = function (sel, k, v) { const n = svg.querySelector(sel); if (n) n.setAttribute(k, v); };
   svg.classList.add('on'); set('.led', 'fill', '#6bcb77'); set('.mled', 'fill', '#6bcb77'); const pl = svg.querySelector('[data-port="power"] circle'); if (pl) pl.setAttribute('fill', '#6bcb77');
   L.tone(120, { dur: .5, type: 'sawtooth', vol: .05 }); L.tone(660, { dur: .1, vol: .1 });
   const line = function (y, txt, fill) { return '<text x="270" y="' + y + '" font-size="9" font-family="monospace" fill="' + (fill || '#8fe39a') + '">' + txt + '</text>'; };
-  t(500, function () { scr.innerHTML = '<rect x="262" y="82" width="196" height="124" rx="4" fill="#05060f"/>' + line(98, 'Tech Explorers PC'); L.sfx('tick'); });
-  t(1000, function () { scr.innerHTML += line(112, 'Keyboard ....... found'); L.sfx('tick'); svg.querySelector('.keys').classList.add('lit'); });
-  t(1500, function () { scr.innerHTML += line(126, 'Mouse .......... found'); L.sfx('tick'); set('.whl', 'fill', '#ff5c72'); });
-  t(2000, function () { scr.innerHTML += line(140, aio ? 'Screen ......... OK' : 'Speakers ....... found'); L.sfx('tick'); });
-  t(2500, function () { scr.innerHTML += line(154, 'Memory ......... OK') + line(176, 'Starting up ...', '#fff'); L.sfx('tick'); });
-  t(3200, function () { scr.innerHTML = '<rect x="262" y="82" width="196" height="124" rx="4" fill="#05060f"/><circle cx="360" cy="128" r="18" fill="none" stroke="#4d8dff" stroke-width="5" stroke-dasharray="80 40" class="spin"/><rect x="300" y="170" width="120" height="9" rx="4.5" fill="#2b2f5e"/><rect class="bar" x="300" y="170" width="0" height="9" rx="4.5" fill="#6bcb77"/><text x="360" y="196" text-anchor="middle" font-size="9" fill="#fff">Loading ...</text>'; });
-  for (let k = 1; k <= 10; k++) t(3200 + k * 180, function () { const b = scr.querySelector('.bar'); if (b) b.setAttribute('width', k * 12); });
+  t(500, function () { screen.innerHTML = '<rect x="262" y="82" width="196" height="124" rx="4" fill="#05060f"/>' + line(98, 'Tech Explorers PC'); L.sfx('tick'); });
+  t(1000, function () { screen.innerHTML += line(112, 'Keyboard ....... found'); L.sfx('tick'); svg.querySelector('.keys').classList.add('lit'); });
+  t(1500, function () { screen.innerHTML += line(126, 'Mouse .......... found'); L.sfx('tick'); set('.whl', 'fill', '#ff5c72'); });
+  t(2000, function () { screen.innerHTML += line(140, aio ? 'Screen ......... OK' : 'Speakers ....... found'); L.sfx('tick'); });
+  t(2500, function () { screen.innerHTML += line(154, 'Memory ......... OK') + line(176, 'Starting up ...', '#fff'); L.sfx('tick'); });
+  t(3200, function () { screen.innerHTML = '<rect x="262" y="82" width="196" height="124" rx="4" fill="#05060f"/><circle cx="360" cy="128" r="18" fill="none" stroke="#4d8dff" stroke-width="5" stroke-dasharray="80 40" class="spin"/><rect x="300" y="170" width="120" height="9" rx="4.5" fill="#2b2f5e"/><rect class="bar" x="300" y="170" width="0" height="9" rx="4.5" fill="#6bcb77"/><text x="360" y="196" text-anchor="middle" font-size="9" fill="#fff">Loading ...</text>'; });
+  for (let k = 1; k <= 10; k++) t(3200 + k * 180, function () { const b = screen.querySelector('.bar'); if (b) b.setAttribute('width', k * 12); });
   t(5300, function () {
-    scr.innerHTML = '<rect x="262" y="82" width="196" height="124" rx="4" fill="url(#pcWp)"/><circle cx="420" cy="112" r="16" fill="#ffe14d" opacity=".9"/><path d="M262 180 Q320 140 372 172 T458 160 V196 H262 Z" fill="#3fa84f" opacity=".85"/>' +
+    screen.innerHTML = '<rect x="262" y="82" width="196" height="124" rx="4" fill="url(#pcWp)"/><circle cx="420" cy="112" r="16" fill="#ffe14d" opacity=".9"/><path d="M262 180 Q320 140 372 172 T458 160 V196 H262 Z" fill="#3fa84f" opacity=".85"/>' +
       [0, 1, 2].map(function (i) { return '<text x="270" y="' + (104 + i * 26) + '" font-size="16">' + ['📁', '🎨', '🌐'][i] + '</text>'; }).join('') +
       '<rect x="262" y="194" width="196" height="12" fill="#15163a" opacity=".85"/><rect x="266" y="197" width="8" height="6" rx="1.5" fill="#4d8dff"/><text x="452" y="203" text-anchor="end" font-size="7" fill="#fff">' + new Date().getHours() + ':' + ('0' + new Date().getMinutes()).slice(-2) + '</text><text class="hello" x="360" y="150" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff" stroke="#15163a" stroke-width=".6">Hello!</text>';
     set('.notes', 'opacity', '1'); svg.classList.add('booted');
