@@ -85,7 +85,7 @@ function showMenu() {
     y.modes.filter(function (id) { return app.group === 'path' || MODES[id].group === app.group; }).forEach(function (id) {
       const m = MODES[id], b = document.createElement('button'), step = y.modes.indexOf(id) + 1;
       b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;
-      b.innerHTML = '<span class="stp" title="Step ' + step + '">' + step + '</span><span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (step === 1 ? '<span class="tg start">▶ Start here</span>' : '') + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
+      b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (step === 1 ? '<span class="tg start">▶ Start here</span>' : '') + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
       if (CC.rewards && CC.rewards.has(id)) { const tr = document.createElement('span'); tr.className = 'rw-badge'; tr.setAttribute('role', 'button'); tr.setAttribute('tabindex', '0'); tr.setAttribute('aria-label', 'my reward'); tr.title = 'My reward'; tr.textContent = '🏆'; tr.addEventListener('click', function (e) { e.stopPropagation(); CC.rewards.show(id); }); tr.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); CC.rewards.show(id); } }); b.appendChild(tr); }
       b.addEventListener('click', function () { startMode(id); });
       box.appendChild(b);
