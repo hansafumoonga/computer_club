@@ -291,7 +291,7 @@ CC.modes.parts = L.game({
   id: 'parts', icon: '🖥️', title: 'Parts of a Computer', color: '#4d8dff', cert: { hero: 'Computer Builder', art: 'parts', hue: 216 },
   sub: function (y) { return y <= 2 ? 'Meet the parts, plug them in and switch the computer on!' : 'Learn the parts and what they do, then build and start a computer.'; },
   stage: function () { return document.getElementById('stage-parts'); }, root: function () { return document.getElementById('parts-root'); },
-  speak: function (y) { return y <= 2; },
+  speak: function (y) { return y <= 2; }, nudge: function (y) { return y === 1; },
   levels: function (y) {
     const a = [
       { id: 'meet', title: 'Meet the parts', icon: '👋', steps: findSteps('meet'), build: findLevel('meet'), teach: TEACH.meet, learned: 'You have met every part of the computer!' },

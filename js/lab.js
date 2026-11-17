@@ -79,14 +79,16 @@ L.lesson = function (cfg) {   // { root, slides: [{ h, p: [lines], art (html), s
   w.tabIndex = 0;
   w.innerHTML = '<div class="lb-top"><button type="button" class="btn lb-back" title="Levels" aria-label="levels">🗺️</button><b class="lb-lv"></b><span class="lb-dots"></span><button type="button" class="btn lb-voice" title="Read it to me" aria-label="read it to me">🔊</button><button type="button" class="btn lb-skip" title="Skip the lesson">Skip ⏭</button></div>' +
     '<div class="lb-slide"><div class="art"></div><div class="txt"><span class="tag">📖 First, let us learn</span><h3></h3><ul></ul></div></div>' +
-    '<div class="lb-nav"><button type="button" class="btn big lb-prev">◀ Back</button><button type="button" class="btn big primary lb-next"></button></div>';
+    '<div class="lb-nav"><button type="button" class="btn big lb-prev">◀ Back</button><span class="lb-clicknext" hidden></span><button type="button" class="btn big primary lb-next"></button></div>';
   const q = function (x) { return w.querySelector(x); };
   q('.lb-lv').textContent = cfg.title || '';
-  const read = function () { const s = slides[i]; L.say(s.say || (s.h + '. ' + (s.p || []).join(' '))); };
+  const read = function () { const s = slides[i]; L.say((s.say || (s.h + '. ' + (s.p || []).join(' '))) + (cfg.nudge ? ' ' + (i === slides.length - 1 ? 'Click Start.' : 'Click Next.') : '')); };
   function show() {
     const s = slides[i]; q('.art').innerHTML = s.art || ''; q('h3').textContent = s.h; q('ul').innerHTML = (s.p || []).map(function (x) { return '<li>' + L.esc(x) + '</li>'; }).join('');
     q('.lb-dots').innerHTML = slides.map(function (x, k) { return '<i class="' + (k < i ? 'd' : k === i ? 'c' : '') + '"></i>'; }).join('');
     q('.lb-prev').style.visibility = i ? 'visible' : 'hidden'; q('.lb-next').textContent = i === slides.length - 1 ? 'Start ▶' : 'Next ▶';
+    /* the youngest learners are told what to press, and the button flickers so it cannot be missed */
+    q('.lb-next').classList.toggle('nudge', !!cfg.nudge); const cn = q('.lb-clicknext'); cn.hidden = !cfg.nudge; cn.textContent = i === slides.length - 1 ? 'Click Start' : 'Click Next';
     const sl = q('.lb-slide'); sl.classList.remove('in'); void sl.offsetWidth; sl.classList.add('in');
     if (cfg.speak) read(); else L.hush();
   }
@@ -195,7 +197,7 @@ L.game = function (g) {   // { id, icon, title, sub, color, stage(), root(), lev
     const list = levels(), n = list.findIndex(function (x) { return x.id === lv.id; }) + 1; S.lv = lv;
     if (S.api) S.api.stop(); S.api = null;
     const teach = typeof lv.teach === 'function' ? lv.teach(S.year) : lv.teach, speak = g.speak ? g.speak(S.year) : false;
-    if (teach && teach.length && !skip) { L.lesson({ root: g.root(), slides: teach, title: 'Level ' + n + ' · ' + lv.title, speak: speak, onHome: home, onDone: function () { start(lv, true); } }); return; }
+    if (teach && teach.length && !skip) { L.lesson({ root: g.root(), slides: teach, title: 'Level ' + n + ' · ' + lv.title, speak: speak, nudge: g.nudge ? g.nudge(S.year) : false, onHome: home, onDone: function () { start(lv, true); } }); return; }
     S.api = L.play({ onApi: function (a) { S.api = a; }, root: g.root(), stage: g.stage(), lv: lv, n: n, speak: g.speak ? g.speak(S.year) : false, build: function (body, api) { lv.build(body, api, S.year); }, onHome: home, onLesson: teach && teach.length ? function () { start(lv); } : null,
       onDone: function (stars) {
         S.prog.done[lv.id] = true; S.prog.stars[lv.id] = Math.max(S.prog.stars[lv.id] || 0, stars); L.save(g.id, S.year, S.prog);

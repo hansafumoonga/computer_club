@@ -82,7 +82,6 @@ function showMenu() {
       t.addEventListener('click', function () { app.group = g[0]; draw(); });
       tabs.appendChild(t);
     });
-    if (app.group === 'path') { const note = document.createElement('p'); note.className = 'path-note'; note.textContent = 'Follow the numbers. Each game builds on the one before it.'; box.appendChild(note); }
     y.modes.filter(function (id) { return app.group === 'path' || MODES[id].group === app.group; }).forEach(function (id) {
       const m = MODES[id], b = document.createElement('button'), step = y.modes.indexOf(id) + 1;
       b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;

@@ -258,6 +258,11 @@
 .lb-slide li::before{content:"";position:absolute;left:.25em;top:.45em;width:.55em;height:.55em;border-radius:50%;background:#4d8dff}
 .lb-nav{flex:none;display:flex;justify-content:space-between;gap:12px}
 .lb-nav .btn{min-width:150px}
+.lb-clicknext{flex:1;align-self:center;text-align:center;font-size:1.5rem;color:#ffe14d;text-shadow:0 2px 0 #0c0d26;animation:lbpoint 1s ease-in-out infinite}
+.lb-next.nudge{animation:lbflick .9s ease-in-out infinite;box-shadow:0 0 0 4px #ffe14d,0 0 18px 6px #ffd23f}
+@keyframes lbflick{50%{filter:brightness(1.4);transform:scale(1.07)}}
+@keyframes lbpoint{50%{transform:translateX(10px)}}
+@media (prefers-reduced-motion:reduce){.lb-clicknext,.lb-next.nudge{animation:none}}
 /* little pieces used inside lesson pictures */
 .ls-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center}
 .ls-card{display:flex;flex-direction:column;align-items:center;gap:6px;background:#f3f5ff;border:3px solid #c7caef;border-radius:18px;padding:14px 18px;font-weight:bold;font-size:1.05rem;min-width:110px;text-align:center}
