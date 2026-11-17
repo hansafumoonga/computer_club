@@ -407,11 +407,17 @@ function startMove(e, node) {
   if (S.lastTitle && S.lastTitle.ref === ref && now - S.lastTitle.t < 450) { S.lastTitle = null; toggleMax(ref, 'title'); return; }
   S.lastTitle = { ref: ref, t: now };
   if (w.max) return;
-  const sx = e.clientX, sy = e.clientY, ox = w.x, oy = w.y, A = area(), ar = $root().querySelector('.dk-area'); let moved = false, side = null;
+  const sx = e.clientX, sy = e.clientY, A = area(), ar = $root().querySelector('.dk-area'); let ox = w.x, oy = w.y, moved = false, side = null, restored = false;
   function mv(ev) {
     const dx = ev.clientX - sx, dy = ev.clientY - sy; if (!moved && Math.hypot(dx, dy) < 4) return;
+    if (!restored && w.pre) {   /* a window that was snapped to half the screen gets its old size back when it is dragged away, as on a real computer */
+      restored = true; const r0 = ar.getBoundingClientRect(), rel = (sx - r0.left - w.x) / Math.max(1, w.w);
+      w.w = w.pre.w; w.h = w.pre.h; w.pre = null; ox = Math.round(sx - r0.left - rel * w.w); oy = w.y; node.style.width = w.w + 'px'; node.style.height = w.h + 'px';
+    }
     moved = true; node.classList.add('lift'); w.x = clamp(ox + dx, 60 - w.w, A.w - 60); w.y = clamp(oy + dy, 0, A.h - 30); node.style.left = w.x + 'px'; node.style.top = w.y + 'px';
-    const r = ar.getBoundingClientRect(); side = ev.clientX <= r.left + 14 ? 'left' : ev.clientX >= r.right - 14 ? 'right' : ev.clientY <= r.top + 8 ? 'top' : null;
+    /* the pointer reaching an edge snaps the window; so does pulling most of the window off that edge (some children grab the bar far from the edge they push) */
+    const r = ar.getBoundingClientRect(), edge = 24;
+    side = ev.clientX <= r.left + edge || w.x <= -w.w * 0.3 ? 'left' : ev.clientX >= r.right - edge || w.x >= A.w - w.w * 0.7 ? 'right' : ev.clientY <= r.top + 14 ? 'top' : null;
     ar.classList.toggle('snap-left', side === 'left'); ar.classList.toggle('snap-right', side === 'right'); ar.classList.toggle('snap-top', side === 'top');
   }
   function up() {
@@ -426,6 +432,7 @@ function startMove(e, node) {
 function snapWin(ref, side) {
   const w = winOf(ref); if (!w) return; const A = area();
   if (side === 'top') { if (!w.max) { w.sv = { x: w.x, y: w.y, w: w.w, h: w.h }; w.max = true; w.z = ++S.os.z; } render(); sfx('pickup'); emit({ t: 'snap', ref: ref, side: 'top' }); return; }
+  if (!w.pre && !w.max) w.pre = { w: w.w, h: w.h };
   w.max = false; w.x = side === 'left' ? 0 : Math.round(A.w / 2); w.y = 0; w.w = Math.round(A.w / 2); w.h = A.h; w.z = ++S.os.z; render(); sfx('pickup'); emit({ t: 'snap', ref: ref, side: side });
 }
 function startResize(e, node) {
