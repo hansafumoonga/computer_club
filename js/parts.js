@@ -3,7 +3,7 @@
        1 Meet the parts      the guide names a part and says what it does, the part glows, the child clicks it
        2 Find the parts      the same parts, with no glow
        3 What does it do?    match the job to the part
-       4 Kinds of computer   desktop, all-in-one (no system unit to see), laptop, tablet
+       4 Kinds of computer   desktop, all-in-one (no system unit to see), laptop, iPad or tablet, iPhone or phone
        5 Input or output?    Years 3 and 4
        6 Plug in and power on        a desktop: five cables, then the power button, and the computer starts
        7 Set up an all-in-one        fewer cables: the computer is inside the screen
@@ -115,20 +115,46 @@ function findSteps(kind) {
 
 /* ---------- level: kinds of computer ---------- */
 const KS = 'stroke="#15163a" stroke-width="4" stroke-linejoin="round"';
-function scr(x, y, w, h) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="#4d8dff"/><path d="M' + x + ' ' + (y + h * 0.78) + ' q' + w * 0.25 + ' ' + (-h * 0.35) + ' ' + w * 0.5 + ' ' + (-h * 0.1) + ' t' + w * 0.5 + ' ' + (-h * 0.08) + ' V' + (y + h) + ' H' + x + ' Z" fill="#3fa84f"/><circle cx="' + (x + w * 0.78) + '" cy="' + (y + h * 0.28) + '" r="' + h * 0.11 + '" fill="#ffe14d"/>'; }
+function scr(x, y, w, h) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="4" fill="#4d8dff"/><path d="M' + x + ' ' + (y + h * 0.78) + ' q' + w * 0.25 + ' ' + (-h * 0.35) + ' ' + w * 0.5 + ' ' + (-h * 0.1) + ' t' + w * 0.5 + ' ' + (-h * 0.08) + ' V' + (y + h) + ' H' + x + ' Z" fill="#3fa84f"/><circle cx="' + (x + w * 0.78) + '" cy="' + (y + h * 0.28) + '" r="' + Math.min(w, h) * 0.11 + '" fill="#ffe14d"/>'; }
+/* a laptop seen from the front and a little from the side: a thick base lying on the desk (rows of keys, a space bar, a touchpad), a hinge, and the lid standing up with its screen and camera */
+function laptopArt() {
+  const M = 'matrix(1 0 -0.5 0.62 62 104)';   // the base is drawn flat (136 wide, 56 deep) and laid down in perspective
+  let k = '';
+  [6, 15, 24].forEach(function (y) { for (let i = 0; i < 12; i++) k += '<rect x="' + (7 + i * 10.34).toFixed(2) + '" y="' + y + '" width="8.4" height="7" rx="1.6"/>'; });
+  k += '<rect x="7" y="33" width="22" height="7" rx="1.6"/><rect x="31" y="33" width="14" height="7" rx="1.6"/><rect x="47" y="33" width="42" height="7" rx="1.6"/><rect x="91" y="33" width="14" height="7" rx="1.6"/><rect x="107" y="33" width="22" height="7" rx="1.6"/>';
+  return '<ellipse cx="112" cy="149" rx="96" ry="4.5" fill="#15163a" opacity=".22"/>' +
+    '<g transform="' + M + '"><rect x="0" y="10" width="136" height="56" rx="8" fill="#8f95bd" ' + KS + ' vector-effect="non-scaling-stroke"/>' +
+    '<rect x="0" y="0" width="136" height="56" rx="8" fill="#c9cdea" ' + KS + ' vector-effect="non-scaling-stroke"/>' +
+    '<rect x="4" y="3" width="128" height="44" rx="4" fill="#dfe2f6"/><g fill="#6f75b5">' + k + '</g>' +
+    '<rect x="43" y="43" width="50" height="10" rx="3" fill="#aeb4d8" stroke="#6f75b5" stroke-width="1.6" vector-effect="non-scaling-stroke"/></g>' +
+    '<path d="M62 104 H198 L204 22 H68 Z" fill="#2b2f5e" ' + KS + '/>' +
+    '<g transform="matrix(1 0 -0.071 1 6.96 0)">' + scr(71, 31, 118, 67) + '</g><circle cx="136" cy="26.5" r="1.8" fill="#9aa0d8"/>' +
+    '<rect x="88" y="100" width="82" height="6" rx="3" fill="#9ea4c8" ' + KS + '/>';
+}
+/* a screen with rounded corners: the same picture as every other computer (blue sky, green hills, a sun) */
+function roundScr(id, x, y, w, h, r) { return '<clipPath id="' + id + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + r + '"/></clipPath><g clip-path="url(#' + id + ')">' + scr(x, y, w, h) + '</g>'; }
+/* an iPhone-style phone: flat silver frame, thin black edge, a pill-shaped camera at the top, a bar at the bottom, and side buttons */
+function phoneArt() {
+  const btn = function (x, y, h) { return '<rect x="' + x + '" y="' + y + '" width="3.5" height="' + h + '" rx="1.5" fill="#c3c7da" stroke="#15163a" stroke-width="2"/>'; };
+  return '<ellipse cx="110" cy="152" rx="40" ry="3.5" fill="#15163a" opacity=".22"/>' + btn(76, 30, 7) + btn(76, 44, 13) + btn(76, 61, 13) + btn(140.5, 48, 20) +
+    '<rect x="78" y="3" width="64" height="148" rx="16" fill="#e1e4f0" ' + KS + '/><rect x="80.6" y="5.6" width="58.8" height="142.8" rx="13.6" fill="#0d0e1f"/>' +
+    roundScr('phScr', 83, 8, 54, 138, 12) +
+    '<rect x="99" y="12" width="22" height="6.5" rx="3.25" fill="#0d0e1f"/><circle cx="116" cy="15.2" r="1.3" fill="#2b2f5e"/>' +
+    '<rect x="96" y="140" width="28" height="3" rx="1.5" fill="#fff"/>';
+}
 const KINDS = {
   desktop: { name: 'Desktop', say: 'A desktop has separate parts. The system unit is a box beside the screen.',
     svg: '<rect x="20" y="24" width="124" height="88" rx="8" fill="#2b2f5e" ' + KS + '/>' + scr(30, 34, 104, 68) + '<rect x="72" y="112" width="20" height="18" fill="#9ea4c8" ' + KS + '/><rect x="50" y="128" width="64" height="9" rx="4" fill="#9ea4c8" ' + KS + '/><rect x="158" y="34" width="44" height="104" rx="6" fill="#eef0fb" ' + KS + '/><circle cx="180" cy="58" r="7" fill="#6bcb77" stroke="#15163a" stroke-width="3"/><rect x="166" y="76" width="28" height="5" fill="#9aa0d8"/><circle cx="180" cy="110" r="11" fill="#c7cbee" stroke="#15163a" stroke-width="3"/>' },
   aio: { name: 'All-in-one', say: 'An all-in-one hides the computer inside the screen. There is no box to see.',
     svg: '<rect x="34" y="16" width="152" height="112" rx="10" fill="#eef0fb" ' + KS + '/>' + scr(44, 26, 132, 78) + '<circle cx="110" cy="116" r="5" fill="#6bcb77" stroke="#15163a" stroke-width="2"/><path d="M96 128 h28 l6 14 h-40 z" fill="#9ea4c8" ' + KS + '/>' },
-  laptop: { name: 'Laptop', say: 'A laptop folds shut. The screen, keyboard and battery are all in one, so you can carry it.',
-    svg: '<rect x="46" y="22" width="128" height="86" rx="8" fill="#2b2f5e" ' + KS + '/>' + scr(56, 32, 108, 66) + '<path d="M26 108 h168 l14 26 a6 6 0 0 1 -6 8 h-184 a6 6 0 0 1 -6 -8 z" fill="#c3c8e6" ' + KS + '/><path d="M48 116 h124 M44 124 h132" stroke="#6f75b5" stroke-width="4" stroke-dasharray="9 4"/><rect x="92" y="131" width="36" height="6" rx="3" fill="#9aa0d8"/>' },
-  tablet: { name: 'Tablet', say: 'A tablet is one flat screen. You touch it with your finger.',
-    svg: '<rect x="56" y="8" width="108" height="140" rx="12" fill="#2b2f5e" ' + KS + '/>' + scr(66, 20, 88, 110) + '<circle cx="110" cy="139" r="4" fill="#9aa0d8"/>' }
+  laptop: { name: 'Laptop', say: 'A laptop folds shut. The screen, keyboard and battery are all in one, so you can carry it.', svg: laptopArt() },
+  phone: { name: 'iPhone or phone', say: 'An iPhone or phone is a small computer that fits in your pocket. You touch the screen, and you can call people.', svg: phoneArt() },
+  tablet: { name: 'iPad or tablet', say: 'An iPad or tablet is one flat screen. You touch it with your finger.',
+    svg: '<rect x="56" y="8" width="108" height="140" rx="13" fill="#e1e4f0" ' + KS + '/><rect x="59" y="11" width="102" height="134" rx="10.5" fill="#0d0e1f"/>' + roundScr('tbScr', 64, 16, 92, 124, 6) + '<circle cx="110" cy="13.6" r="1.4" fill="#2b2f5e"/>' }
 };
 function kindSvg(k) { return '<svg viewBox="0 0 220 156" xmlns="' + NS + '">' + KINDS[k].svg + '</svg>'; }
 function kindsBuild(body, api) {
-  body.innerHTML = '<div class="pc-kinds">' + ['laptop', 'desktop', 'tablet', 'aio'].map(function (k) { return '<button type="button" class="pc-kind" data-k="' + k + '">' + kindSvg(k) + '<b></b></button>'; }).join('') + '</div>';
+  body.innerHTML = '<div class="pc-kinds">' + ['laptop', 'desktop', 'phone', 'tablet', 'aio'].map(function (k) { return '<button type="button" class="pc-kind" data-k="' + k + '">' + kindSvg(k) + '<b></b></button>'; }).join('') + '</div>';
   body.querySelectorAll('.pc-kind').forEach(function (b) {
     b.addEventListener('click', function () { b.blur(); const s = api.step(); if (!s || api.st.locked) return;
       if (b.dataset.k === s.kind) { b.classList.add('found'); b.querySelector('b').textContent = KINDS[s.kind].name; body.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); api.check({ k: s.kind }); }
@@ -137,7 +163,7 @@ function kindsBuild(body, api) {
   api.onTip = function (s) { body.querySelector('[data-k="' + s.kind + '"]').classList.add('glow'); };
   api.onStep = function () { body.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); };
 }
-const kindsSteps = [['desktop', 'Click the DESKTOP computer', 'It has a system unit box beside the screen'], ['aio', 'Click the ALL-IN-ONE computer', 'The computer is hidden inside the screen'], ['laptop', 'Click the LAPTOP', 'It folds shut and has its own keyboard'], ['tablet', 'Click the TABLET', 'One flat screen that you touch']].map(function (x) {
+const kindsSteps = [['desktop', 'Click the DESKTOP computer', 'It has a system unit box beside the screen'], ['aio', 'Click the ALL-IN-ONE computer', 'The computer is hidden inside the screen'], ['laptop', 'Click the LAPTOP', 'It folds shut and has its own keyboard'], ['tablet', 'Click the IPAD or TABLET', 'One flat screen that you touch'], ['phone', 'Click the IPHONE or PHONE', 'A small computer for your pocket']].map(function (x) {
   return { kind: x[0], say: x[1], sub: x[2], win: KINDS[x[0]].say, wait: 3000, tip: [KINDS[x[0]].say, 'It is glowing now. Click it.'], ok: function (ev) { return ev.k === x[0]; } };
 });
 
@@ -274,10 +300,10 @@ const TEACH = {
   jobs: [slide('You tell the computer what to do', ['You type with the KEYBOARD.', 'You point and click with the MOUSE.'], row(['keyboard', 'mouse'])),
     slide('The computer shows you things', ['The MONITOR shows pictures and words.', 'The SPEAKERS play sound.', 'The PRINTER puts your work on paper.'], row(['monitor', 'speakers', 'printer'])),
     slide('The system unit is the brain', ['It does all the thinking.', 'It remembers your work.', 'Every other part is joined to it.'], partArt('unit'))],
-  kinds: [slide('Computers come in different shapes', ['They all do the same kind of work.', 'They are built in different ways.'], kcard(['desktop', 'aio', 'laptop', 'tablet'])),
+  kinds: [slide('Computers come in different shapes', ['They all do the same kind of work.', 'They are built in different ways.'], kcard(['desktop', 'aio', 'laptop', 'tablet', 'phone'])),
     slide('A desktop computer', ['It has separate parts.', 'The system unit is a box beside the screen.', 'It stays on a desk.'], kcard(['desktop'], 'desktop')),
     slide('An all-in-one computer', ['The system unit is hidden inside the screen.', 'There is no box to see.', 'It needs fewer cables.'], kcard(['aio'], 'aio')),
-    slide('Laptops and tablets', ['A laptop folds shut. You can carry it.', 'A tablet is one flat screen that you touch.', 'Both have a battery inside.'], kcard(['laptop', 'tablet']))],
+    slide('Laptops, iPads and iPhones', ['A laptop folds shut. You can carry it.', 'An iPad or tablet is one flat screen that you touch.', 'An iPhone or phone is a small computer for your pocket.', 'All three have a battery inside.'], kcard(['laptop', 'tablet', 'phone']))],
   io: [slide('Input goes IN', ['Input is what YOU give to the computer.', 'Typing, clicking, speaking: these are input.', 'Keyboard, mouse and microphone are input parts.'], '<div class="ls-row"><div class="ls-card"><span class="ic">⌨️</span>Keyboard</div><div class="ls-card"><span class="ic">🖱️</span>Mouse</div><div class="ls-card"><span class="ic">🎤</span>Microphone</div></div>'),
     slide('Output comes OUT', ['Output is what the computer gives to YOU.', 'Pictures, sound and paper: these are output.', 'Monitor, speakers and printer are output parts.'], '<div class="ls-row"><div class="ls-card"><span class="ic">🖥️</span>Monitor</div><div class="ls-card"><span class="ic">🔊</span>Speakers</div><div class="ls-card"><span class="ic">🖨️</span>Printer</div></div>')],
   connect: [slide('Cables join the parts together', ['Every part must be joined to the system unit.', 'The cable carries messages between them.', 'The sockets are on the BACK of the box.'], sceneSvg('desktop', true)),
@@ -297,7 +323,7 @@ CC.modes.parts = L.game({
       { id: 'meet', title: 'Meet the parts', icon: '👋', steps: findSteps('meet'), build: findLevel('meet'), teach: TEACH.meet, learned: 'You have met every part of the computer!' },
       { id: 'find', title: 'Find the parts', icon: '🔎', steps: findSteps('find'), build: findLevel('find'), teach: TEACH.find, learned: 'You know the name of every part!' },
       { id: 'jobs', title: 'What does it do?', icon: '💡', steps: findSteps('jobs'), build: findLevel('jobs'), teach: TEACH.jobs, learned: 'You know what every part does!' },
-      { id: 'kinds', title: 'Kinds of computer', icon: '💻', steps: kindsSteps, build: kindsBuild, teach: TEACH.kinds, learned: 'Desktop, all-in-one, laptop, tablet: you know them all!' }];
+      { id: 'kinds', title: 'Kinds of computer', icon: '💻', steps: kindsSteps, build: kindsBuild, teach: TEACH.kinds, learned: 'Desktop, all-in-one, laptop, iPad and iPhone: you know them all!' }];
     if (y >= 3) a.push({ id: 'io', title: 'Input or output?', icon: '🔁', steps: ioSteps, build: ioBuild, teach: TEACH.io, learned: 'Input goes IN. Output comes OUT.' });
     a.push({ id: 'connect', title: 'Plug in and power on', icon: '🔌', steps: connectSteps, build: connectLevel('desktop'), teach: TEACH.connect, learned: 'You built a desktop computer and switched it on!' });
     a.push({ id: 'aio', title: 'Set up an all-in-one', icon: '🖥️', steps: aioSteps, build: connectLevel('aio'), teach: TEACH.aio, learned: 'An all-in-one needs fewer cables.' });

@@ -290,7 +290,10 @@
 .pc-kind b{font-size:1.25rem;min-height:1.4em}
 .pc-kind.found{border-color:#3f9a63;background:#eafbee}
 .pc-kind.glow{animation:lbPulse 1s ease-in-out infinite}
-@media (max-width:760px){.pc-kinds{grid-template-columns:repeat(2,minmax(0,1fr))}.pc-kind{min-height:150px}}
+/* five kinds: three on the first row, two centred below */
+.pc-kinds{display:flex;flex-wrap:wrap;justify-content:center;align-content:center}
+.pc-kind{flex:0 1 calc(33.333% - 14px)}
+@media (max-width:520px){.pc-kind{flex-basis:calc(50% - 10px);min-height:150px}}
 /* Network Builder: the IP address tool */
 .nw-tool.wide{grid-column:1 / -1;flex-direction:row;gap:8px;justify-content:center}
 .nw-dlg{position:absolute;inset:0;z-index:20;background:rgba(15,16,48,.8);display:flex;align-items:center;justify-content:center;padding:12px}
