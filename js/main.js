@@ -56,6 +56,15 @@ const TIERS = [['b', '🌱', 'Beginner', ['mouseclub', 'buildclick', 'parts', 'p
   ['p', '🏆', 'Advanced Pro', ['network', 'magiclab']],
   ['g', '⚡', 'Skill Games', ['fruit', 'jump', 'piano', 'pattern', 'blaster', 'commando']]];
 const TIER_OF = {}; TIERS.forEach(function (t) { t[3].forEach(function (id) { TIER_OF[id] = t[0]; }); });
+/* the level of each game FOR EACH YEAR: b = Beginner, m = Medium, a = Advanced, p = Advanced Pro (the arcade games always go in Skill Games) */
+const YEAR_LEVELS = {
+  '1': { b: ['mouseclub', 'buildclick', 'paint', 'magic'], m: ['parts', 'skills', 'desktop'] },
+  '2': { b: ['parts', 'skills', 'magic'], m: ['buildtype', 'words', 'desktop', 'art'] },
+  '3': { b: ['parts', 'skills', 'magic'], m: ['words', 'desktop', 'art', 'scene'], a: ['letter', 'network'] },
+  '4': { b: ['parts', 'desktop'], m: ['words', 'typing', 'letter'], a: ['shortcuts', 'design', 'grid'], p: ['network', 'magiclab'] },
+  '5': { b: ['words', 'desktop'], m: ['typing', 'letter', 'design'], a: ['shortcuts', 'grid'], p: ['network', 'magiclab'] },
+  '6': { b: ['typing', 'desktop'], m: ['letter', 'design'], a: ['shortcuts', 'grid'], p: ['network', 'magiclab'] }
+};
 const YEAR_COLORS = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#a77bff'];
 const $ = function (id) { return document.getElementById(id); };
 /* which music plays where (the piano has none: you ARE the music). Level games pick their own stage tune on top of this. */
@@ -77,15 +86,12 @@ function showMenu() {
   leaveMode();
   const y = YEARS[app.session], tabs = $('group-tabs'), box = $('mode-cards');
   $('menu-title').textContent = 'Year ' + app.session;
-  /* a tab with a single game is not worth a tab: that game moves into the next difficulty level (or the one before it when there is no later one) */
-  const tof = {}, cnt = {}, lv = ['b', 'm', 'a', 'p'];
-  y.modes.forEach(function (id) { tof[id] = TIER_OF[id]; cnt[tof[id]] = (cnt[tof[id]] || 0) + 1; });
-  lv.forEach(function (t, i) {
-    if (cnt[t] !== 1) return;
-    const to = lv.slice(i + 1).concat(lv.slice(0, i).reverse()).filter(function (u) { return cnt[u] > 0; })[0];
-    if (!to) return;
-    y.modes.forEach(function (id) { if (tof[id] === t) tof[id] = to; });
-    cnt[to] += 1; cnt[t] = 0;
+  /* every year sorts its own games into levels, so each year has a Beginner, Medium... tab suited to that age */
+  const tof = {}, cnt = {}, lvl = YEAR_LEVELS[app.session] || {};
+  y.modes.forEach(function (id) {
+    let t = TIER_OF[id] === 'g' ? 'g' : null;
+    Object.keys(lvl).forEach(function (k) { if (lvl[k].indexOf(id) >= 0) t = k; });
+    tof[id] = t || TIER_OF[id]; cnt[tof[id]] = (cnt[tof[id]] || 0) + 1;
   });
   const shown = TIERS.filter(function (g) { return cnt[g[0]] > 0; });
   if (!app.group || !shown.some(function (g) { return g[0] === app.group; })) app.group = tof[y.modes[0]];
