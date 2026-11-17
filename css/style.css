@@ -274,7 +274,7 @@ a.btn.primary{color:#1a1b3f}
 .landing .site-head{position:absolute;top:12px;left:16px;right:16px;width:auto}
 .landing .top-nav,.about .top-nav{position:static;align-self:auto}
 .brand{display:flex;align-items:center;gap:6px;background:none;border:0;padding:4px;color:var(--ink);cursor:pointer}
-.brand .bname{margin-left:8px;font-size:1.15rem;font-weight:900;letter-spacing:.02em}
+.brand .bname{margin-left:8px;font-family:'Comic Sans MS','Chalkboard SE','Comic Neue',cursive;font-size:1.25rem;font-weight:700;letter-spacing:.01em}
 @media (max-width:600px){.landing .site-head{position:static;margin-top:6px}.brand .bname{font-size:1rem}}
 @media (max-width:860px){.landing .site-head{position:static;margin-top:6px}.landing .logo{margin-top:14px}}
 
