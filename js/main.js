@@ -77,18 +77,28 @@ function showMenu() {
   leaveMode();
   const y = YEARS[app.session], tabs = $('group-tabs'), box = $('mode-cards');
   $('menu-title').textContent = 'Year ' + app.session;
-  const shown = TIERS.filter(function (g) { return y.modes.some(function (id) { return TIER_OF[id] === g[0]; }); });
-  if (!app.group || !shown.some(function (g) { return g[0] === app.group; })) app.group = TIER_OF[y.modes[0]];
+  /* a tab with a single game is not worth a tab: that game moves into the next difficulty level (or the one before it when there is no later one) */
+  const tof = {}, cnt = {}, lv = ['b', 'm', 'a', 'p'];
+  y.modes.forEach(function (id) { tof[id] = TIER_OF[id]; cnt[tof[id]] = (cnt[tof[id]] || 0) + 1; });
+  lv.forEach(function (t, i) {
+    if (cnt[t] !== 1) return;
+    const to = lv.slice(i + 1).concat(lv.slice(0, i).reverse()).filter(function (u) { return cnt[u] > 0; })[0];
+    if (!to) return;
+    y.modes.forEach(function (id) { if (tof[id] === t) tof[id] = to; });
+    cnt[to] += 1; cnt[t] = 0;
+  });
+  const shown = TIERS.filter(function (g) { return cnt[g[0]] > 0; });
+  if (!app.group || !shown.some(function (g) { return g[0] === app.group; })) app.group = tof[y.modes[0]];
   function draw() {
     tabs.innerHTML = ''; box.innerHTML = '';
     shown.forEach(function (g) {
-      const n = y.modes.filter(function (id) { return TIER_OF[id] === g[0]; }).length, t = document.createElement('button');
+      const n = cnt[g[0]], t = document.createElement('button');
       t.type = 'button'; t.className = 'group-tab' + (app.group === g[0] ? ' on' : ''); t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', app.group === g[0] ? 'true' : 'false');
       t.innerHTML = '<span class="gi">' + g[1] + '</span><span class="gn">' + g[2] + '</span><span class="gc">' + n + '</span>';
       t.addEventListener('click', function () { app.group = g[0]; draw(); });
       tabs.appendChild(t);
     });
-    y.modes.filter(function (id) { return TIER_OF[id] === app.group; }).forEach(function (id) {
+    y.modes.filter(function (id) { return tof[id] === app.group; }).forEach(function (id) {
       const m = MODES[id], b = document.createElement('button'), step = y.modes.indexOf(id) + 1;
       b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;
       b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (step === 1 ? '<span class="tg start">▶ Start here</span>' : '') + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
