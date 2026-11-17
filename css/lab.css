@@ -258,6 +258,7 @@
 .lb-slide li::before{content:"";position:absolute;left:.25em;top:.45em;width:.55em;height:.55em;border-radius:50%;background:#4d8dff}
 .lb-nav{flex:none;display:flex;justify-content:space-between;gap:12px}
 .lb-nav .btn{min-width:150px}
+.nw-dlg .info{font-size:1.2rem;line-height:1.5;margin:.5em 0 1em}
 .lb-clicknext{flex:1;align-self:center;text-align:center;font-size:1.5rem;color:#ffe14d;text-shadow:0 2px 0 #0c0d26;animation:lbpoint 1s ease-in-out infinite}
 .lb-next.nudge{animation:lbflick .9s ease-in-out infinite;box-shadow:0 0 0 4px #ffe14d,0 0 18px 6px #ffd23f}
 @keyframes lbflick{50%{filter:brightness(1.4);transform:scale(1.07)}}
