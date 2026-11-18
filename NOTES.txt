@@ -96,10 +96,13 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
     Every stage is built the same way each time (so replays and checkpoints work); change len/d to make it longer/easier.
   Jump Over!    js/jump.js
     JUMP_LIVES, JUMP_INVINCIBLE_SECONDS, JUMP_HITBOX_PAD, JUMP_STOMP_SLACK (landing on a bush bounces), JUMP_GRAVITY / JUMP_POWER,
+    JUMP_RAMP (things come this much faster by the end of a level), JUMP_HEART_EVERY (a floating heart = +1 life), JUMP_STARS_PER_LIFE (stars that win a life),
+    new obstacles: log (bounce on it) and thorns (do not land on it), see PATTERNS,
     JUMP_LEVELS: speed, count (how many obstacle groups), gap (seconds between), theme.
     PATTERNS: which obstacle groups exist, from which level (min) and how common (w).
   Star Blaster  js/blaster.js
-    BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, BLASTER_WEAPON_SECONDS, FIRE_DELAY, BLAST_RADIUS, FIRE_LIFE, BOSS_DAMAGE,
+    BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, SHIP_SPEED_GAIN (the ship is faster on later levels), HEART_EVERY (a falling heart = +1 life),
+    BONUS_LIFE_GAP (seconds between two 'double pop' lives), BLASTER_WEAPON_SECONDS, FIRE_DELAY, BLAST_RADIUS, FIRE_LIFE, BOSS_DAMAGE,
     ENEMIES (size/speed/hits), BLASTER_LEVELS: count, gap, types, speedMul, rockHp, boss (hit points; boss kind 3 is the alien mothership),
     SCENERY (what floats in the sky of each level), CAPS (the order the gun capsules come in; one more gun is unlocked every two levels).
     Guns (SP.GUN_ORDER in js/sprites.js): normal, rapid, spread, laser, homing, big (Plasma Ball) and fire. A gun picked up from a capsule lasts BLASTER_WEAPON_SECONDS of USE (it only counts down while it is the active gun).

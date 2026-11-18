@@ -9,6 +9,9 @@ const JUMP_HITBOX_PAD = 10;            // pixels shaved off every side of hero &
 const JUMP_STOMP_SLACK = 26;           // landing on top of a bush/rock/stump/wall just bounces you (set 0 to turn off)
 const JUMP_BUFFER_SECONDS = 0.18;      // a jump pressed this early before landing still counts
 const JUMP_GRAVITY = 1900;             // lower = floatier jumps
+const JUMP_RAMP = 0.12;                // things come this much faster by the end of a level (0.12 = 12 percent; 0 = steady speed)
+const JUMP_HEART_EVERY = 6;            // a floating heart (+1 life) comes after every this many obstacle groups, when you are missing a heart
+const JUMP_STARS_PER_LIFE = 10;        // collect this many stars to win a life (0 = off)
 const JUMP_POWER = 800;                // higher = taller jumps
 /* One line per level: speed = how fast things come (pixels/second), count = how many obstacle groups,
    gap = [min,max] seconds between groups (bigger = easier), theme = which scenery (see THEMES in sprites_world.js).
@@ -43,19 +46,32 @@ const PATTERNS = [
   { min: 8, w: 3, parts: [['bee', 0], ['bush', 260]] },                       // duck, then jump
   { min: 9, w: 2, parts: [['swing', 0], ['pit', 290]] },
   { min: 10, w: 2, parts: [['ball', 0], ['rock', 320]] },
-  { min: 11, w: 2, parts: [['bush', 0], ['rock', 230], ['bush', 460]] }
+  { min: 11, w: 2, parts: [['bush', 0], ['rock', 230], ['bush', 460]] },
+  { min: 2, w: 3, parts: [['log', 0]] },                                       // a long low log: you can bounce on it
+  { min: 4, w: 2, parts: [['thorns', 0]] },                                    // prickly: jump clear, do not land on it
+  { min: 6, w: 2, parts: [['thorns', 0], ['log', 260]] },
+  { min: 8, w: 2, parts: [['log', 0], ['thorns', 220]] },
+  { min: 10, w: 1, parts: [['thorns', 0], ['thorns', 170]] }                   // two thorn bushes: one long jump
 ];
 /* ======================================================================= */
 
 const GROUND = 370, HERO_X = 150, SP = CC.sprites;
 const SIZES = Object.assign({ pit: { w: 130, h: 14 } }, SP.JUMP_OBSTACLES);
-const BEE_HEIGHT = 46, SWING_BOTTOM = 56, STOMPABLE = { bush: 1, rock: 1, stump: 1, wall: 1 };
-let landedAge = 9, hero, obstacles, coins, lives, invincible, scroll, spawnIn, spawned, passed, lv, jumpBuffer, wasAir, hurtT, got;
+const BEE_HEIGHT = 46, SWING_BOTTOM = 56, STOMPABLE = { bush: 1, rock: 1, stump: 1, wall: 1, log: 1 };
+const ARC_OVER = { bush: 1, rock: 1, stump: 1, wall: 1, log: 1, pit: 1, ball: 1, thorns: 1 };   // things that get a little arc of stars above them
+let landedAge = 9, hero, obstacles, coins, lives, invincible, scroll, spawnIn, spawned, passed, lv, jumpBuffer, wasAir, hurtT, got, curSpeed, hearts, pops, dustT;
 
 function reset(g, level) {
   lv = JUMP_LEVELS[level]; CC.music.play('jump', { tempo: 1 + level * 0.03 });
   hero = { h: 0, vy: 0, sx: 1, sy: 1, duck: false };
-  obstacles = []; coins = []; lives = JUMP_LIVES; invincible = 0; scroll = 0; spawnIn = 1.6; spawned = 0; passed = 0; jumpBuffer = 0; wasAir = false; hurtT = 0; got = 0;
+  obstacles = []; coins = []; lives = JUMP_LIVES; invincible = 0; scroll = 0; spawnIn = 1.6; spawned = 0; passed = 0; jumpBuffer = 0; wasAir = false; hurtT = 0; got = 0; curSpeed = lv.speed; hearts = []; pops = []; dustT = 0;
+}
+/* +1 life (never more than the hearts at the top), with a little floating note */
+function addLife(g, x, y, text) {
+  if (lives >= JUMP_LIVES) return false;
+  lives++; CC.sfx.pickup(); pops.push({ x: x, y: y, t: 0, text: text });
+  g.particles.burst(x, y, ['#ff6b86', '#ffd0dc', '#ffffff'], 14, { speed: 160, size: 5, grav: 0 });
+  return true;
 }
 function doJump() { hero.vy = JUMP_POWER; hero.sx = 0.82; hero.sy = 1.25; CC.sfx.jump(); }
 function heroBox() {
@@ -69,18 +85,19 @@ function obstacleBox(o) {
   if (o.kind === 'pit') return { x: o.x - s.w / 2 + 14, y: GROUND - s.h, w: s.w - 28, h: s.h };
   return CC.shrink(o.x - s.w / 2, GROUND - s.h, s.w, s.h, JUMP_HITBOX_PAD);
 }
-function speedOf(o) { return lv.speed * (o.kind === 'ball' ? 1.45 : 1); }
+function speedOf(o) { return curSpeed * (o.kind === 'ball' ? 1.45 : 1); }
 function spawnPattern(g, level) {
   const avail = PATTERNS.filter(function (p) { return p.min <= level; });
   let tot = 0; avail.forEach(function (p) { tot += p.w; }); let q = Math.random() * tot, pat = avail[0];
   for (const p of avail) { q -= p.w; if (q <= 0) { pat = p; break; } }
-  const x0 = g.W + 80;
+  const x0 = g.W + 80; let heartDone = !(lives < JUMP_LIVES && spawned % JUMP_HEART_EVERY === JUMP_HEART_EVERY - 1);
   pat.parts.forEach(function (part) {
     const kind = part[0], x = x0 + part[1];
     obstacles.push({ kind: kind, x: x, hit: false, counted: false });
     // a little arc of stars above things you jump over
-    if (STOMPABLE[kind] || kind === 'pit' || kind === 'ball') {
+    if (ARC_OVER[kind]) {
       const top = kind === 'pit' ? 20 : SIZES[kind].h;
+      if (!heartDone) { hearts.push({ x: x, y: GROUND - 150, t: 0 }); heartDone = true; }       // a heart floats over it: jump up to catch it
       for (let i = -1; i <= 1; i++) coins.push({ x: x + i * 46, y: GROUND - top - 48 - (i === 0 ? 34 : 14), taken: false });
     }
   });
@@ -88,7 +105,8 @@ function spawnPattern(g, level) {
 }
 function update(g, dt) {
   const level = g.level;
-  scroll += lv.speed * dt;
+  curSpeed = lv.speed * (1 + JUMP_RAMP * Math.min(1, spawned / lv.count));       // things come a little faster as the level goes on
+  scroll += curSpeed * dt;
   hero.duck = !!CC.held.ArrowDown && hero.h <= 0;
   if (jumpBuffer > 0) jumpBuffer -= dt;
   if (jumpBuffer > 0 && hero.h <= 0) { doJump(); jumpBuffer = 0; }
@@ -98,6 +116,8 @@ function update(g, dt) {
   }
   wasAir = hero.h > 0; landedAge += dt;
   hero.sx += (1 - hero.sx) * Math.min(1, dt * 12); hero.sy += (1 - hero.sy) * Math.min(1, dt * 12);
+  dustT -= dt; if (hero.h <= 0 && dustT <= 0) { g.particles.burst(HERO_X - 18, GROUND - 3, '#ffffff88', 1, { speed: 40, size: 3.5, grav: 0, life: 0.35 }); dustT = 0.08; }
+  for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t > 1.2) pops.splice(i, 1); }
   spawnIn -= dt;
   if (spawned < lv.count && spawnIn <= 0) { spawnPattern(g, level); spawnIn = CC.rand(lv.gap[0], lv.gap[1]); }
   if (invincible > 0) invincible -= dt;
@@ -122,15 +142,22 @@ function update(g, dt) {
   }
   obstacles = obstacles.filter(function (o) { return o.x > -120; });
   for (const c of coins) {
-    c.x -= lv.speed * dt;
-    if (!c.taken && Math.abs(c.x - HERO_X) < 30 && Math.abs(c.y - (GROUND - hero.h - (hero.duck ? 20 : 32))) < 44) { c.taken = true; got++; CC.sfx.tick(); g.particles.burst(c.x, c.y, ['#ffd23f', '#fff'], 6, { speed: 90, size: 4, grav: 0, life: .4 }); }
+    c.x -= curSpeed * dt;
+    if (!c.taken && Math.abs(c.x - HERO_X) < 30 && Math.abs(c.y - (GROUND - hero.h - (hero.duck ? 20 : 32))) < 44) { c.taken = true; got++; CC.sfx.tick(); if (JUMP_STARS_PER_LIFE && got % JUMP_STARS_PER_LIFE === 0) addLife(g, HERO_X, GROUND - 120, '+❤ ' + JUMP_STARS_PER_LIFE + ' stars!'); g.particles.burst(c.x, c.y, ['#ffd23f', '#fff'], 6, { speed: 90, size: 4, grav: 0, life: .4 }); }
   }
   coins = coins.filter(function (c) { return c.x > -40 && !c.taken; });
+  for (let i = hearts.length - 1; i >= 0; i--) {           // floating hearts: touch one to win a life
+    const h = hearts[i]; h.t += dt; h.x -= curSpeed * dt;
+    if (Math.abs(h.x - HERO_X) < 36 && Math.abs(h.y - (GROUND - hero.h - (hero.duck ? 20 : 32))) < 48) { if (!addLife(g, h.x, h.y, '+❤')) pops.push({ x: h.x, y: h.y, t: 0, text: '❤' }); hearts.splice(i, 1); }
+    else if (h.x < -40) hearts.splice(i, 1);
+  }
   if (spawned >= lv.count && obstacles.length === 0) { g.stars = lives >= 5 ? 3 : lives >= 3 ? 2 : 1; g.complete(); }
 }
 function draw(g) {
   const c = g.ctx, W = g.W, H = g.H;
   SP.world(c, W, H, GROUND, scroll, lv.theme, g.t);
+  const fast = curSpeed / lv.speed;
+  if (fast > 1.03) { c.strokeStyle = 'rgba(255,255,255,' + Math.min(0.22, (fast - 1.03) * 3) + ')'; c.lineWidth = 2; for (let i = 0; i < 7; i++) { const yy = 80 + (i * 61) % 240, xx = W - ((scroll * 2.2 + i * 197) % (W + 160)); c.beginPath(); c.moveTo(xx, yy); c.lineTo(xx + 70, yy); c.stroke(); } }
   // ground, with real gaps where the pits are
   const pits = obstacles.filter(function (o) { return o.kind === 'pit'; }).map(function (o) { return [o.x - SIZES.pit.w / 2, o.x + SIZES.pit.w / 2]; }).sort(function (a, b) { return a[0] - b[0]; });
   let x = 0;
@@ -138,6 +165,7 @@ function draw(g) {
   if (x < W) SP.ground(c, lv.theme, x, W, GROUND, H);
   c.fillStyle = 'rgba(0,0,0,.2)'; c.beginPath(); c.ellipse(HERO_X, GROUND + 4, 30 - hero.h * 0.08, 7, 0, 0, 6.283); c.fill();
   for (const k of coins) SP.coin(c, k.x, k.y, g.t);
+  for (const h of hearts) SP.heartPickup(c, h.x, h.y, h.t);
   for (const o of obstacles) {
     c.globalAlpha = o.hit ? 0.35 : 1;
     if (o.kind === 'bee') SP.bee(c, o.x, GROUND - BEE_HEIGHT, g.t);
@@ -151,6 +179,7 @@ function draw(g) {
   SP.runner(c, HERO_X, GROUND - hero.h, { t: g.t, air: hero.h > 0, duck: hero.duck, sx: hero.sx, sy: hero.sy, hurt: hurtT > 0 });
   c.globalAlpha = 1;
   g.particles.draw(c);
+  for (const p of pops) { c.globalAlpha = Math.min(1, (1.2 - p.t) * 2); CC.outlineText(c, p.text, p.x, p.y - p.t * 40, 24, '#ff8fb0', 'center'); } c.globalAlpha = 1;
   // HUD: pictures and numbers only
   const th = SP.THEMES[lv.theme];
   c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, 12, 10, 92, 44, 14); c.fill();
@@ -162,6 +191,7 @@ function draw(g) {
   c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(bx, 21, 220, 8); c.fillStyle = '#ffd23f'; c.fillRect(bx, 21, 220 * (spawned >= lv.count ? Math.max(frac, 0.95 * (1 - obstacles.length / 6)) : (spawned / lv.count) * 0.95), 8);
   c.font = '16px sans-serif'; c.fillStyle = '#fff'; c.fillText('🏁', bx + 224, 34);
   SP.coin(c, 36, 84, g.t); CC.outlineText(c, String(got), 56, 92, 24, '#ffd23f');
+  if (JUMP_STARS_PER_LIFE) { c.fillStyle = 'rgba(26,27,63,.55)'; c.fillRect(22, 104, 84, 8); c.fillStyle = '#ff8fb0'; c.fillRect(22, 104, 84 * (got % JUMP_STARS_PER_LIFE) / JUMP_STARS_PER_LIFE, 8); SP.heart(c, 118, 108, 18, true); }   // stars fill this bar: a full bar wins a heart
   CC.drawKeys(c, W, H, ['ArrowUp', 'ArrowDown', 'Space']);
 }
 function hrr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -180,7 +210,7 @@ const game = CC.makeLevelGame({
   reset: reset, update: update, draw: draw, onKeyDown: onKeyDown
 });
 CC.modes.jump = game;
-CC.modes.jump._debug = function () { return { hero: hero, obstacles: obstacles, lives: lives, invincible: invincible, passed: passed, spawned: spawned, lv: lv, got: got, coins: coins }; };
+CC.modes.jump._debug = function () { return { hero: hero, obstacles: obstacles, lives: lives, invincible: invincible, passed: passed, spawned: spawned, lv: lv, got: got, coins: coins, hearts: hearts }; };
 CC.modes.jump._levels = JUMP_LEVELS; CC.modes.jump._patterns = PATTERNS;
 // click / tap also jumps (nice for touch screens)
 document.getElementById('stage-jump').addEventListener('pointerdown', function (e) {

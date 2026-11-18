@@ -74,49 +74,6 @@ function grr(ctx, x, y, w) {
 }
 SP.helpers = { brows: brows, fierceEyes: fierceEyes, roar: roar, grr: grr, rr: rr, circ: circ, ell: ell, fs: fs, puff: puff, shine: shine, eyes: eyes, smile: smile, cheeks: cheeks };
 
-/* ============ scenery shared by Jump Over! and Commando Run ============ */
-const THEMES = [
-  { top: '#24265e', bot: '#5b4b9a', far: '#3a3c88', near: '#4c4aa3', ground: '#6a5acd', edge: '#8e7bff' },
-  { top: '#1f3a6e', bot: '#4aa0b8', far: '#2c5c92', near: '#3a7fa8', ground: '#2f8f8f', edge: '#5fd3c4' },
-  { top: '#3a2a6e', bot: '#d9788f', far: '#6a3f94', near: '#8e4f9a', ground: '#a0527a', edge: '#ff9fb0' },
-  { top: '#1d3d4e', bot: '#4fa86f', far: '#2b6a58', near: '#37875f', ground: '#3d9a55', edge: '#8fe08a' },
-  { top: '#2c2362', bot: '#e89b5a', far: '#5a3d8a', near: '#7d4a8a', ground: '#b5683f', edge: '#ffc27a' },
-  { top: '#202a66', bot: '#7a6fe0', far: '#3d4aa8', near: '#5a62c0', ground: '#4d56b8', edge: '#a9b1ff' },
-  { top: '#22345e', bot: '#5ec0d8', far: '#2f6a9a', near: '#3d8fb8', ground: '#2b8aa0', edge: '#8ae8f0' }
-];
-SP.scene = function (ctx, W, H, groundY, scroll, theme, t) {
-  const th = THEMES[theme % THEMES.length];
-  const g = ctx.createLinearGradient(0, 0, 0, groundY); g.addColorStop(0, th.top); g.addColorStop(1, th.bot);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  // slow, gentle twinkle (no flashing)
-  for (let i = 0; i < 28; i++) {
-    const sx = (i * 137 + 40) % W, sy = (i * 71 + 20) % (groundY * 0.55);
-    ctx.globalAlpha = 0.45 + 0.25 * Math.sin(t * 0.8 + i);
-    ctx.fillStyle = '#fff'; ctx.fillRect(sx, sy, 2, 2);
-  }
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = 'rgba(255,247,200,.9)'; ctx.beginPath(); ctx.arc(W - 110, 70, 28, 0, TAU); ctx.fill();
-  // clouds
-  ctx.fillStyle = 'rgba(255,255,255,.16)';
-  for (let i = 0; i < 4; i++) {
-    const cx = ((i * 260 - scroll * 0.12) % (W + 200) + W + 200) % (W + 200) - 100, cy = 60 + (i % 2) * 40;
-    ctx.beginPath(); ctx.ellipse(cx, cy, 50, 16, 0, 0, TAU); ctx.ellipse(cx + 28, cy - 8, 32, 14, 0, 0, TAU); ctx.fill();
-  }
-  // hills (two parallax layers)
-  function hills(col, speed, amp, base, wl) {
-    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, groundY);
-    for (let x = 0; x <= W + 10; x += 10) ctx.lineTo(x, groundY - base - amp * Math.sin((x + scroll * speed) / wl) - amp * 0.5 * Math.sin((x + scroll * speed) / (wl * 0.43)));
-    ctx.lineTo(W, groundY); ctx.closePath(); ctx.fill();
-  }
-  hills(th.far, 0.2, 26, 60, 90); hills(th.near, 0.45, 18, 22, 60);
-  // ground
-  ctx.fillStyle = th.ground; ctx.fillRect(0, groundY, W, H - groundY);
-  ctx.fillStyle = th.edge; ctx.fillRect(0, groundY, W, 6);
-  ctx.fillStyle = 'rgba(0,0,0,.12)';
-  for (let x = -((scroll) % 60); x < W; x += 60) ctx.fillRect(x, groundY + 22, 28, 5);
-  for (let x = -((scroll * 1.0 + 30) % 90); x < W; x += 90) ctx.fillRect(x, groundY + 44, 18, 5);
-};
-
 /* ============ hearts (lives) ============ */
 SP.heart = function (ctx, x, y, size, full) {
   ctx.save(); ctx.translate(x, y); ctx.scale(size / 20, size / 20);
@@ -199,6 +156,8 @@ SP.drawJumpObstacle = function (ctx, kind, x, y, t) {
   if (kind === 'bush') SP.bush(ctx, x, y, t);
   else if (kind === 'rock') SP.rockFriend(ctx, x, y, t);
   else if (kind === 'stump') SP.stump(ctx, x, y, t);
+  else if (kind === 'log') SP.log(ctx, x, y, t);
+  else if (kind === 'thorns') SP.thorns(ctx, x, y, t);
   else SP.bee(ctx, x, y, t);
 };
 
@@ -613,6 +572,23 @@ SP.shockwave = function (ctx, x, y, t) {   // low ground wave from a boss stomp 
 
 /* ============ extra Jump Over! things ============ */
 SP.JUMP_OBSTACLES.ball = { w: 50, h: 50 }; SP.JUMP_OBSTACLES.swing = { w: 46, h: 46 }; SP.JUMP_OBSTACLES.wall = { w: 40, h: 108 };
+SP.JUMP_OBSTACLES.log = { w: 96, h: 40 }; SP.JUMP_OBSTACLES.thorns = { w: 58, h: 44 };
+SP.log = function (ctx, x, y, t) {        // a sleepy fallen log (you can bounce on it). anchor = bottom centre
+  ctx.save(); ctx.translate(x, y);
+  rr(ctx, -46, -38, 92, 38, 16); fs(ctx, puff(ctx, 0, -20, 52, '#d29555', '#8a5426'));
+  ctx.fillStyle = 'rgba(80,40,10,.22)'; for (let i = 0; i < 3; i++) ctx.fillRect(-32 + i * 20, -32, 3, 26);
+  ell(ctx, 40, -19, 9, 18, '#f0c88a'); ctx.beginPath(); ctx.ellipse(40, -19, 5, 11, 0, 0, TAU); ctx.lineWidth = 1.6; ctx.strokeStyle = '#a0642e'; ctx.stroke(); ctx.beginPath(); ctx.ellipse(40, -19, 2, 5, 0, 0, TAU); ctx.stroke();
+  eyes(ctx, -8, -23, 9, 5.5, 0, true); smile(ctx, -8, -14, 6, 4); cheeks(ctx, -8, -18, 17, 4);
+  ctx.beginPath(); ctx.arc(-28, -38, 9, Math.PI, 0); fs(ctx, '#ff6b86'); circ(ctx, -31, -43, 2, '#fff'); circ(ctx, -25, -41, 1.6, '#fff');
+  ctx.restore();
+};
+SP.thorns = function (ctx, x, y, t) {      // a prickly bush with a grumpy face: do NOT land on it. anchor = bottom centre
+  ctx.save(); ctx.translate(x, y);
+  for (let i = 0; i < 9; i++) { const a = Math.PI + 0.25 + i * (Math.PI - 0.5) / 8, w = 0.2; tri2(ctx, Math.cos(a - w) * 18, -18 + Math.sin(a - w) * 18, Math.cos(a) * 33, -18 + Math.sin(a) * 33, Math.cos(a + w) * 18, -18 + Math.sin(a + w) * 18, '#fff1c8'); }
+  ell(ctx, 0, -17, 25, 18, puff(ctx, 0, -17, 28, '#c39bf0', '#7a4ac0'));
+  eyes(ctx, 0, -20, 8, 5.5, 0, false); brows(ctx, 0, -20, 8, 5.5); smile(ctx, 0, -8, 5, -3.5);
+  ctx.restore();
+};
 SP.ball = function (ctx, x, y, t) {   // rolling ball, anchor bottom centre
   ctx.save(); ctx.translate(x, y - 25); ctx.rotate(-t * 5);
   circ(ctx, 0, 0, 25, puff(ctx, 0, 0, 25, '#ffd0a0', '#ff6b86'));

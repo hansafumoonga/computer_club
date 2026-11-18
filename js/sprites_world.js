@@ -474,7 +474,6 @@ B.golem = function (c, s) {
   roar(c, 0, -170, 24, 6 + (s.charge > 0 ? 14 : 3));
   circ(c, -40, -150, 8, '#5ac66a'); circ(c, 54, -112, 9, '#5ac66a');
 };
-SP.BOSS_KINDS = Object.keys(B);
 /* kind: lion|octopus|scorpion|yeti|dragon|gorilla|spider|robot|eagle|ufo|frog|golem */
 SP.bossDraw = function (c, kind, x, y, s) {
   const sc = s.scale || 1.2, rage = s.rage;

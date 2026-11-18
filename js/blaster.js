@@ -7,7 +7,10 @@
 const BLASTER_LIVES = 6;                 // hearts at the start of each level
 const BLASTER_INVINCIBLE_SECONDS = 1.2;  // safe time after a bump
 const BLASTER_HITBOX_PAD = 8;            // pixels shaved off each side of ship & rock boxes (bigger = more forgiving)
-const SHIP_SPEED = 340;                  // how fast the ship slides (pixels/second)
+const SHIP_SPEED = 340;                  // how fast the ship slides on level 1 (pixels/second)
+const SHIP_SPEED_GAIN = 1.1;             // the ship slides faster as the falling things get faster (0 = always the same speed; level 12 is about 1.6 times quicker)
+const HEART_EVERY = 6;                   // a falling heart (+1 life) comes after every this many things, when you are missing a heart
+const BONUS_LIFE_GAP = 4;                // seconds before a second 'double pop' can give another life
 const BLASTER_WEAPON_SECONDS = 22;       // how long a picked-up gun lasts (it only counts down while that gun is the one in use)
 const FIRE_LIFE = 0.55;                  // how long a Fire Burst flame lasts (about 240 pixels of reach)
 const BLAST_RADIUS = 78;                 // how far the Plasma Ball burst reaches
@@ -53,13 +56,13 @@ const RING_COLORS = [['#ffdcaa', '#e08a3a'], ['#bff0ff', '#3a8ad0'], ['#e4c8ff',
 const SP = CC.sprites, SHIP_Y = 385, LAND_Y = 418;
 const SKY = [['#15163a', '#3c2f80'], ['#0f2a4a', '#2a6a9a'], ['#2a1a4a', '#7a3a8a'], ['#102a3a', '#2a7a6a']];
 const CAPS = ['rapid', 'spread', 'laser', 'homing', 'big', 'fire'];     // the order the capsules come in (new guns arrive as the levels go on)
-let ship, enemies, shots, capsules, lives, invincible, fireCd, wantFire, weapon, owned, spawnIn, spawned, resolved, lv, stars, boss, bossAnn, capCount, blasts, rings, scenery, twinkles, meteors, meteorIn, sceneT;
+let ship, enemies, shots, capsules, lives, invincible, fireCd, wantFire, weapon, owned, spawnIn, spawned, resolved, lv, stars, boss, bossAnn, capCount, blasts, rings, scenery, twinkles, meteors, meteorIn, sceneT, hearts, pops, bonusCd;
 
 const MUSIC_KEY = [0, 2, -2, 3];
 function reset(g, level) {
   lv = BLASTER_LEVELS[level]; CC.music.play('blaster', { transpose: MUSIC_KEY[level % 4], tempo: 1 + level * 0.015 });
   ship = { x: g.W / 2, sx: 1, sy: 1 }; enemies = []; shots = []; capsules = []; lives = BLASTER_LIVES; invincible = 0;
-  fireCd = 0; wantFire = false; weapon = 'normal'; owned = { normal: Infinity }; spawnIn = 1.5; spawned = 0; resolved = 0; boss = null; bossAnn = 0; capCount = 0; blasts = []; rings = [];
+  fireCd = 0; wantFire = false; weapon = 'normal'; owned = { normal: Infinity }; spawnIn = 1.5; spawned = 0; resolved = 0; boss = null; bossAnn = 0; capCount = 0; blasts = []; rings = []; hearts = []; pops = []; bonusCd = 0;
   stars = []; for (let i = 0; i < 50; i++) stars.push({ x: Math.random() * g.W, y: Math.random() * g.H, s: 0.5 + Math.random() * 1.5 });
   const kinds = SCENERY[level % SCENERY.length]; scenery = []; sceneT = 0; meteors = []; meteorIn = CC.rand(3, 7);
   kinds.forEach(function (k, i) {
@@ -67,6 +70,17 @@ function reset(g, level) {
     scenery.push({ k: k, x: (i + 0.5) * g.W / kinds.length + CC.rand(-50, 50), y: CC.rand(20, g.H - 160), v: z.v, m: size, pal: (level + i) % 4 });
   });
   twinkles = []; for (let i = 0; i < 7; i++) twinkles.push({ x: CC.rand(30, g.W - 30), y: CC.rand(70, 330), r: CC.rand(4, 8) });
+}
+/* +1 life (never more than the hearts at the top), with a little floating note */
+function addLife(g, x, y, text) {
+  if (lives >= BLASTER_LIVES) return false;
+  lives++; CC.sfx.pickup(); pops.push({ x: x, y: y, t: 0, text: text });
+  g.particles.burst(x, y, ['#ff6b86', '#ffd0dc', '#ffffff'], 14, { speed: 160, size: 5, grav: 0 });
+  return true;
+}
+/* popping two or more things with ONE shot (or one burst) is a double pop: it can win a life */
+function doublePop(g, x, y) {
+  if (bonusCd <= 0 && addLife(g, x, y - 20, '+❤ Double!')) bonusCd = BONUS_LIFE_GAP; else pops.push({ x: x, y: y - 20, t: 0, text: 'Double!' });
 }
 function ownedList() { return SP.GUN_ORDER.filter(function (k) { return owned[k] > 0; }); }
 function setGun(k) { if (!(owned[k] > 0) || k === weapon) return; weapon = k; CC.sfx.clink(); ship.sy = 1.12; ship.sx = 1.08; }
@@ -132,18 +146,19 @@ function bossBox() { return lv.boss.kind === 3 ? CC.shrink(boss.x - 105, boss.y 
 /* a Plasma Ball bursts: every enemy close by loses 2 hit points, and the boss loses 6 */
 function doBlasts(g) {
   while (blasts.length) {
-    const b = blasts.pop(); rings.push({ x: b.x, y: b.y, t: 0 }); CC.sfx.pop();
+    const b = blasts.pop(); rings.push({ x: b.x, y: b.y, t: 0 }); CC.sfx.pop(); let kills = 0;
     g.particles.burst(b.x, b.y, ['#d68bff', '#ffffff', '#ffe0ff'], 26, { speed: 250, size: 7 });
     for (let i = enemies.length - 1; i >= 0; i--) {
       const e = enemies[i];
-      if (Math.hypot(e.x - b.x, e.y - b.y) < BLAST_RADIUS + ENEMIES[e.type].r) { e.hp -= 2; e.hit = 0.12; if (e.hp <= 0) { popEnemy(g, e); enemies.splice(i, 1); } }
+      if (Math.hypot(e.x - b.x, e.y - b.y) < BLAST_RADIUS + ENEMIES[e.type].r) { e.hp -= 2; e.hit = 0.12; if (e.hp <= 0) { popEnemy(g, e); enemies.splice(i, 1); kills++; } }
     }
+    if (kills >= 2) doublePop(g, b.x, b.y);
     if (boss && boss.dying <= 0 && Math.hypot(boss.x - b.x, boss.y - b.y) < BLAST_RADIUS + 85) hitBoss(g, 6);
   }
 }
 function update(g, dt) {
   const dir = (CC.held.ArrowRight ? 1 : 0) - (CC.held.ArrowLeft ? 1 : 0);
-  ship.x = CC.clamp(ship.x + dir * SHIP_SPEED * dt, 36, g.W - 36);
+  ship.x = CC.clamp(ship.x + dir * SHIP_SPEED * (1 + (lv.speedMul - 0.9) * SHIP_SPEED_GAIN) * dt, 36, g.W - 36);
   ship.sx += (1 - ship.sx) * Math.min(1, dt * 10); ship.sy += (1 - ship.sy) * Math.min(1, dt * 10);
   fireCd -= dt;
   if ((CC.held.Space || wantFire) && fireCd <= 0) { fire(); fireCd = FIRE_DELAY[weapon]; }
@@ -153,16 +168,19 @@ function update(g, dt) {
     if (owned[weapon] <= 0) { owned[weapon] = 0; const l = ownedList(); weapon = l[l.length - 1]; CC.sfx.clink(); }
   }
   if (invincible > 0) invincible -= dt;
+  if (bonusCd > 0) bonusCd -= dt;
   if (bossAnn > 0) bossAnn -= dt;
+  for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t > 1.2) pops.splice(i, 1); }
   for (let i = rings.length - 1; i >= 0; i--) { rings[i].t += dt; if (rings[i].t > 0.4) rings.splice(i, 1); }
   // spawning
   spawnIn -= dt;
   if (spawned < lv.count && spawnIn <= 0) {
     spawnEnemy(g); spawnIn = CC.rand(lv.gap[0], lv.gap[1]);
+    if (spawned % HEART_EVERY === HEART_EVERY - 1 && lives < BLASTER_LIVES) hearts.push({ x: CC.rand(80, g.W - 80), y: -30, t: 0 });
     if (spawned % 5 === 3) capsules.push({ x: CC.rand(80, g.W - 80), y: -30, kind: CAPS[capCount++ % Math.min(CAPS.length, 3 + Math.floor(g.level / 2))], t: 0 });   // new guns arrive as the levels go on
   }
   if (lv.boss && !boss && spawned >= lv.count && enemies.length === 0) {
-    boss = { x: g.W / 2, y: -120, hp: lv.boss.hp, maxHp: lv.boss.hp, t: 0, hit: 0, drop: 2, dying: 0 }; bossAnn = 2.2; CC.sfx.warn(); CC.music.play('blasterBoss', { transpose: MUSIC_KEY[g.level % 4] });
+    boss = { x: g.W / 2, y: -120, hp: lv.boss.hp, maxHp: lv.boss.hp, t: 0, hit: 0, drop: 2, dying: 0 }; bossAnn = 2.2; if (lives <= 3) hearts.push({ x: CC.rand(120, g.W - 120), y: -30, t: 0 }); CC.sfx.warn(); CC.music.play('blasterBoss', { transpose: MUSIC_KEY[g.level % 4] });
   }
   // shots
   for (const s of shots) {
@@ -177,6 +195,12 @@ function update(g, dt) {
     let got = CC.overlap(box, { x: ship.x - 24, y: SHIP_Y - 30, w: 48, h: 60 });
     for (let j = shots.length - 1; j >= 0 && !got; j--) if (CC.overlap(box, { x: shots[j].x - 6, y: shots[j].y - 8, w: 12, h: 16 })) { got = true; if (shots[j].kind !== 'laser' && shots[j].kind !== 'fire') shots.splice(j, 1); }
     if (got) { pickUp(g, c); capsules.splice(i, 1); } else if (c.y > g.H + 40) capsules.splice(i, 1);
+  }
+  // falling hearts: fly into one to win a life
+  for (let i = hearts.length - 1; i >= 0; i--) {
+    const h = hearts[i]; h.t += dt; h.y += 62 * dt; h.x += Math.sin(h.t * 1.8) * 22 * dt;
+    if (CC.overlap({ x: h.x - 26, y: h.y - 26, w: 52, h: 52 }, { x: ship.x - 28, y: SHIP_Y - 32, w: 56, h: 64 })) { if (!addLife(g, h.x, h.y, '+❤')) pops.push({ x: h.x, y: h.y, t: 0, text: '❤' }); hearts.splice(i, 1); ship.sy = 1.15; }
+    else if (h.y > g.H + 40) hearts.splice(i, 1);
   }
   // enemies
   const shipBox = CC.shrink(ship.x - 22, SHIP_Y - 30, 44, 56, BLASTER_HITBOX_PAD);
@@ -193,7 +217,7 @@ function update(g, dt) {
         if (s.blast) { blasts.push({ x: s.x, y: s.y }); shots.splice(j, 1); continue; }
         if (s.hit) s.hit.push(e); else shots.splice(j, 1);
         e.hp--; e.hit = 0.12;
-        if (e.hp <= 0) { popEnemy(g, e); dead = true; break; } else CC.sfx.clink();
+        if (e.hp <= 0) { popEnemy(g, e); dead = true; s.kills = (s.kills || 0) + 1; if (s.kills === 2) doublePop(g, e.x, e.y); break; } else CC.sfx.clink();
       }
     }
     if (dead) { enemies.splice(i, 1); continue; }
@@ -270,6 +294,7 @@ function draw(g) {
   });
   CC.drawKeys(c, W, H, ['ArrowLeft', 'ArrowRight', 'Space']);   // behind the ship so it never covers it
   for (const cp of capsules) SP.capsule(c, cp.x, cp.y, cp.kind, cp.t);
+  for (const h of hearts) SP.heartPickup(c, h.x, h.y, h.t);
   if (boss) {
     c.globalAlpha = boss.dying > 0 ? 0.6 + 0.4 * Math.sin(boss.t * 20) * 0.5 : 1;
     if (lv.boss.kind === 3) SP.mothership(c, boss.x, boss.y, boss.t, boss.hp / boss.maxHp, boss.hit > 0); else SP.megaBoss(c, boss.x, boss.y, boss.t, boss.hp / boss.maxHp, boss.hit > 0, lv.boss.kind);
@@ -295,6 +320,7 @@ function draw(g) {
   SP.ship(c, ship.x, SHIP_Y, weapon, g.t, ship);
   c.globalAlpha = 1;
   g.particles.draw(c);
+  for (const p of pops) { c.globalAlpha = Math.min(1, (1.2 - p.t) * 2); CC.outlineText(c, p.text, p.x, p.y - p.t * 40, 24, '#ff8fb0', 'center'); } c.globalAlpha = 1;
   // HUD: pictures and numbers only
   c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, 12, 10, 92, 44, 14); c.fill();
   c.font = '26px sans-serif'; c.textAlign = 'left'; c.fillStyle = '#fff'; c.fillText('🚀', 20, 41); CC.outlineText(c, String(g.level + 1), 62, 42, 28, '#ffd23f');
@@ -328,6 +354,6 @@ CC.modes.blaster = CC.makeLevelGame({
   controls: [{ keys: ['←', '→'], icon: '🚀' }, { keys: ['Space'], icon: '💥' }, { keys: ['↑', '↓'], icon: '🔫' }],
   reset: reset, update: update, draw: draw, onKeyDown: onKeyDown
 });
-CC.modes.blaster._debug = function () { return { ship: ship, enemies: enemies, shots: shots, capsules: capsules, lives: lives, weapon: weapon, owned: owned, resolved: resolved, spawned: spawned, lv: lv, boss: boss }; };
+CC.modes.blaster._debug = function () { return { ship: ship, enemies: enemies, shots: shots, capsules: capsules, hearts: hearts, lives: lives, weapon: weapon, owned: owned, resolved: resolved, spawned: spawned, lv: lv, boss: boss }; };
 CC.modes.blaster._levels = BLASTER_LEVELS;
 })();
