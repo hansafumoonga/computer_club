@@ -80,6 +80,14 @@ function leaveMode() {
   CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); CC.ui.close(); CC.held = {}; app.mode = null; CC.music.stop();
   document.querySelectorAll('.pause-btn').forEach(function (b) { b.textContent = '⏸'; b.classList.remove('on'); });
 }
+/* the drawn picture of a game (js/icons.js, which every page loads), or null for a game that has none yet (it then keeps its emoji from MODES) */
+function gamePicture(id) { return CC.icons.has(id) ? CC.icons.el(CC.icons.game(id)) : null; }
+Object.keys(MODES).forEach(function (id) { CC.icons.colour[id] = MODES[id].color; });
+/* every game's heading shows its drawn picture in place of the emoji */
+document.querySelectorAll('section.mode').forEach(function (s) {
+  const id = s.id.replace('mode-', ''), pic = gamePicture(id === 'builder' ? 'buildclick' : id), h = s.querySelector('.topbar h2');
+  if (pic && h) { const name = h.textContent.replace(/^\S+\s+/, ''); h.textContent = ''; h.appendChild(pic); h.appendChild(document.createTextNode(' ' + name)); }
+});
 function showSessions() { leaveMode(); app.session = null; showOnly($('screen-session')); }
 function showMenu() {
   if (!app.session) { showSessions(); return; }
@@ -101,6 +109,7 @@ function showMenu() {
       const n = cnt[g[0]], t = document.createElement('button');
       t.type = 'button'; t.className = 'group-tab' + (app.group === g[0] ? ' on' : ''); t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', app.group === g[0] ? 'true' : 'false');
       t.innerHTML = '<span class="gi">' + g[1] + '</span><span class="gn">' + g[2] + '</span><span class="gc">' + n + '</span>';
+      const tabPic = CC.icons.tab(g[0]); if (tabPic) { const gi = t.querySelector('.gi'); gi.textContent = ''; gi.appendChild(CC.icons.el(tabPic)); }       // the drawn tab picture
       t.tabIndex = app.group === g[0] ? 0 : -1;
       t.addEventListener('click', function () { app.group = g[0]; draw(); });
       /* the arrow keys move between the level tabs (Home and End jump to the first and last) */
@@ -115,6 +124,7 @@ function showMenu() {
       const m = MODES[id], b = document.createElement('button'), step = y.modes.indexOf(id) + 1;
       b.className = 'mode-card'; b.style.setProperty('--c', m.color); b.dataset.mode = id;
       b.innerHTML = '<span class="ic">' + m.icon + '</span><span class="nm">' + m.name + '</span><span class="ds">' + m.desc + '</span>' + (step === 1 ? '<span class="tg start">▶ Start here</span>' : '') + (m.cert ? '<span class="tg cert">🎓 Certificate</span>' : '');
+      const pic = gamePicture(id); if (pic) { const sp = b.querySelector('.ic'); sp.textContent = ''; sp.appendChild(pic); }       // the drawn picture (a game without one keeps its emoji)
       if (CC.rewards && CC.rewards.has(id)) { const tr = document.createElement('span'); tr.className = 'rw-badge'; tr.setAttribute('role', 'button'); tr.setAttribute('tabindex', '0'); tr.setAttribute('aria-label', 'my reward'); tr.title = 'My reward'; tr.textContent = '🏆'; tr.addEventListener('click', function (e) { e.stopPropagation(); CC.rewards.show(id); }); tr.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); CC.rewards.show(id); } }); b.appendChild(tr); }
       b.addEventListener('click', function () { startMode(id); });
       box.appendChild(b);

@@ -181,15 +181,14 @@ function draw(g) {
   g.particles.draw(c);
   for (const p of pops) { c.globalAlpha = Math.min(1, (1.2 - p.t) * 2); CC.outlineText(c, p.text, p.x, p.y - p.t * 40, 24, '#ff8fb0', 'center'); } c.globalAlpha = 1;
   // HUD: pictures and numbers only
-  const th = SP.THEMES[lv.theme];
   c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, 12, 10, 92, 44, 14); c.fill();
-  c.font = '26px sans-serif'; c.textAlign = 'left'; c.fillStyle = '#fff'; c.fillText(th.icon, 20, 41);
+  CC.icons.draw(c, CC.icons.stage(lv.theme), 36, 32, 34);
   CC.outlineText(c, String(g.level + 1), 62, 42, 28, '#ffd23f');
   for (let i = 0; i < JUMP_LIVES; i++) SP.heart(c, W - 24 - i * 26, 28, 20, i < lives);
   const frac = lv ? Math.min(1, passed / Math.max(1, lv.count * 1.4)) : 0, bx = W / 2 - 110;
   c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, bx - 10, 12, 244, 26, 12); c.fill();
   c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(bx, 21, 220, 8); c.fillStyle = '#ffd23f'; c.fillRect(bx, 21, 220 * (spawned >= lv.count ? Math.max(frac, 0.95 * (1 - obstacles.length / 6)) : (spawned / lv.count) * 0.95), 8);
-  c.font = '16px sans-serif'; c.fillStyle = '#fff'; c.fillText('🏁', bx + 224, 34);
+  CC.icons.draw(c, CC.icons.flag(), bx + 234, 25, 22);
   SP.coin(c, 36, 84, g.t); CC.outlineText(c, String(got), 56, 92, 24, '#ffd23f');
   if (JUMP_STARS_PER_LIFE) { c.fillStyle = 'rgba(26,27,63,.55)'; c.fillRect(22, 104, 84, 8); c.fillStyle = '#ff8fb0'; c.fillRect(22, 104, 84 * (got % JUMP_STARS_PER_LIFE) / JUMP_STARS_PER_LIFE, 8); SP.heart(c, 118, 108, 18, true); }   // stars fill this bar: a full bar wins a heart
   CC.drawKeys(c, W, H, ['ArrowUp', 'ArrowDown', 'Space']);
@@ -204,8 +203,8 @@ function onKeyDown(g, e) {
 
 const game = CC.makeLevelGame({
   reward: 'jump',
-  stageId: 'stage-jump', title: 'Level', emoji: '🏃', total: JUMP_LEVELS.length,
-  levelIcon: function (i) { return SP.THEMES[JUMP_LEVELS[i].theme].icon; },
+  stageId: 'stage-jump', title: 'Level', total: JUMP_LEVELS.length,
+  levelBadge: function (i) { return CC.icons.stage(JUMP_LEVELS[i].theme); },
   controls: [{ keys: ['Space', '↑'], icon: '🦘' }, { keys: ['↓'], icon: '⬇️' }],
   reset: reset, update: update, draw: draw, onKeyDown: onKeyDown
 });

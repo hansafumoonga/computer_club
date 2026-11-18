@@ -35,6 +35,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .mode-card{width:210px;padding:18px 12px;border-radius:24px;border:4px solid var(--c,#3a3e8a);
   display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .12s}
 .mode-card .ic{font-size:3.4rem;line-height:1.1} .mode-card .nm{font-size:1.3rem;font-weight:bold}
+.gicon{width:1em;height:1em;display:inline-block;vertical-align:-.14em}   /* the drawn game pictures (js/icons.js) are sized in em, like the emoji they replace */
+.mode-card .ic .gicon{display:block;width:1.15em;height:1.15em}
+.overlay .o-emoji .gicon{display:block;margin:0 auto}
+.topbar h2 .gicon{width:1.35em;height:1.35em;vertical-align:-.32em}
 .mode-card .ds{color:var(--ink-dim);font-size:.9rem;text-align:center}
 
 /* ---- canvas stage (aspect ratio locked in CSS; no JS sizing) ---- */
@@ -304,7 +308,8 @@ a.btn.primary{color:#1a1b3f}
 .group-tabs{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:2px 0 6px}
 .group-tab{display:inline-flex;align-items:center;gap:8px;font:inherit;font-weight:bold;font-size:1.1rem;padding:.6em 1.2em;border-radius:99px;border:3px solid #5a60b8;background:#2b3170;color:#e6e8ff;cursor:pointer;transition:transform .1s,background .12s}
 .group-tab:hover{background:#3a418a;transform:translateY(-2px)}
-.group-tab .gi{font-size:1.25em}
+.group-tab .gi{font-size:1.25em;display:inline-flex}
+.group-tab .gi .gicon{width:1.6em;height:1.6em;vertical-align:baseline}
 .group-tab .gc{min-width:1.6em;padding:.05em .45em;border-radius:99px;background:rgba(255,255,255,.18);font-size:.85em;text-align:center}
 .group-tab.on{background:var(--accent);border-color:#fff3b0;color:#1a1b3f}
 .group-tab.on .gc{background:rgba(26,27,63,.2)}

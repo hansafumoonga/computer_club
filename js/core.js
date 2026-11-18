@@ -237,13 +237,13 @@ CC.watchStage = function (stage) {
 /* ---------- Overlays: the shared level-complete / try-again / intro screens (icons first, very few words) ---------- */
 const UI = CC.ui = { active: null };
 
-/* opts = {emoji, title, text, stars:n, controls:[{keys:[..], icon}], buttons:[{icon, label, keys:[codes], primary, fn}], levels:{count,current,onPick}} */
+/* opts = {emoji (text) or emojiEl (a picture element), title, text, stars:n, controls:[{keys:[..], icon}], buttons:[{icon, label, keys:[codes], primary, fn}], levels:{count,current,onPick}} */
 UI.show = function (stage, opts) {
   UI.close();
   const root = stage.querySelector('.overlay-root');
   const el = document.createElement('div'); el.className = 'overlay';
   let h = '';
-  if (opts.emoji) h += '<div class="o-emoji">' + opts.emoji + '</div>';
+  if (opts.emoji || opts.emojiEl) h += '<div class="o-emoji">' + (opts.emoji || '') + '</div>';
   if (opts.stars) h += '<div class="stars">' + [1, 2, 3].map(function (i) { return '<span class="' + (i <= opts.stars ? '' : 'dim') + '">⭐</span>'; }).join('') + '</div>';
   h += '<div class="o-title"></div>';
   if (opts.text) h += '<div class="o-text"></div>';
@@ -251,6 +251,7 @@ UI.show = function (stage, opts) {
   h += '<div class="o-btns"></div>';
   if (opts.levels) h += '<div class="o-levels"></div>';
   el.innerHTML = h;
+  if (opts.emojiEl) el.querySelector('.o-emoji').appendChild(opts.emojiEl);
   el.querySelector('.o-title').textContent = opts.title || '';
   if (opts.text) el.querySelector('.o-text').textContent = opts.text;
   const bx = el.querySelector('.o-btns');
@@ -342,13 +343,13 @@ UI.tryAgain = function (stage, o) {
 };
 /* Level intro: big picture, the keys as pictures, big Play button, small level picker */
 UI.intro = function (stage, o) {
-  return UI.show(stage, { emoji: o.emoji || '⭐', title: o.title, text: o.text || '', controls: o.controls,
+  return UI.show(stage, { emoji: o.emojiEl ? '' : (o.emoji || '⭐'), emojiEl: o.emojiEl, title: o.title, text: o.text || '', controls: o.controls,
     buttons: [{ icon: '▶', label: 'Play', keys: ['Space', 'Enter'], primary: true, fn: o.onStart }, { icon: '🏠', label: 'Menu', fn: o.onMenu }],
     levels: o.levels });
 };
 
 /* ---------- Shared scaffold for the level-based action games ----------
-   cfg = {stageId, title, emoji, total, controls, levelIcon(lv), reset(g, levelIndex, fromCheckpoint), update(g, dt), draw(g), idle(g, dt)}
+   cfg = {stageId, title, total, controls, levelBadge(lv) (a kept picture from CC.icons), reset(g, levelIndex, fromCheckpoint), update(g, dt), draw(g), idle(g, dt)}
    The game calls g.complete() when the level is won and g.over() when out of hearts.
    g.state: 'intro' | 'play' | 'done' | 'over' */
 CC.makeLevelGame = function (cfg) {
@@ -372,10 +373,11 @@ CC.makeLevelGame = function (cfg) {
     };
     window.addEventListener('resize', g.fit);
     function drawBanner() {
-      const c = g.ctx, a = Math.min(1, g.banner, (2 - g.banner) * 3 + 0.2), ic = cfg.levelIcon ? cfg.levelIcon(g.level) : cfg.emoji;
-      c.save(); c.globalAlpha = Math.max(0, Math.min(1, a)); c.textAlign = 'center'; c.font = 'bold 54px "Trebuchet MS",sans-serif';
-      const txt = ic + '  ' + (g.level + 1);
-      c.lineWidth = 8; c.strokeStyle = '#1a1b3f'; c.lineJoin = 'round'; c.strokeText(txt, g.W / 2, 150); c.fillStyle = '#ffd23f'; c.fillText(txt, g.W / 2, 150);
+      const c = g.ctx, a = Math.min(1, g.banner, (2 - g.banner) * 3 + 0.2), num = String(g.level + 1);
+      c.save(); c.globalAlpha = Math.max(0, Math.min(1, a)); c.textAlign = 'left'; c.font = 'bold 54px "Trebuchet MS",sans-serif';
+      const x0 = g.W / 2 - (68 + 16 + c.measureText(num).width) / 2;       // the level's picture, then its number
+      c.drawImage(cfg.levelBadge(g.level), x0, 96, 68, 68);
+      c.lineWidth = 8; c.strokeStyle = '#1a1b3f'; c.lineJoin = 'round'; c.strokeText(num, x0 + 84, 150); c.fillStyle = '#ffd23f'; c.fillText(num, x0 + 84, 150);
       c.restore();
     }
     g.start = function () { UI.close(); g.state = 'play'; g.banner = 2; };
@@ -383,7 +385,7 @@ CC.makeLevelGame = function (cfg) {
       clearTimeout(g.pending); UI.close(); g.level = lv; g.particles.clear(); g.stars = 3; cfg.reset(g, lv, !!fromCp);
       if (immediate) g.start(); else {
         g.state = 'intro';
-        UI.intro(g.stage, { emoji: cfg.levelIcon ? cfg.levelIcon(lv) : cfg.emoji, title: cfg.title + ' ' + (lv + 1), controls: cfg.controls,
+        UI.intro(g.stage, { emojiEl: CC.icons.el(cfg.levelBadge(lv)), title: cfg.title + ' ' + (lv + 1), controls: cfg.controls,
           onStart: g.start, onMenu: function () { CC.goMenu(); },
           levels: { count: cfg.total, current: lv + 1, onPick: function (i) { g.goto(i - 1, false); } } });
       }

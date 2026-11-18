@@ -64,7 +64,7 @@ WHAT CHANGED IN VERSION 2
   - Word Hunt is now a WORD SEARCH (6 rounds, getting bigger and trickier).
   - Jump Over!: 12 levels, 12 different scenery themes, new obstacles (rolling ball, hanging swing, tall wall, gaps in the ground),
     patterns that combine them, and stars to collect. Levels take about 35-60 seconds each.
-  - Star Blaster: 12 levels, 5 kinds of falling things (new: zig-zagger, splitter), laser pickup, 3 big bosses (levels 4, 8, 12).
+  - Star Blaster: 12 levels, 6 kinds of falling things (rocks, jellyfish, comets, alien scouts, splitters, alien saucers), seven guns, 3 big bosses (levels 4 and 8 are jellyfish, level 12 is the alien mothership).
   - Much less text: pictures, big round buttons, keys shown as little key-caps.
 
 KEYS
@@ -82,6 +82,9 @@ FILES
   js/core.js        shared sound synth, drums, particles, game loop, the Level Complete / Try Again / intro screens
   js/sprites.js     characters, enemies, obstacles, bullets, fruit (hero, ship, walker, hopper, gunner, bomber ...)
   js/sprites_world.js  the 15 stage backgrounds, ground / pits / platforms, and the 12 big boss creatures
+  js/icons.js       the DRAWN ICONS (no emoji): a card picture for each of the 24 games, round scenery badges for the 15 Commando Run / Jump Over! stages, boss faces, the warning sign, finish flag and alien badge.
+                    Each is drawn once and kept (CC.icons.game(id), .tab(b|m|a|p|g), .stage(theme), .boss(kind, pal), .blasterBoss(kind), .hazard(), .flag(), .alien(); .el(picture) makes a page element, .draw(ctx, picture, x, y, size) draws in a game).
+                    The menu cards, the level tabs, the game headings, the level banners and intro screens and the Jump / Blaster / Commando HUDs all use them. To change one, edit its emblem in js/icons.js (E.<game id>, SCENE[<stage>]).
   js/piano.js  jump.js  blaster.js  commando.js  pattern.js  fruit.js  words.js   one file per game
   js/main.js        year/game picker + keyboard routing. YEARS = which games each year gets; MODES = the game cards.
 
@@ -152,7 +155,7 @@ HOW IT WAS TESTED  (automated: headless Chrome driven over DevTools, opened from
     beside the hero could not be hit when aiming up; bombers now centre over the hero.
   - Jump Over!: a perfect-play bot cleared all 12 levels (34-61 s each) with no hearts lost; ducking, pits, rolling balls, swings and
     walls all worked. Earlier checks: key-mashing, doing nothing -> gentle "Nice try", one key restarts.
-  - Star Blaster: a simple bot cleared levels 1-7, 11 and failed some of 8, 9, 10 and 12 (including 2 of the 3 bosses) - so it is a real challenge.
+  - Star Blaster: a simple test bot (it uses whichever gun it picked up last and dodges nothing) clears all 12 levels including the three bosses, most of the time; with guns picked at random it still clears most levels. A 6-year-old plays worse than the bot, so it stays a real challenge.
   - Word Hunt: dragged across a hidden word with the mouse -> word found and ticked, finished the round -> "Round done" -> next round.
   - Fruit Slice, Pattern Pop, Piano (including a real, non-silent recording and no microphone prompt) re-checked after the changes.
   - Layout: stage stays 16:9 with no gap and no scrolling at 700x900, 1280x800, 1920x1080 (and the smaller sizes checked before).

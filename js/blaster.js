@@ -323,23 +323,26 @@ function draw(g) {
   for (const p of pops) { c.globalAlpha = Math.min(1, (1.2 - p.t) * 2); CC.outlineText(c, p.text, p.x, p.y - p.t * 40, 24, '#ff8fb0', 'center'); } c.globalAlpha = 1;
   // HUD: pictures and numbers only
   c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, 12, 10, 92, 44, 14); c.fill();
-  c.font = '26px sans-serif'; c.textAlign = 'left'; c.fillStyle = '#fff'; c.fillText('🚀', 20, 41); CC.outlineText(c, String(g.level + 1), 62, 42, 28, '#ffd23f');
+  CC.icons.draw(c, levelPicture(g.level), 36, 32, 34); CC.outlineText(c, String(g.level + 1), 62, 42, 28, '#ffd23f');
   for (let i = 0; i < BLASTER_LIVES; i++) SP.heart(c, W - 24 - i * 26, 28, 20, i < lives);
   if (boss && boss.dying <= 0 && boss.y >= 100) {
     c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, W / 2 - 130, 10, 266, 30, 12); c.fill();
     c.fillStyle = 'rgba(255,255,255,.2)'; c.fillRect(W / 2 - 100, 18, 220, 14); c.fillStyle = '#ff8fb0'; c.fillRect(W / 2 - 100, 18, 220 * boss.hp / boss.maxHp, 14);
-    c.strokeStyle = '#1a1b3f'; c.lineWidth = 2; c.strokeRect(W / 2 - 100, 18, 220, 14); c.font = '22px sans-serif'; c.fillStyle = '#fff'; c.fillText('👾', W / 2 - 126, 34);
+    c.strokeStyle = '#1a1b3f'; c.lineWidth = 2; c.strokeRect(W / 2 - 100, 18, 220, 14); CC.icons.draw(c, bossPicture(), W / 2 - 114, 25, 28);
   } else {
     const frac = lv ? Math.min(1, resolved / (lv.count + (lv.boss ? 2 : 0))) : 0, bx = W / 2 - 110;
     c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, bx - 10, 12, 244, 26, 12); c.fill();
     c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(bx, 21, 220, 8); c.fillStyle = '#ffd23f'; c.fillRect(bx, 21, 220 * frac, 8);
-    c.font = '16px sans-serif'; c.fillStyle = '#fff'; c.fillText(lv && lv.boss ? '👾' : '🏁', bx + 224, 34);
+    CC.icons.draw(c, lv && lv.boss ? bossPicture() : CC.icons.flag(), bx + 234, 25, 22);
   }
   const mine = ownedList();
   c.save(); c.translate(32, 74); c.scale(0.78, 0.78); SP.gunRack(c, 0, 0, mine, weapon, weapon === 'normal' ? 1 : owned[weapon] / BLASTER_WEAPON_SECONDS); c.restore();   // the row of guns, small, under the level badge
   if (mine.length > 1) CC.outlineText(c, '↑ ↓', 232, 81, 18, '#ffd23f');
-  if (bossAnn > 0) { c.globalAlpha = Math.min(1, bossAnn); c.font = '60px sans-serif'; c.textAlign = 'center'; c.fillStyle = '#fff'; c.fillText('👾❗', W / 2, 190); c.globalAlpha = 1; }
+  if (bossAnn > 0) { c.globalAlpha = Math.min(1, bossAnn); CC.icons.draw(c, bossPicture(), W / 2 - 40, 160, 84); CC.icons.draw(c, CC.icons.hazard(), W / 2 + 40, 160, 76); c.globalAlpha = 1; }
 }
+/* the boss of this level (a jellyfish, or the alien mothership), and the picture of a level: the game's own icon, or its boss on a boss level */
+function bossPicture() { return CC.icons.blasterBoss(lv.boss.kind); }
+function levelPicture(i) { return BLASTER_LEVELS[i].boss ? CC.icons.blasterBoss(BLASTER_LEVELS[i].boss.kind) : CC.icons.game('blaster'); }
 function onKeyDown(g, e) {
   if (e.code === 'Space' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') e.preventDefault();
   if (g.state !== 'play') return;
@@ -349,8 +352,8 @@ function onKeyDown(g, e) {
 }
 CC.modes.blaster = CC.makeLevelGame({
   reward: 'blaster',
-  stageId: 'stage-blaster', title: 'Level', emoji: '🚀', total: BLASTER_LEVELS.length,
-  levelIcon: function (i) { return BLASTER_LEVELS[i].boss ? '👾' : '🚀'; },
+  stageId: 'stage-blaster', title: 'Level', total: BLASTER_LEVELS.length,
+  levelBadge: levelPicture,
   controls: [{ keys: ['←', '→'], icon: '🚀' }, { keys: ['Space'], icon: '💥' }, { keys: ['↑', '↓'], icon: '🔫' }],
   reset: reset, update: update, draw: draw, onKeyDown: onKeyDown
 });

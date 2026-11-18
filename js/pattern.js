@@ -32,7 +32,7 @@ function lightUp(i, secs) { lit = i; litT = secs; CC.audio.pianoNote(note(i), { 
 
 function intro() {
   state = 'intro'; message = 'Press any pad to start!';
-  CC.ui.show(stage, { emoji: '🎵', title: 'Pattern Pop!',
+  CC.ui.show(stage, { emojiEl: CC.icons.el(CC.icons.game('pattern')), title: 'Pattern Pop!',
     buttons: [{ icon: '▶', label: 'Play', keys: CC.MAKEY_KEYS.concat(['Enter']), primary: true, fn: newGame }, { icon: '🏠', label: 'Menu', fn: function () { CC.goMenu(); } }] });
 }
 function newGame() {

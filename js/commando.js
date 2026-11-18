@@ -193,6 +193,8 @@ function buildLevel(idx) {
 
 /* ---------------- reset / spawn ---------------- */
 const MUSIC_KEY = [0, 2, 3, 5, 7, -2, -4, 0, 2, 5, 7, 3, -1, -3, 1];   // each stage plays in a different key
+/* the face of this stage's big creature (the boss bar, the end of the progress bar) */
+function bossPicture() { return CC.icons.boss(lv.boss, lv.pal); }
 function reset(g, level, fromCp) {
   li = level; lv = COMMANDO_LEVELS[level]; CC.music.play('commando', { transpose: MUSIC_KEY[level], tempo: 1 + level * 0.01 }); L = buildLevel(level);
   if (!fromCp) cpSaved[level] = 0;
@@ -627,7 +629,7 @@ function computeHint() {
 function hrr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 function draw(g) {
   if (g.state !== 'play') shake = 0;                 // no shaking while a stage-complete or try-again screen is showing
-  const c = g.ctx, th = SP.THEMES[lv.theme];
+  const c = g.ctx;
   SP.world(c, W, g.H, GROUND, cam, lv.theme, g.t);
   c.save(); c.translate(-cam + (shake > 0 ? (Math.random() - 0.5) * shake * 18 : 0), shake > 0 ? (Math.random() - 0.5) * shake * 12 : 0);
   for (let i = 0; i < L.ground.length; i++) {
@@ -687,7 +689,7 @@ function draw(g) {
   CC.drawKeys(c, W, g.H, ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight', 'Space']);
   // ---- HUD (pictures, almost no words) ----
   c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, 12, 10, 92, 44, 14); c.fill();
-  c.font = '26px sans-serif'; c.textAlign = 'left'; c.fillStyle = '#fff'; c.fillText(th.icon, 20, 41);
+  CC.icons.draw(c, CC.icons.stage(lv.theme), 36, 32, 34);
   CC.outlineText(c, String(li + 1), 62, 42, 28, '#ffd23f');
   c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, 12, 60, 92, 30, 12); c.fill(); drawExtra(c, 'star', 30, 75, 0, 0.62); CC.outlineText(c, String(gold), 48, 83, 20, '#fff');
   c.fillStyle = 'rgba(255,255,255,.22)'; c.fillRect(20, 93, 76, 5); c.fillStyle = starPower > 0 ? 'hsl(' + ((g.t * 300) % 360) + ',100%,62%)' : '#ffd23f'; c.fillRect(20, 93, 76 * (starPower > 0 ? starPower / STAR_POWER_SECONDS : (gold % STAR_POWER_AT) / STAR_POWER_AT), 5);
@@ -698,13 +700,13 @@ function draw(g) {
   if (boss && boss.state !== 'enter' && boss.hp > 0) {
     c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, W / 2 - 130, 10, 266, 30, 12); c.fill();
     c.fillStyle = 'rgba(255,255,255,.2)'; c.fillRect(W / 2 - 100, 18, 220, 14); c.fillStyle = '#ff8fb0'; c.fillRect(W / 2 - 100, 18, 220 * boss.hp / boss.maxHp, 14);
-    c.strokeStyle = '#1a1b3f'; c.lineWidth = 2; c.strokeRect(W / 2 - 100, 18, 220, 14); c.fillStyle = '#1a1b3f'; c.fillRect(W / 2 - 100 + 220 / 3 - 1, 18, 2, 14); c.fillRect(W / 2 - 100 + 440 / 3 - 1, 18, 2, 14); c.font = '22px sans-serif'; c.fillStyle = '#fff'; c.fillText(boss.phase === 3 ? '😡' : '👹', W / 2 - 126, 34);
+    c.strokeStyle = '#1a1b3f'; c.lineWidth = 2; c.strokeRect(W / 2 - 100, 18, 220, 14); c.fillStyle = '#1a1b3f'; c.fillRect(W / 2 - 100 + 220 / 3 - 1, 18, 2, 14); c.fillRect(W / 2 - 100 + 440 / 3 - 1, 18, 2, 14); if (boss.phase === 3) { c.save(); c.shadowColor = '#ff2a2a'; c.shadowBlur = 10 + 6 * Math.sin(g.t * 9); CC.icons.draw(c, bossPicture(), W / 2 - 114, 25, 30); c.restore(); } else CC.icons.draw(c, bossPicture(), W / 2 - 114, 25, 28);
   } else {
     const bx = W / 2 - 120, bw = 240; c.fillStyle = 'rgba(26,27,63,.55)'; hrr(c, bx - 10, 12, bw + 34, 26, 12); c.fill();
     c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(bx, 21, bw, 8);
     c.fillStyle = '#ffd23f'; c.fillRect(bx, 21, bw * CC.clamp(hero.x / L.len, 0, 1), 8);
     L.flags.forEach(function (f) { c.fillStyle = f.on ? '#6bcb77' : '#fff'; c.fillRect(bx + bw * f.x / L.len - 1.5, 15, 3, 20); });
-    c.font = '16px sans-serif'; c.fillStyle = '#fff'; c.fillText('👹', bx + bw + 4, 33);
+    CC.icons.draw(c, bossPicture(), bx + bw + 14, 25, 22);
     c.beginPath(); c.arc(bx + bw * CC.clamp(hero.x / L.len, 0, 1), 25, 6, 0, 6.283); c.fillStyle = '#ff6b86'; c.fill(); c.lineWidth = 2; c.strokeStyle = '#1a1b3f'; c.stroke();
   }
   if (weapon !== 'normal') SP.capsule(c, 44, 84, weapon, g.t);
@@ -712,7 +714,7 @@ function draw(g) {
     const a = Math.min(1, Math.max(warnT, bossAnnounce * 1.4)), pulse = 0.5 + 0.5 * Math.sin(g.t * 9);
     c.save(); c.globalAlpha = a * (0.16 + 0.16 * pulse); c.fillStyle = '#ff2a2a'; c.fillRect(0, 0, W, g.H); c.globalAlpha = a;
     [70, g.H - 96].forEach(function (y) { c.fillStyle = '#ffd23f'; c.fillRect(0, y, W, 26); c.fillStyle = '#1a1b3f'; for (let i = -2; i < W / 40 + 2; i++) { c.beginPath(); c.moveTo(i * 40 + (g.t * 70) % 40, y); c.lineTo(i * 40 + 20 + (g.t * 70) % 40, y); c.lineTo(i * 40 + (g.t * 70) % 40 - 6, y + 26); c.lineTo(i * 40 - 20 + (g.t * 70) % 40, y + 26); c.closePath(); c.fill(); } });
-    CC.outlineText(c, 'WARNING', W / 2, 190, 74, '#ff5a4a', 'center'); CC.outlineText(c, '⚠  BIG BOSS  ⚠', W / 2, 238, 34, '#ffd23f', 'center'); c.restore();
+    CC.outlineText(c, 'WARNING', W / 2, 190, 74, '#ff5a4a', 'center'); CC.outlineText(c, 'BIG BOSS', W / 2, 238, 34, '#ffd23f', 'center'); CC.icons.draw(c, CC.icons.hazard(), W / 2 - 116, 226, 46); CC.icons.draw(c, CC.icons.hazard(), W / 2 + 116, 226, 46); c.restore();
   }
   if (landT > 0) { c.fillStyle = 'rgba(255,255,255,' + (landT / 0.9) * 0.35 + ')'; c.fillRect(0, 0, W, g.H); }
 }
@@ -773,8 +775,8 @@ function onKeyDown(g, e) {
 CC.modes.commando = CC.makeLevelGame({
   reward: 'commando',
   makey: true,
-  stageId: 'stage-commando', title: 'Stage', emoji: '🤖', total: COMMANDO_LEVELS.length,
-  levelIcon: function (i) { return SP.THEMES[COMMANDO_LEVELS[i].theme].icon; },
+  stageId: 'stage-commando', title: 'Stage', total: COMMANDO_LEVELS.length,
+  levelBadge: function (i) { return CC.icons.stage(COMMANDO_LEVELS[i].theme); },
   controls: [{ keys: ['←', '→'], icon: '🏃' }, { keys: ['↑'], icon: '🦘' }, { keys: ['↓'], icon: '⬇️' }, { keys: ['Space'], icon: '💥' }],
   reset: reset, update: update, draw: draw, onKeyDown: onKeyDown
 });

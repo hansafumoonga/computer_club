@@ -43,7 +43,7 @@ function build() {
 function chooser() {
   state = 'choose'; CC.ui.close();
   const ov = CC.ui.show(stage, {
-    emoji: '🎯', title: 'Pick a level',
+    emojiEl: CC.icons.el(CC.icons.game('fruit')), title: 'Pick a level',
     buttons: [{ icon: '▶', label: 'Play', keys: ['Space', 'Enter'], primary: true, fn: function () { startLevel(chooserSel); } }, { icon: '🏠', label: 'Menu', fn: function () { CC.goMenu(); } }],
     onKey: function (code) {
       const mv = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -5, ArrowDown: 5 }[code]; if (mv === undefined) return false;
