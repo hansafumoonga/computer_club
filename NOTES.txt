@@ -99,8 +99,11 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
     JUMP_LEVELS: speed, count (how many obstacle groups), gap (seconds between), theme.
     PATTERNS: which obstacle groups exist, from which level (min) and how common (w).
   Star Blaster  js/blaster.js
-    BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, BLASTER_WEAPON_SECONDS, FIRE_DELAY,
-    ENEMIES (size/speed/hits), BLASTER_LEVELS: count, gap, types, speedMul, rockHp, boss (hit points).
+    BLASTER_LIVES, BLASTER_INVINCIBLE_SECONDS, BLASTER_HITBOX_PAD, SHIP_SPEED, BLASTER_WEAPON_SECONDS, FIRE_DELAY, BLAST_RADIUS, FIRE_LIFE, BOSS_DAMAGE,
+    ENEMIES (size/speed/hits), BLASTER_LEVELS: count, gap, types, speedMul, rockHp, boss (hit points; boss kind 3 is the alien mothership),
+    SCENERY (what floats in the sky of each level), CAPS (the order the gun capsules come in; one more gun is unlocked every two levels).
+    Guns (SP.GUN_ORDER in js/sprites.js): normal, rapid, spread, laser, homing, big (Plasma Ball) and fire. A gun picked up from a capsule lasts BLASTER_WEAPON_SECONDS of USE (it only counts down while it is the active gun).
+    Up / Down or the keys 1-7 switch guns. The ship, the gun row (SP.gunRack), the alien saucers (SP.ufo, SP.zig = scout, SP.saucer, SP.mothership) and the scenery (SP.ringedPlanet, moon, galaxy, nebula, satellite, station, astronaut, shootingStar, twinkle) are all drawn in code in js/sprites.js.
   Studio look   js/studio.js + css/studio.css: the shared layout and helpers (shell, tool rail, side-panel sections, palette, sliders, history for undo and redo).
                 Every painting program is built from these, so they look the same; to change the look for all of them, change these two files.
                 js/magiclab.js (STYLES, HARMONIES: add a style by adding a painter function), js/art.js (BASIC and ADVANCED tool lists; Design Studio is the same file with more tools).
@@ -133,7 +136,7 @@ WHERE TO CHANGE DIFFICULTY  (each file starts with a block labelled "TEACHER SET
 USING YOUR OWN PICTURES LATER
   All drawing is in js/sprites.js and js/sprites_world.js - one function per thing, each taking (ctx, x, y, ...state):
     SP.runner, SP.bush / rockFriend / stump / bee / ball / swing / wall / coin   (Jump Over)
-    SP.ship, SP.rockBig / comet / jelly / zig / splitter / megaBoss              (Star Blaster)
+    SP.ship, SP.gunRack, SP.rockBig / comet / jelly / zig / saucer / splitter / megaBoss / mothership, and the scenery  (Star Blaster)
     SP.hero (the soldier), SP.walker / hopper / gunner / flyer / bomber / turret / armoured, SP.bossDraw (12 bosses),
     SP.capsule, SP.bullet, SP.platform, SP.ground, SP.pit, SP.world (backgrounds), SP.flag     (Commando Run)
     SP.fruit, SP.pad, SP.heart.
