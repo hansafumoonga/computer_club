@@ -51,15 +51,15 @@ const BALL = '⚽';
 const LEVELS = [
 /* ================= 1 · MEET THE MOUSE ================= */
 { id: 1, title: 'Meet the Mouse', world: 'playground', badge: 'Diamond', gem: 'diamond', icon: '🖱️',
-  intro: "Hi! I'm Buddy! 👋 Let's learn to move the mouse!",
+  intro: "Hi! I'm Buddy! 👋 Let's learn to move the pointer with the mouse!",
   tasks: [
-    { type: 'move', say: 'Move the mouse to the sun ☀️', win: 'Great job! ☀️', demo: true, items: [{ e: '☀️', x: 50, y: 22, s: 20, n: 'sun' }] },
-    { type: 'move', say: 'Move LEFT ⬅️ to the cloud ☁️', win: 'You went left! ⬅️', items: [{ e: '☁️', x: 14, y: 30, s: 18, n: 'cloud' }] },
-    { type: 'move', say: 'Move RIGHT ➡️ to the flower 🌸', win: 'You went right! ➡️', items: [{ e: '🌸', x: 86, y: 32, s: 17, n: 'flower' }] },
-    { type: 'move', say: 'Move UP ⬆️ to the kite 🪁', win: 'Up, up, up! ⬆️', items: [{ e: '🪁', x: 52, y: 10, s: 16, n: 'kite' }] },
-    { type: 'move', say: 'Move DOWN ⬇️ to the ball ' + BALL, win: 'Down you go! ⬇️', items: [{ e: BALL, x: 50, y: 46, s: 16, n: 'ball' }] },
-    { type: 'move', say: 'Move across to the star ⭐', win: 'Excellent! ⭐', min: 2, items: [{ e: '⭐', x: 88, y: 10, s: 14, n: 'star' }] },
-    { type: 'move', say: 'Follow the butterfly! 🦋', win: 'You caught the butterfly! 🦋', dwell: 1800, items: [{ e: '🦋', x: 50, y: 28, s: 17, n: 'butterfly', move: { rx: 24, ry: 9, sp: 0.55 } }] }
+    { type: 'move', say: 'Move the pointer to the sun ☀️', win: 'Great job! ☀️', demo: true, items: [{ e: '☀️', x: 50, y: 22, s: 20, n: 'sun' }] },
+    { type: 'move', say: 'Move the pointer LEFT ⬅️ to the cloud ☁️', win: 'You went left! ⬅️', items: [{ e: '☁️', x: 14, y: 30, s: 18, n: 'cloud' }] },
+    { type: 'move', say: 'Move the pointer RIGHT ➡️ to the flower 🌸', win: 'You went right! ➡️', items: [{ e: '🌸', x: 86, y: 32, s: 17, n: 'flower' }] },
+    { type: 'move', say: 'Move the pointer UP ⬆️ to the kite 🪁', win: 'Up, up, up! ⬆️', items: [{ e: '🪁', x: 52, y: 10, s: 16, n: 'kite' }] },
+    { type: 'move', say: 'Move the pointer DOWN ⬇️ to the ball ' + BALL, win: 'Down you go! ⬇️', items: [{ e: BALL, x: 50, y: 46, s: 16, n: 'ball' }] },
+    { type: 'move', say: 'Move the pointer across to the star ⭐', win: 'Excellent! ⭐', min: 2, items: [{ e: '⭐', x: 88, y: 10, s: 14, n: 'star' }] },
+    { type: 'move', say: 'Follow the butterfly with the pointer! 🦋', win: 'You caught the butterfly! 🦋', dwell: 1800, items: [{ e: '🦋', x: 50, y: 28, s: 17, n: 'butterfly', move: { rx: 24, ry: 9, sp: 0.55 } }] }
   ] },
 
 /* ================= 2 · LEARN TO CLICK ================= */
@@ -78,7 +78,7 @@ const LEVELS = [
 
 /* ================= 3 · CLICK AND CHOOSE ================= */
 { id: 3, title: 'Click and Choose', world: 'animalpark', badge: 'Emerald', gem: 'emerald', icon: '🎯',
-  intro: 'Look carefully, then click the right one! 🔎',
+  intro: 'Look carefully, then click the correct picture! 🔎',
   tasks: [
     { type: 'pick', say: 'Click the RED apple 🍎, then the YELLOW banana 🍌', says: ['Click the RED apple 🍎', 'Now click the YELLOW banana 🍌'], win: 'Fruit salad time! 🍎🍌', answer: ['apple', 'banana'], demo: true,
       items: [{ id: 'apple', e: '🍎', x: 22, y: 30, s: 15, n: 'apple' }, { id: 'banana', e: '🍌', x: 44, y: 24, s: 15, n: 'banana' }, { id: 'grape', e: '🍇', x: 66, y: 32, s: 15, n: 'grapes', d: 1 }, { id: 'orange', e: '🍊', x: 84, y: 24, s: 15, n: 'orange', d: 1 }] },
@@ -86,7 +86,7 @@ const LEVELS = [
       items: [{ id: 'mon', e: '🐵', x: 18, y: 28, s: 14, n: 'monkey', d: 1 }, { id: 'lion', e: '🦁', x: 40, y: 34, s: 15, n: 'lion' }, { id: 'ele', e: '🐘', x: 62, y: 26, s: 15, n: 'elephant', d: 1 }, { id: 'zeb', e: '🦓', x: 83, y: 34, s: 15, n: 'zebra', d: 1 }] },
     { type: 'pick', say: 'Click the triangle 🔺', win: 'Shape spotter! 🔺', answer: ['tri'],
       items: [{ id: 'cir', e: '🔵', x: 20, y: 30, s: 14, n: 'circle', d: 1 }, { id: 'sq', e: '🟥', x: 40, y: 22, s: 14, n: 'square', d: 1 }, { id: 'tri', e: '🔺', x: 60, y: 32, s: 14, n: 'triangle' }, { id: 'star', e: '⭐', x: 80, y: 24, s: 14, n: 'star', d: 1 }] },
-    { type: 'pick', say: 'Click everything that is YELLOW 💛', win: 'Sunny job! 💛', any: true, answer: ['banana', 'sun', 'star'],
+    { type: 'pick', say: 'Click every YELLOW object 💛', win: 'Sunny job! 💛', any: true, answer: ['banana', 'sun', 'star'],
       items: [{ id: 'banana', e: '🍌', x: 18, y: 24, s: 13, n: 'banana' }, { id: 'sun', e: '🌻', x: 38, y: 38, s: 13, n: 'sunflower' }, { id: 'rose', e: '🌹', x: 56, y: 22, s: 13, n: 'red rose', d: 1 }, { id: 'star', e: '⭐', x: 74, y: 36, s: 13, n: 'star' }, { id: 'frog', e: '🐸', x: 88, y: 20, s: 13, n: 'green frog', d: 1 }] },
     { type: 'pick', say: 'Click 1, then 2, then 3 🔢', says: ['Click number 1', 'Now number 2', 'Now number 3'], win: 'You can count AND click! 🔢', answer: ['1', '2', '3'],
       items: [{ id: '2', t: '2', c: '#ff9f45', x: 50, y: 22, s: 14, n: 'number 2' }, { id: '3', t: '3', c: '#6bcb77', x: 80, y: 36, s: 14, n: 'number 3' }, { id: '1', t: '1', c: '#ef476f', x: 20, y: 34, s: 14, n: 'number 1' }] },
@@ -98,7 +98,7 @@ const LEVELS = [
 
 /* ================= 4 · DRAG AND DROP ================= */
 { id: 4, title: 'Drag and Drop', world: 'building', badge: 'Sapphire', gem: 'sapphire', icon: '🏗️',
-  intro: 'Move, hold the button, drag, then let go! Let us build with blocks! 🧱',
+  intro: 'Press and hold the left button, move the pointer, then release the button. Let us build with blocks! 🧱',
   tasks: [
     { type: 'drag', say: 'Drag the ball into the box ⚽➡️📦', win: 'Goal! You dragged it! ⚽', demo: true, drop: 'box',
       pieces: [{ id: 'ball', e: '⚽', s: 10, x: 20, y: 28 }], zones: [{ id: 'box', for: 'ball', e: '📦', x: 76, y: 32, s: 22 }] },
@@ -119,7 +119,7 @@ const LEVELS = [
 
 /* ================= 5 · BUILD A CAR ================= */
 { id: 5, title: 'Build and Drive', world: 'road', badge: 'Amethyst', gem: 'amethyst', icon: '🚗',
-  intro: 'More building! Hold, drag and let go in the right spot. 🚗',
+  intro: 'More building! Hold the button, drag the piece and release it in the correct position. 🚗',
   tasks: [
     { type: 'drag', say: 'Build a car! 🚗 Drag the wheels to the car', win: 'Vroom vroom! You built a car! 🚗⭐⭐⭐', drop: 'car', scene: 'Car',
       base: [{ e: '', x: 50, y: 53, w: 52, h: 5, cls: 'road' }],
@@ -140,7 +140,7 @@ const LEVELS = [
 
 /* ================= 6 · CONNECT THE PIECES ================= */
 { id: 6, title: 'Connect Them', world: 'village', badge: 'Topaz', gem: 'topaz', icon: '🔗',
-  intro: 'Press on a picture, hold, and drag a line to its partner! 🔗',
+  intro: 'Press and hold on a picture, then drag a line to its partner and release the button. 🔗',
   tasks: [
     { type: 'connect', say: 'Connect each animal to its home 🏠', win: 'Everyone is home! 🏠', demo: true,
       left: [{ id: 'dog', e: '🐶', n: 'puppy' }, { id: 'fish', e: '🐟', n: 'fish' }, { id: 'bird', e: '🐦', n: 'bird' }],
@@ -150,7 +150,7 @@ const LEVELS = [
       left: [{ id: 'r', e: '🔴', n: 'red' }, { id: 'y', e: '🟡', n: 'yellow' }, { id: 'g', e: '🟢', n: 'green' }],
       right: [{ id: 'frog', e: '🐸', n: 'green frog' }, { id: 'apple', e: '🍎', n: 'red apple' }, { id: 'ban', e: '🍌', n: 'yellow banana' }],
       pairs: { r: 'apple', y: 'ban', g: 'frog' } },
-    { type: 'connect', say: 'Connect each one to its shadow 👤', win: 'Shadow match! 👤', min: 2,
+    { type: 'connect', say: 'Connect each picture to its shadow 👤', win: 'Shadow match! 👤', min: 2,
       left: [{ id: 'ele', e: '🐘', n: 'elephant' }, { id: 'car', e: '🚗', n: 'car' }, { id: 'rock', e: '🚀', n: 'rocket' }],
       right: [{ id: 'rock', e: '🚀', n: 'rocket shadow', shadow: 1 }, { id: 'ele', e: '🐘', n: 'elephant shadow', shadow: 1 }, { id: 'car', e: '🚗', n: 'car shadow', shadow: 1 }],
       pairs: { ele: 'ele', car: 'car', rock: 'rock' } },
@@ -182,17 +182,17 @@ const LEVELS = [
   ] },
 
 /* ================= 9 · BIG AND SMALL LETTERS ================= */
-{ id: 9, title: 'Big and Small', world: 'fantasy', badge: 'Citrine', gem: 'citrine', icon: '🔠', kb: true,
-  intro: 'Letters can be small (a) or BIG (A). CAPS LOCK makes them BIG! 🦄',
+{ id: 9, title: 'Capital and Small', world: 'fantasy', badge: 'Citrine', gem: 'citrine', icon: '🔠', kb: true,
+  intro: 'Letters can be small (a) or CAPITAL (A). CAPS LOCK makes every letter a capital! 🦄',
   tasks: [
     { type: 'type', say: 'Type the small letter  a', target: 'a', exact: true, win: 'A small a! ⭐', skill: 'keys' },
     { type: 'type', say: 'Type the small letters  b c', target: 'bc', exact: true, win: 'Small b and c! ⭐', skill: 'keys' },
-    { type: 'type', say: 'Type the BIG letter  A', target: 'A', exact: true, min: 2, win: 'A BIG A! ⭐', skill: 'caps' },
-    { type: 'type', say: 'Type the BIG letters  B C', target: 'BC', exact: true, min: 2, win: 'BIG B and C! ⭐', skill: 'caps' },
-    { type: 'capsstate', say: 'Press CAPS LOCK to make letters BIG', want: true, min: 3, win: 'CAPS LOCK is ON! 💡', skill: 'caps' },
-    { type: 'type', say: 'Make the word BIG! Type  CAT', show: 'cat', target: 'CAT', exact: true, min: 3, win: 'CAT! Big letters! 🐱', skill: 'caps' },
-    { type: 'capsstate', say: 'Press CAPS LOCK again to make letters small', want: false, min: 3, win: 'CAPS LOCK is OFF! ⭐', skill: 'caps' },
-    { type: 'type', say: 'Make the letters small! Type  cat', show: 'CAT', target: 'cat', exact: true, min: 3, win: 'cat! Small letters! 🐱', skill: 'caps' }
+    { type: 'type', say: 'Type the CAPITAL letter  A', target: 'A', exact: true, min: 2, win: 'A capital A! ⭐', skill: 'caps' },
+    { type: 'type', say: 'Type the CAPITAL letters  B C', target: 'BC', exact: true, min: 2, win: 'Capital B and C! ⭐', skill: 'caps' },
+    { type: 'capsstate', say: 'Press CAPS LOCK to type capital letters', want: true, min: 3, win: 'CAPS LOCK is ON! 💡', skill: 'caps' },
+    { type: 'type', say: 'Write the word in capitals! Type  CAT', show: 'cat', target: 'CAT', exact: true, min: 3, win: 'CAT! Capital letters! 🐱', skill: 'caps' },
+    { type: 'capsstate', say: 'Press CAPS LOCK again to type small letters', want: false, min: 3, win: 'CAPS LOCK is OFF! ⭐', skill: 'caps' },
+    { type: 'type', say: 'Write the word in small letters! Type  cat', show: 'CAT', target: 'cat', exact: true, min: 3, win: 'cat! Small letters! 🐱', skill: 'caps' }
   ] },
 
 /* ================= 10 · TYPING WORDS ================= */

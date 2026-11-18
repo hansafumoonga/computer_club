@@ -149,7 +149,7 @@ function show() {
   ST.action(s.left, '↪️', 'Redo', function () { if (!M.running && M.hist.redo()) CC.sfx.tick(); });
   ST.action(s.left, '🧹', 'Start again', function () { if (!M.running) ST.confirm($stage(), 'Start again?', 'This clears your painting.', function () { M.hist.push(ST.canvasEntry(M.ctx, W, H)); M.ctx.fillStyle = '#fff'; M.ctx.fillRect(0, 0, W, H); say('Press Magic! to make a painting. Watch the colours mix!'); }); });
   ST.action(s.right, '💾', 'Save', save, 'primary'); ST.action(s.right, '🖨️', 'Print', function () { window.print(); });
-  ST.tool(s.rail, 'brush', '🖌️', 'Brush', function (id) { M.tool = id; }, true); ST.tool(s.rail, 'eraser', '🩹', 'Rubber', function (id) { M.tool = id; }, false);
+  ST.tool(s.rail, 'brush', '🖌️', 'Brush', function (id) { M.tool = id; }, true); ST.tool(s.rail, 'eraser', '🩹', 'Eraser', function (id) { M.tool = id; }, false);
   const mk = ST.section(s.side, 'Make magic');
   M.ui.magic = ST.action(mk, '✨', 'Magic!', start, 'primary magic'); M.ui.skip = ST.action(mk, '⏩', 'Finish now', skip); M.ui.skip.hidden = true;
   const pg = el('div', 'st-prog'); M.ui.prog = el('i'); pg.appendChild(M.ui.prog); mk.appendChild(pg);

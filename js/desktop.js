@@ -222,7 +222,7 @@ function copyFiles(ids, via, cut) {
 }
 function copyFile(id, via) { copyFiles([id], via, false); }
 function pasteInto(to, via) {
-  const ids = (S.os.clip || []).filter(function (i) { return !!fileOf(i); }); if (!ids.length) { flash('Copy something first!', 'bad'); return; }
+  const ids = (S.os.clip || []).filter(function (i) { return !!fileOf(i); }); if (!ids.length) { flash('Copy a file first!', 'bad'); return; }
   pushUndo();
   if (S.os.cut) {
     const evs = []; ids.forEach(function (i) { const e = moveOne(i, to, via); if (e && e.t !== 'blocked') evs.push(e); }); S.os.clip = null; S.os.cut = false;
@@ -523,27 +523,27 @@ const IDLE_MS = 25000;
 function helpFor(t) {
   if (!t) return { kind: null, steps: [] };
   if (t.how) return { kind: t.demo || null, steps: [].concat(t.how), keys: t.keys || '' };
-  if (t.choices) return { kind: null, steps: ['Read all four answers.', 'Think about what each key does.', 'Click the answer you think is right. You can try again.'] };
+  if (t.choices) return { kind: null, steps: ['Read all four answers.', 'Think about what each shortcut does.', 'Click the answer you think is right. You can try again.'] };
   const txt = (t.say || '') + ' ' + (t.sub || ''), hints = [].concat(t.hint || []), s = [], has = function (re) { return re.test(txt); };
   const combo = txt.match(/\b(CTRL|SHIFT|ALT)\s*\+\s*[A-Z]\b/gi) || [], many = has(/\b(all|both|every|three|3)\b/i);
   const holdKey = (txt.match(/Hold (CTRL|SHIFT)/i) || [])[1], single = has(/\bF2\b/) ? 'F2' : has(/PRINT SCREEN/i) ? 'PrtScn' : has(/DELETE key/i) ? 'Delete' : (!combo.length && has(/\bENTER\b/) && !has(/type/i)) ? 'Enter ↵' : '';
   let kind = null, keys = '';
   if (hints[0] === '.dk-edit') { kind = 'keys'; keys = 'Type, then Enter ↵'; s.push('The name box is ready. You do not need to click.'); }
-  else if (/double-click/i.test(t.say || '')) { kind = 'dbl'; s.push('Put the pointer on the glowing thing.', 'Click the LEFT button two times, quickly: click-click.', 'Keep the mouse still while you click.'); }
-  else if (has(/right-click/i)) { kind = 'rclick'; s.push('Put the pointer on ' + (has(/empty|desktop/i) ? 'an empty space' : 'the glowing thing') + '.', 'Press the RIGHT mouse button once. A small menu opens.', 'Click the word you need in the menu with the LEFT button.'); }
+  else if (/double-click/i.test(t.say || '')) { kind = 'dbl'; s.push('Move the pointer onto the glowing object.', 'Press the LEFT button two times, quickly: click-click.', 'Keep the mouse still while you click.'); }
+  else if (has(/right-click/i)) { kind = 'rclick'; s.push('Move the pointer onto ' + (has(/empty|desktop/i) ? 'an empty area of the desktop' : 'the glowing object') + '.', 'Press the RIGHT mouse button once. A small menu opens.', 'Click the command you need in the menu with the LEFT button.'); }
   else if (has(/find the file/i)) { kind = 'click'; s.push('Click the 🔍 on the bar at the bottom.', 'Type part of the name. You do not need the whole word.', 'Click the file in the list of results.'); }
   else if (combo.length) {
     kind = 'keys'; keys = combo[0].replace(/\s+/g, ' ').toUpperCase();
-    if (hints.length) s.push('Click the glowing thing once, so the computer knows which one you mean.');
-    combo.forEach(function (c, i) { const k = c.replace(/\s+/g, '').toUpperCase().split('+'); if (i === 1 && hints.length > 1) s.push('Click the place it should go.'); s.push('Hold the ' + k[0] + ' key down, tap ' + k[1] + ', then let go.'); });
+    if (hints.length) s.push('Click the glowing object once, so the computer knows which one is selected.');
+    combo.forEach(function (c, i) { const k = c.replace(/\s+/g, '').toUpperCase().split('+'); if (i === 1 && hints.length > 1) s.push('Click the location where it should go.'); s.push('Hold the ' + k[0] + ' key down, tap ' + k[1] + ', then let go.'); });
   }
-  else if (holdKey) { kind = 'seq'; keys = holdKey.toUpperCase(); s.push('Click the first one.', 'Hold the ' + keys + ' key down on the keyboard.', 'While you hold it, click the other one. Then let go.'); }
-  else if (single) { kind = 'keys'; keys = single; if (!has(/keep the name/i)) s.push('Click the glowing thing once.'); s.push('Press the ' + single.replace(' ↵', '').toUpperCase() + ' key on the keyboard.'); }
+  else if (holdKey) { kind = 'seq'; keys = holdKey.toUpperCase(); s.push('Click the first item.', 'Hold the ' + keys + ' key down on the keyboard.', 'While you hold it, click the second item. Then release the key.'); }
+  else if (single) { kind = 'keys'; keys = single; if (!has(/keep the name/i)) s.push('Click the glowing object once.'); s.push('Press the ' + single.replace(' ↵', '').toUpperCase() + ' key on the keyboard.'); }
   else if (has(/\bdrag|stretch|\bput\b|\bsort|swap|\bmove\b|bigger|smaller|fit the|\bLEFT\b.*\bRIGHT\b/i) && !has(/then click/i)) {
-    kind = 'drag'; s.push('Put the pointer on the thing you want to move.', 'Press the LEFT button and keep holding it down.', 'Slide the mouse to where it should go.', 'Let go of the button.');
+    kind = 'drag'; s.push('Move the pointer onto the object you want to move.', 'Press the LEFT button and keep holding it down.', 'Move the pointer to where it should go.', 'Release the button.');
   }
-  else if (hints.length > 1) { kind = 'seq'; s.push('Click the first glowing thing once.', 'Then click the second glowing thing.'); }
-  else { kind = 'click'; s.push('Find the thing that glows.', 'Put the pointer on it.', 'Click the LEFT button once.'); }
+  else if (hints.length > 1) { kind = 'seq'; s.push('Click the first glowing object once.', 'Then click the second glowing object.'); }
+  else { kind = 'click'; s.push('Find the object that glows.', 'Move the pointer onto it.', 'Press the LEFT button once.'); }
   const nm = txt.match(/\b(?:named?|type(?: the name)?|to) ([A-Z0-9]{3,})\b/);
   if ((nm || has(/\btype\b/i)) && !has(/find the file/i)) s.push('Type ' + (nm ? nm[1] : 'the name') + ' on the keyboard.', 'Press the ENTER key.');
   if (many && kind !== 'keys') s.push('Do the same for each one.');

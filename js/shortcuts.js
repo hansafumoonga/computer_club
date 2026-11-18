@@ -12,7 +12,7 @@ function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.
 const esc = CC.esc;
 
 const IS_MAC = /Mac|iPhone|iPad/i.test(navigator.platform || '') && !/Windows/i.test(navigator.userAgent || '');
-const TEXT = 'Computer shortcuts help me work faster. The quick brown fox jumps over the lazy dog. Practise makes perfect! Try the keys on this text and watch what happens.';
+const TEXT = 'Computer shortcuts help me work faster. The quick brown fox jumps over the lazy dog. Practice makes perfect! Try the keys on this text and watch what happens.';
 const CATS = [['edit', '✏️', 'Edit'], ['text', '🔤', 'Text'], ['page', '📄', 'Page'], ['pc', '💻', 'Computer']];
 
 /* ---------- the shortcuts ----------
@@ -145,12 +145,12 @@ const OPS = {
   copy: function () { const s = getSel(); if (!s || s.a === s.b) { needSel(); return; } S.clip = copyDoc(S.doc.slice(s.a, s.b)); render(); setSel(s.a, s.b); clipFlash(); finish('copy'); },
   cut: function () { const s = getSel(); if (!s || s.a === s.b) { needSel(); return; } keep(); S.clip = copyDoc(S.doc.slice(s.a, s.b)); S.doc.splice(s.a, s.b - s.a); S.caret = S.anchor = s.a; render(); setSel(s.a, s.a); clipFlash(); finish('cut'); },
   paste: function () {
-    if (!S.clip.length) { say('Copy or cut something first'); return; }
+    if (!S.clip.length) { say('Select some text first, then copy or cut it'); return; }
     const s = getSel() || { a: S.doc.length, b: S.doc.length }; keep(); const add = copyDoc(S.clip); S.doc.splice.apply(S.doc, [s.a, s.b - s.a].concat(add));
     S.caret = S.anchor = s.a + add.length; render(); setSel(S.caret, S.caret); finish('paste');
   },
-  undo: function () { if (!S.undo.length) { say('Change something first'); return; } S.redo.push({ d: copyDoc(S.doc), s: getSel() }); const u = S.undo.pop(); S.doc = u.d; S.caret = S.anchor = u.s ? Math.min(u.s.a, S.doc.length) : 0; render(); if (u.s) setSel(Math.min(u.s.a, S.doc.length), Math.min(u.s.b, S.doc.length)); finish('undo'); },
-  redo: function () { if (!S.redo.length) { say('Undo first, then redo'); return; } S.undo.push({ d: copyDoc(S.doc), s: getSel() }); const r = S.redo.pop(); S.doc = r.d; render(); finish('redo'); },
+  undo: function () { if (!S.undo.length) { say('Make a change first, then undo it'); return; } S.redo.push({ d: copyDoc(S.doc), s: getSel() }); const u = S.undo.pop(); S.doc = u.d; S.caret = S.anchor = u.s ? Math.min(u.s.a, S.doc.length) : 0; render(); if (u.s) setSel(Math.min(u.s.a, S.doc.length), Math.min(u.s.b, S.doc.length)); finish('undo'); },
+  redo: function () { if (!S.redo.length) { say('Undo a change first, then redo it'); return; } S.undo.push({ d: copyDoc(S.doc), s: getSel() }); const r = S.redo.pop(); S.doc = r.d; render(); finish('redo'); },
   delword: function () {
     const s = getSel(); let a, b; if (s && s.a !== s.b) { a = s.a; b = s.b; } else { b = s ? s.b : S.caret; a = prevWord(b); }
     if (a === b) { say('Click in the text first'); return; }
@@ -163,7 +163,7 @@ const OPS = {
   top: function () { place(0, false); finish('top'); },
   bottom: function () { place(S.doc.length, false); finish('bottom'); },
   selword: function () { place(nextWord(S.caret), true); finish('selword'); },
-  find: function () { S.el.findbar.hidden = false; S.el.findin.focus(); S.el.findin.select(); say('Type a word to find'); finish('find'); },
+  find: function () { S.el.findbar.hidden = false; S.el.findin.focus(); S.el.findin.select(); say('Type the text to find'); finish('find'); },
   save: function () { S.saved = true; render(); S.el.saved.textContent = '💾 Saved!'; S.el.saved.classList.remove('flash'); void S.el.saved.offsetWidth; S.el.saved.classList.add('flash'); finish('save'); },
   print: function () { showPrint(); finish('print'); }
 };
@@ -289,7 +289,7 @@ function show() {
   const main = el('div', 'sh-main'); body.appendChild(main);
   S.el.prompt = el('div', 'sh-prompt'); main.appendChild(S.el.prompt);
   const win = el('div', 'sh-win'); S.el.win = win; main.appendChild(win);
-  win.innerHTML = '<div class="tb"><span class="dots"><i></i><i></i><i></i></span><b class="ttl">notes.txt</b><span class="sv"></span></div><div class="fb" hidden><span>🔍</span><input type="text" aria-label="find a word" placeholder="Type a word"><button class="btn" type="button">✖</button></div><div class="doc" tabindex="0"></div><div class="stat"><span class="cnt"></span></div>';
+  win.innerHTML = '<div class="tb"><span class="dots"><i></i><i></i><i></i></span><b class="ttl">notes.txt</b><span class="sv"></span></div><div class="fb" hidden><span>🔍</span><input type="text" aria-label="find a word" placeholder="Type a word"><button class="btn" type="button" aria-label="close the find bar">✖</button></div><div class="doc" tabindex="0"></div><div class="stat"><span class="cnt"></span></div>';
   S.el.live = el('div', 'sh-live'); S.el.live.hidden = true; main.appendChild(S.el.live);
   S.el.title = win.querySelector('.ttl'); S.el.saved = win.querySelector('.sv'); S.el.doc = win.querySelector('.doc'); S.el.count = win.querySelector('.cnt'); S.el.findbar = win.querySelector('.fb'); S.el.findin = win.querySelector('input');
   S.el.findbar.querySelector('button').addEventListener('click', function () { S.el.findbar.hidden = true; S.find = ''; S.el.findin.value = ''; render(); });

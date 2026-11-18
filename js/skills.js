@@ -16,7 +16,7 @@ const SKILLS = [
   { id: 'move', name: 'Mouse Movement', icon: '🖱️' }, { id: 'click', name: 'Left Click', icon: '👆' },
   { id: 'drag', name: 'Drag & Drop', icon: '✋' }, { id: 'connect', name: 'Connecting', icon: '🔗' },
   { id: 'dbl', name: 'Double Click', icon: '👆👆' }, { id: 'right', name: 'Right Click', icon: '📋' },
-  { id: 'keys', name: 'Keyboard Letters', icon: '🔤' }, { id: 'caps', name: 'CAPS LOCK / Big & Small', icon: '🔠' },
+  { id: 'keys', name: 'Keyboard Letters', icon: '🔤' }, { id: 'caps', name: 'CAPS LOCK / Capital & Small', icon: '🔠' },
   { id: 'words', name: 'Typing Words', icon: '⌨️' }, { id: 'special', name: 'Space, Backspace, Enter', icon: '↩️' }
 ];
 const DEFAULT_SKILL = { move: 'move', pick: 'click', drag: 'drag', connect: 'connect', dbl: 'dbl', right: 'right', type: 'keys', capsstate: 'caps', enter: 'special' };
@@ -228,7 +228,7 @@ function oops(msg, noCount) {
 function helpTogether() {
   S.fails = 0; S.adaptK = Math.min(1.3, S.adaptK + 0.15); S.slowA = true;
   S.locked = true; S.demoTok++;
-  say("Let's try together! Watch the mouse. 👀", 'watch', ''); const tk = S.demoTok;
+  say("Let's try together! Watch the pointer. 👀", 'watch', ''); const tk = S.demoTok;
   S.hintLevel = (S.hintLevel || 0) + 1;
   voiceP("Let's try together. Watch me.").then(function () { if (tk === S.demoTok && !S.finished) { S.simplified = true; S.tasks[S.ti].demo = true; beginTask(S.ti, false); } });
 }
@@ -308,8 +308,8 @@ ACT.move = function (t) {
     async demo() {
       const from = { x: def.x > 50 ? 14 : 86, y: def.y > 30 ? 12 : 44 }, nm = def.n || 'target';
       curShow(from.x, from.y); await wait(300);
-      if (!(await step('Watch the arrow. It glides to the ' + nm + '.', function () { return curMove(def.x + (mv ? 4 : 0), def.y, 1900); }))) return;
-      await wait(250); await step('Now you try. Move your mouse to the ' + nm + '.');
+      if (!(await step('Watch the pointer. It glides to the ' + nm + '.', function () { return curMove(def.x + (mv ? 4 : 0), def.y, 1900); }))) return;
+      await wait(250); await step('Now you try. Move the pointer to the ' + nm + '.');
     },
     simplify: function () { }
   };
@@ -350,7 +350,7 @@ ACT.pick = function (t) {
     async demo() {
       const id = targets[0], b = nodes[id]; if (!b) return;
       curShow(b._x > 50 ? 12 : 88, 46); await wait(300);
-      if (!(await step('Watch the arrow. It moves to the ' + nameOf(id) + '.', function () { return curMove(b._x, b._y, 1800); }))) return;
+      if (!(await step('Watch the pointer. It moves to the ' + nameOf(id) + '.', function () { return curMove(b._x, b._y, 1800); }))) return;
       if (!(await step('Press the left mouse button. Click!', function () { return curClick('left').then(function (ok) { b.classList.add('wig'); return ok; }); }))) return;
       await wait(350); b.classList.remove('wig'); await step('Now you try!');
     }
@@ -463,17 +463,17 @@ ACT.drag = function (t) {
       if (target) { putPiece(n, target); return; }
       sendHome(n);
       if (near) oops('Almost! That piece goes somewhere else. Look for the glowing spot.');
-      else oops('Keep holding until you reach the ' + (t.drop || 'spot') + '! Then let go.');
+      else oops('Keep holding until you reach the ' + (t.drop || 'spot') + '! Then release the button.');
     },
     cancel: function () { if (drag) { sendHome(drag.n); drag = null; setMouse('none'); } },
     async demo() {
       const pn = pNode[pieces[0].id], zn = freeZoneFor(pn); if (!pn || !zn) return;
       const hx = pn._home.x, hy = pn._home.y, spot = t.drop || 'spot';
       pn.classList.remove('back'); curShow(hx + 16, hy + 12); await wait(300);
-      if (!(await step('First, move the arrow onto the piece.', function () { return curMove(hx, hy, 1500); }))) return;
+      if (!(await step('First, move the pointer onto the piece.', function () { return curMove(hx, hy, 1500); }))) return;
       if (!(await step('Now press and hold the left button.', function () { E.cursor.classList.add('down'); setMouse('hold'); sfx('pickup'); pn.classList.add('demo'); pn.style.zIndex = 100; return tween(450, function (e) { pn.style.setProperty('--sc', pn._sc + (1 - pn._sc) * e); }); }))) return;
       if (!(await step('Keep holding, and drag it to the ' + spot + '.', function () { return tween(2300, function (e) { const x = hx + (zn._x - hx) * e, y = hy + (zn._y - hy) * e; curSet(x, y); place(pn, x, y); }); }))) return;
-      await step('Now let go. Well done!', function () { E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); return wait(500); });
+      await step('Now release the button. Well done!', function () { E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); return wait(500); });
     },
     resetDemo: function () { const pn = pNode[pieces[0].id]; if (pn && !pn._placed) { pn.classList.remove('demo', 'held'); pn.style.zIndex = 10 + (pn._p.z || 0); sendHome(pn); } curHide(); },
     destroy: function () { }
@@ -512,7 +512,7 @@ ACT.connect = function (t) {
     const id = Object.keys(nodes.L).filter(function (i) { return !done[i]; })[0]; if (!id) return;
     nodes.L[id].classList.add('hl'); nodes.R[t.pairs[id]].classList.add('hl');
   }
-  function bad(a, b) { if (b) wiggle(b); oops('Almost! ' + (a._name ? 'Where does the ' + a._name + ' belong?' : 'Try another one.') + ' 🤔'); }
+  function bad(a, b) { if (b) wiggle(b); oops('Almost! ' + (a._name ? 'Where does the ' + a._name + ' belong?' : 'Try another match.') + ' 🤔'); }
   function selKey(e) {
     if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); e.stopPropagation(); if (S.locked || S.paused) return;
     const n = e.currentTarget; if (n._side === 'L' && !done[n._id]) { if (sel) sel.classList.remove('sel'); sel = n; n.classList.add('sel'); }
@@ -543,17 +543,17 @@ ACT.connect = function (t) {
       const r = drop(a, b);
       if (r === true) return;
       if (line && line.parentNode) E.svg.removeChild(line); line = null;
-      if (r === 'bad') bad(a, b); else oops('Keep holding until you reach its partner! Then let go.');
+      if (r === 'bad') bad(a, b); else oops('Keep holding until you reach its partner! Then release the button.');
     },
     cancel: function () { if (from) { if (line && line.parentNode) E.svg.removeChild(line); line = null; from = null; setMouse('none'); } },
     async demo() {
       const id = Object.keys(nodes.L)[0], a = nodes.L[id], b = nodes.R[t.pairs[id]];
       curShow(a._x - 14, a._y + 12); await wait(300);
-      if (!(await step('Move the arrow onto the ' + (a._name || 'picture') + '.', function () { return curMove(a._x, a._y, 1400); }))) return;
+      if (!(await step('Move the pointer onto the ' + (a._name || 'picture') + '.', function () { return curMove(a._x, a._y, 1400); }))) return;
       const l = mkLine(a, 0);
       if (!(await step('Press and hold the left button.', function () { E.cursor.classList.add('down'); setMouse('hold'); sfx('pickup'); return wait(500); }))) return;
       if (!(await step('Keep holding, and drag a line to its partner, the ' + (b._name || 'match') + '.', function () { return tween(2100, function (e) { const x = a._x + (b._x - a._x) * e, y = a._y + (b._y - a._y) * e; curSet(x, y); l.setAttribute('x2', x); l.setAttribute('y2', y); }); }))) return;
-      await step('Let go. They are joined!', function () { E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); return wait(600); });
+      await step('Release the button. They are joined!', function () { E.cursor.classList.remove('down'); setMouse('none'); sfx('clink'); return wait(600); });
     },
     resetDemo: function () { E.svg.innerHTML = ''; }
   };
@@ -579,7 +579,7 @@ ACT.dbl = function (t) {
     contextmenu: function () { oops('That was the RIGHT button. Use the LEFT one: click, click!', true); },
     async demo() {
       curShow(b._x > 50 ? 14 : 86, 46); await wait(300);
-      if (!(await step('Move the arrow to the treasure box.', function () { return curMove(b._x, b._y, 1600); }))) return;
+      if (!(await step('Move the pointer to the treasure box.', function () { return curMove(b._x, b._y, 1600); }))) return;
       if (!(await step('Click once with the left button.', function () { return curClick('left').then(function (ok) { wiggle(b); return ok; }); }))) return;
       if (!(await step('Now click again, quickly. Click, click!', function () { return curClick('left').then(function (ok) { open(true); return ok; }); }))) return;
       await wait(700); close(); await step('Now you try!');
@@ -596,7 +596,7 @@ ACT.right = function (t) {
   function openMenu(x, y) {
     closeMenu(); menu = el('div', 'sk-menu'); menu.style.left = U(clamp(x, 2, 70)); menu.style.top = U(clamp(y, 2, stageH() - 22));
     [['🎁', 'Open'], ['✨', 'Sparkle'], ['🎈', 'Balloons']].forEach(function (o) { const it = el('button', '', '<span>' + o[0] + '</span> ' + o[1]); it.type = 'button'; it.dataset.m = o[1]; menu.appendChild(it); });
-    E.items.appendChild(menu); sfx('pickup'); say('A magic menu! Now click one with the LEFT button.', 'cheer', '👆 Left button');
+    E.items.appendChild(menu); sfx('pickup'); say('A menu opens! Now click one choice with the LEFT button.', 'cheer', '👆 Left button');
   }
   return {
     hl: function (on) { b.classList.toggle('hl', on); },
@@ -616,9 +616,9 @@ ACT.right = function (t) {
     async demo() {
       curShow(b._x > 50 ? 14 : 86, 46);
       if (!(await step('Your mouse has two buttons. A left button, and a right button.', function () { setMouse('left'); return wait(1100).then(function () { setMouse('right'); return wait(1000); }).then(function (ok) { setMouse('none'); return ok; }); }))) return;
-      if (!(await step('Move the arrow to the treasure box.', function () { return curMove(b._x, b._y, 1500); }))) return;
+      if (!(await step('Move the pointer to the treasure box.', function () { return curMove(b._x, b._y, 1500); }))) return;
       if (!(await step('Now press the right button.', function () { return curClick('right').then(function (ok) { openMenu(b._x + 4, b._y + 2); return ok; }); }))) return;
-      await step('A magic menu! Then pick one with the left button.', function () { return wait(1500); }); closeMenu();
+      await step('A menu opens! Then pick one choice with the left button.', function () { return wait(1500); }); closeMenu();
     },
     resetDemo: closeMenu, destroy: closeMenu
   };
@@ -665,7 +665,7 @@ ACT.type = function (t) {
   }
   function render() {
     E.typeBox.innerHTML = '';
-    if (t.show) E.typeBox.appendChild(el('div', 'sk-show', '<small>' + (t.show === t.show.toUpperCase() ? 'BIG' : 'small') + '</small>' + t.show));
+    if (t.show) E.typeBox.appendChild(el('div', 'sk-show', '<small>' + (t.show === t.show.toUpperCase() ? 'CAPITAL' : 'small') + '</small>' + t.show));
     const row = el('div', 'sk-slots'); const n = Math.max(buf.length, target.length);
     for (let i = 0; i < n; i++) {
       const ch = i < buf.length ? buf[i] : target[i], filled = i < buf.length, ok = filled && i < target.length && same(buf[i], target[i]);
@@ -688,8 +688,8 @@ ACT.type = function (t) {
     if (exp == null) return;
     if (same(ch, exp)) { buf += exp; sfx('tick'); render(); say(t.say, 'calm', ''); check(); return; }
     if (exact && ch.toLowerCase() === exp.toLowerCase()) {
-      oops(exp === exp.toUpperCase() ? 'That was small. For a BIG letter press CAPS LOCK (or hold SHIFT)! 🔠'
-        : S.caps ? 'That was BIG. For a small letter turn CAPS LOCK off! 🔡' : 'That was BIG. For a small letter do not hold SHIFT! 🔡');
+      oops(exp === exp.toUpperCase() ? 'That was a small letter. For a CAPITAL letter, press CAPS LOCK (or hold SHIFT)! 🔠'
+        : S.caps ? 'That was a capital letter. For a small letter, turn CAPS LOCK off! 🔡' : 'That was a capital letter. For a small letter, do not hold SHIFT! 🔡');
       if (S.caps || exp === exp.toUpperCase()) kbHl('CapsLock'); return;
     }
     oops('Gently try again. We need ' + (exp === ' ' ? 'SPACE ␣' : exp.toUpperCase()) + '.'); showHint();
@@ -707,7 +707,7 @@ ACT.type = function (t) {
     async demo() {
       const code = nextCode(), lines = t.spaceDemo ? ['The space bar is the long key at the bottom.', 'It makes a gap between two words. Press it now.']
         : t.prefill != null ? ['Oops. There is one extra letter.', 'The backspace key takes a letter away. Press it.']
-        : exact && target === target.toUpperCase() ? ['Big letters need Caps Lock, or the Shift key.', 'Look at the glowing key.']
+        : exact && target === target.toUpperCase() ? ['Capital letters need Caps Lock or the Shift key.', 'Look at the glowing key.']
         : exact ? ['Small letters are easy. Caps Lock must be off.', 'Look at the glowing key, and find it on your keyboard.']
         : ['Look at the glowing key on the screen.', 'Now find the same key on your keyboard, and press it.'];
       kbHl(code);
@@ -730,7 +730,7 @@ ACT.capsstate = function (t) {
     hl: function () { kbHl('CapsLock'); upd(); }, char: function (ch) { kbFlash(codeOf(ch)); oops('Find the CAPS LOCK key on the left, then press it. 💡', false); },
     back: function () { }, enter: function () { },
     async demo() {
-      kbHl('CapsLock'); if (!(await step('This is the Caps Lock key. When its light is on, letters come out big.', function () { return wait(900); }))) return;
+      kbHl('CapsLock'); if (!(await step('This is the Caps Lock key. When its light is on, letters are typed as capitals.', function () { return wait(900); }))) return;
       await step('Press it, and watch the light.', function () { kbFlash('CapsLock'); return wait(700); });
     },
     resetDemo: function () { kbHl('CapsLock'); }
@@ -889,7 +889,7 @@ function wireStage() {
   st.addEventListener('pointermove', function (e) { if (S.act && S.act.move && !CC.ui.active) S.act.move(e); });
   st.addEventListener('pointerup', function (e) { if (S.act && S.act.up) S.act.up(e); });
   st.addEventListener('pointercancel', function () { if (S.act && S.act.cancel) S.act.cancel(); });
-  st.addEventListener('contextmenu', function (e) { e.preventDefault(); if (S.act && S.act.contextmenu && !CC.ui.active) S.act.contextmenu(e); else if (S.act && S.act.down && !S.locked && ['move', 'type', 'enter', 'capsstate'].indexOf(S.t.type) < 0) { /* explain, don't open the browser menu */ oops('The RIGHT button is for special menus. Use the LEFT button here.', true); } });
+  st.addEventListener('contextmenu', function (e) { e.preventDefault(); if (S.act && S.act.contextmenu && !CC.ui.active) S.act.contextmenu(e); else if (S.act && S.act.down && !S.locked && ['move', 'type', 'enter', 'capsstate'].indexOf(S.t.type) < 0) { /* explain, don't open the browser menu */ oops('The RIGHT button opens menus. Use the LEFT button here.', true); } });
 }
 
 /* ---------- teacher report ---------- */
@@ -939,7 +939,7 @@ const esc = CC.esc;
 function starPath(cx, cy, R, r) { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; p.push((cx + Math.cos(a) * d).toFixed(1) + ',' + (cy + Math.sin(a) * d).toFixed(1)); } return p.join(' '); }
 function certSkills() {
   const a = ['Moving the mouse', 'Clicking', 'Drag and drop', 'Connecting', 'Double-click', 'Typing letters', 'Typing words'];
-  if (S.year >= 2) a.push('Big and small letters');
+  if (S.year >= 2) a.push('Capital and small letters');
   if (S.year >= 3) a.push('Right-click', 'CAPS LOCK', 'Space, Backspace and Enter'); else a.push('Using ENTER');
   return a;
 }

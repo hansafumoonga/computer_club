@@ -66,14 +66,14 @@ function contextBar() {
 /* ---------- the screen ---------- */
 function build() {
   CC.ui.close(); S.items = []; S.sel = null; S.hist.clear(); S.ink = null; S.inkDirty = true;
-  const s = ST.shell($root(), { hint: 'Drag things onto the picture. Click one to move it, make it bigger, turn it or delete it.' }); S.ctxBar = s.ctx; S.rail = s.rail;
+  const s = ST.shell($root(), { hint: 'Drag objects onto the picture. Click an object to move it, resize it, rotate it or delete it.' }); S.ctxBar = s.ctx; S.rail = s.rail;
   ST.action(s.left, '↩️', 'Undo', function () { if (S.hist.undo()) CC.sfx.tick(); });
   ST.action(s.left, '↪️', 'Redo', function () { if (S.hist.redo()) CC.sfx.tick(); });
   ST.action(s.left, '🧹', 'Start again', function () { ST.confirm($stage(), 'Start again?', 'This clears your picture.', function () { checkpoint(); S.layer.innerHTML = ''; S.items = []; S.ctx.clearRect(0, 0, W, H); S.inkDirty = true; select(null); }); });
   ST.action(s.right, '💾', 'Save', save, 'primary'); ST.action(s.right, '🖨️', 'Print', function () { select(null); window.print(); });
-  [['arrange', '🖐️', 'Move things'], ['colour', '🎨', 'Paint things'], ['brush', '✏️', 'Draw'], ['eraser', '🩹', 'Rubber']].forEach(function (t) { ST.tool(s.rail, t[0], t[1], t[2], function (id) { setMode(id); }, S.mode === t[0]); });
+  [['arrange', '🖐️', 'Move objects'], ['colour', '🎨', 'Paint objects'], ['brush', '✏️', 'Draw'], ['eraser', '🩹', 'Eraser']].forEach(function (t) { ST.tool(s.rail, t[0], t[1], t[2], function (id) { setMode(id); }, S.mode === t[0]); });
   // the things to drag
-  const lib = ST.section(s.side, 'Things  ·  drag them across'); lib.classList.add('st-lib');
+  const lib = ST.section(s.side, 'Objects  ·  drag them across'); lib.classList.add('st-lib');
   const grid = el('div', 'st-grid'); lib.appendChild(grid);
   ITEMS.forEach(function (d) {
     const b = el('button', 'st-item'); b.type = 'button'; b.setAttribute('aria-label', d.name); b.title = d.name;
@@ -107,7 +107,7 @@ function setMode(m) {
   S.mode = m; if (S.stack) S.stack.dataset.mode = (m === 'brush' || m === 'eraser') ? 'draw' : m; if (S.rail) ST.setTool(S.rail, m);
   if (S.sizeSec) S.sizeSec.hidden = !(m === 'brush' || m === 'eraser'); contextBar();
   const foot = S.stack && S.stack.closest('.st-wrap').querySelector('.st-foot');
-  if (foot) foot.textContent = m === 'arrange' ? 'Drag things onto the picture. Click one to move it, make it bigger, turn it or delete it.' : m === 'colour' ? 'Pick a colour, then click a part of a thing to paint it.' : 'Pick a colour, then hold the mouse button down and drag to draw.';
+  if (foot) foot.textContent = m === 'arrange' ? 'Drag objects onto the picture. Click an object to move it, resize it, rotate it or delete it.' : m === 'colour' ? 'Pick a colour, then click a part of an object to paint it.' : 'Pick a colour, then hold the mouse button down and drag to draw.';
 }
 /* drag a thing from the side onto the picture (or just click it to add it) */
 function dragFromPanel(e, btn, d) {

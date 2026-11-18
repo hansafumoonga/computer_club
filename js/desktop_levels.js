@@ -64,18 +64,18 @@ const LEVELS = [
   ] },
 
 /* ================= 2 · HIDE AND SHOW ================= */
-{ id: 2, title: 'Hide & Show', icon: '🫥', gem: 'peridot', intro: 'A window can hide on the bar, or grow big.',
+{ id: 2, title: 'Hide & Show', icon: '🫥', gem: 'peridot', intro: 'A window can be minimised (hidden on the taskbar) or maximised (made as large as possible).',
   tasks: [
-    { say: 'Click  —  to hide the window', win: 'Hidden! It waits on the bar below.', max: 3, hint: '.dk-win .b-min',
+    { say: 'Click  —  to minimise (hide) the window', win: 'Minimised! It waits on the taskbar below.', max: 3, hint: '.dk-win .b-min',
       scene: { files: [F('f1', 'My Folder', '📁', 'folder'), DOG('f1'), SUN('f1')], wins: [{ ref: 'f:f1', g: [0.12, 0.08, 0.6, 0.68] }] },
       goal: function (ev) { return ev.t === 'min'; } },
-    { say: 'Click the folder on the bar to bring it back', win: 'It is back!', max: 3, hint: '.dk-tb',
+    { say: 'Click the folder on the taskbar to restore the window', win: 'It is back!', max: 3, hint: '.dk-tb',
       scene: { files: [F('f1', 'My Folder', '📁', 'folder'), DOG('f1'), SUN('f1')], wins: [{ ref: 'f:f1', g: [0.12, 0.08, 0.6, 0.68], min: true }] },
       goal: function (ev) { return ev.t === 'restore'; } },
-    { say: 'Click  ▢  to make the window BIG', win: 'Nice and big!', max: 3, hint: '.dk-win .b-max',
+    { say: 'Click  ▢  to maximise the window (make it BIG)', win: 'Nice and big!', max: 3, hint: '.dk-win .b-max',
       scene: { files: [F('f1', 'My Folder', '📁', 'folder'), DOG('f1'), SUN('f1')], wins: [{ ref: 'f:f1', g: [0.12, 0.08, 0.6, 0.68] }] },
       goal: function (ev) { return ev.t === 'max'; } },
-    { say: 'Click  ❐  to make it small again', win: 'Small again!', max: 3, hint: '.dk-win .b-max',
+    { say: 'Click  ❐  to restore the window to its smaller size', win: 'Small again!', max: 3, hint: '.dk-win .b-max',
       scene: { files: [F('f1', 'My Folder', '📁', 'folder'), DOG('f1'), SUN('f1')], wins: [{ ref: 'f:f1', g: [0.12, 0.08, 0.6, 0.68], max: true }] },
       goal: function (ev) { return ev.t === 'unmax'; } },
     { say: 'Hide BOTH windows', win: 'Both are hiding on the bar!', min: 4, hint: '.dk-win .b-min',
@@ -95,7 +95,7 @@ const LEVELS = [
 /* ================= 3 · MOVE AND RESIZE ================= */
 { id: 3, title: 'Move & Resize', icon: '↔️', gem: 'moonstone', intro: 'Drag a window to move it. Drag its corner to change its size.',
   tasks: [
-    { say: 'Drag the window to the dotted box', sub: 'Hold the top bar', win: 'You moved it!', hint: ['.dk-win .dk-title', '.dk-target'],
+    { say: 'Drag the window to the dotted box', sub: 'Hold the title bar', win: 'You moved it!', hint: ['.dk-win .dk-title', '.dk-target'],
       scene: { files: [F('f1', 'My Folder', '📁', 'folder'), DOG('f1')], wins: [{ ref: 'f:f1', g: [0.04, 0.1, 0.36, 0.5] }], target: [0.54, 0.14, 0.4, 0.58] },
       goal: function (ev, o) { return ev.t === 'move' && o.centerIn(ev.ref, [0.54, 0.14, 0.4, 0.58]); } },
     { say: 'Drag the corner to make it BIGGER', win: 'Bigger!', min: 2, max: 3, hint: '.dk-grip',
@@ -104,7 +104,7 @@ const LEVELS = [
     { say: 'Drag the corner to make it SMALLER', win: 'Smaller!', min: 2, max: 3, hint: '.dk-grip',
       scene: { files: [F('f1', 'My Folder', '📁', 'folder'), DOG('f1')], wins: [{ ref: 'f:f1', g: [0.06, 0.08, 0.72, 0.84] }] },
       goal: function (ev) { return ev.t === 'resize' && ev.w <= ev.w0 * 0.75; } },
-    { say: 'Make the window fit the dotted box', sub: 'Move it, then pull the corner', win: 'A perfect fit!', min: 3, hint: ['.dk-win .dk-title', '.dk-grip', '.dk-target'],
+    { say: 'Make the window fit the dotted box', sub: 'Move it, then drag the corner', win: 'A perfect fit!', min: 3, hint: ['.dk-win .dk-title', '.dk-grip', '.dk-target'],
       scene: { files: [F('f1', 'My Folder', '📁', 'folder'), DOG('f1')], wins: [{ ref: 'f:f1', g: [0.04, 0.1, 0.3, 0.42] }], target: [0.5, 0.1, 0.46, 0.66] },
       goal: function (ev, o) { return (ev.t === 'move' || ev.t === 'resize') && o.near(ev.ref, [0.5, 0.1, 0.46, 0.66]); } },
     { say: 'Stretch the window to fill the whole desktop', sub: 'Drag the corner. Do not use the ▢ button.', win: 'Huge!', min: 4, hint: '.dk-grip',
@@ -207,7 +207,7 @@ const LEVELS = [
   ] },
 
 /* ================= 7 · DELETE AND BRING BACK ================= */
-{ id: 7, title: 'Delete & Bring Back', icon: '🗑️', gem: 'amber', intro: 'The Recycle Bin keeps deleted files safe for a while.',
+{ id: 7, title: 'Delete & Bring Back', icon: '🗑️', gem: 'amber', intro: 'The Recycle Bin keeps deleted files until it is emptied, so they can be restored.',
   tasks: [
     { say: 'Drag the old file into the bin 🗑️', win: 'Deleted! It is in the bin.', max: 3, hint: ['.dk-icons .dk-ico[data-id="j1"]', '.dk-bin'],
       scene: { files: [OLD('desk'), DOG('desk')], wins: [] },
@@ -231,7 +231,7 @@ const LEVELS = [
       scene: { files: [OLD('bin'), DOG('bin'), OLD2('bin'), SUN('desk')], wins: [{ ref: 'b:bin', g: [0.2, 0.1, 0.5, 0.62] }] },
       goal: function (ev, o) { return ev.t === 'restoreBin' && ev.id === 'p1' && o.all(['j1', 'j2'], 'bin'); },
       oops: function (ev) { return ev.t === 'restoreBin' && ev.id !== 'p1' ? 'Leave the old files! Press ↺ to try again.' : ''; } },
-    { say: 'Empty the bin', sub: 'This deletes the files for good', win: 'The bin is empty!', min: 3, hint: '.tool-empty',
+    { say: 'Empty the bin', sub: 'This permanently deletes the files', win: 'The bin is empty!', min: 3, hint: '.tool-empty',
       scene: { files: [OLD('bin'), OLD2('bin'), F('j3', 'Old photo', '📃', 'junk', 'bin')], wins: [{ ref: 'b:bin', g: [0.2, 0.1, 0.5, 0.62] }] },
       goal: function (ev) { return ev.t === 'empty'; } }
   ] },
@@ -316,7 +316,7 @@ const LEVELS = [
 /* ================= 10 · SPLIT SCREEN ================= */
 { id: 10, title: 'Split Screen', icon: '⬛', gem: 'rhodolite', pro: true, min: 4, intro: 'Put two windows side by side so you can see both.',
   tasks: [
-    { say: 'Drag the window to the LEFT edge', sub: 'Let go at the edge. It snaps to half the screen.', y6: { say: 'Snap the window to the left half' }, win: 'Snapped to the left!', min: 4, hint: '.dk-win .dk-title',
+    { say: 'Drag the window to the LEFT edge', sub: 'Release the button at the edge. The window snaps to half of the screen.', y6: { say: 'Snap the window to the left half' }, win: 'Snapped to the left!', min: 4, hint: '.dk-win .dk-title',
       scene: { files: [F('f1', 'Pictures', '📁', 'folder'), DOG('f1')], wins: [{ ref: 'f:f1', g: [0.25, 0.14, 0.5, 0.6] }] },
       goal: function (ev) { return ev.t === 'snap' && ev.side === 'left' && ev.ref === 'f:f1'; } },
     { say: 'Now drag the Music window to the RIGHT edge', y6: { say: 'Snap the Music window to the right half' }, win: 'Side by side!', min: 4, hint: '[data-w="f:f2"] .dk-title',
@@ -352,7 +352,7 @@ const LEVELS = [
     { say: 'Drag the Report onto the Done folder', y6: { say: 'Put the Report in the Done folder' }, win: 'Report filed!', min: 4, hint: ['[data-w="f:f2"] .dk-ico[data-id="d3"]', '.dk-icons .dk-ico[data-id="f3"]'],
       goal: function (ev) { return ev.t === 'drop' && ev.id === 'd3' && ev.to === 'f3'; } },
     { say: 'Find the file called Tune', sub: 'You can type just part of a name', y6: { say: 'Find the file called Tune' }, win: 'Found the Tune!', min: 5, hint: '.tb-search',
-      scene: { files: [F('f1', 'Music', '📁', 'folder'), F('f2', 'Old stuff', '📁', 'folder'), F('f3', 'Backup', '📁', 'folder', 'f2'), F('s2', 'Tune', '🎵', 'song', 'f3'), SONG('f1'), DOG('f2')], wins: [] },
+      scene: { files: [F('f1', 'Music', '📁', 'folder'), F('f2', 'Old files', '📁', 'folder'), F('f3', 'Backup', '📁', 'folder', 'f2'), F('s2', 'Tune', '🎵', 'song', 'f3'), SONG('f1'), DOG('f2')], wins: [] },
       goal: function (ev) { return ev.t === 'searchpick' && ev.id === 's2'; } },
     { say: 'Find the file called Secret. Move it onto the desktop.', sub: 'It is hidden deep inside folders', win: 'Mission complete!', min: 6,
       scene: { files: [F('f1', 'Work', '📁', 'folder'), F('f2', 'Year 6', '📁', 'folder', 'f1'), F('f3', 'Private', '📁', 'folder', 'f2'), F('d4', 'Secret', '📄', 'doc', 'f3'), STORY('f2'), DOG('f1'), SUN('desk')], wins: [] },

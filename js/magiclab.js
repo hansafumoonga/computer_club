@@ -14,15 +14,15 @@ function hsl(h, s, l) { return 'hsl(' + (((h % 360) + 360) % 360).toFixed(0) + '
 const STYLES = [['kaleido', 'Kaleidoscope'], ['spiro', 'Spirograph'], ['flow', 'Flow Waves'], ['pools', 'Colour Pools']];
 const HARMONIES = [['comp', 'Complementary'], ['analog', 'Analogous'], ['triad', 'Triad'], ['mono', 'Mono']];
 const HINTS = {
-  comp: 'Complementary: two colours opposite each other on the colour wheel. They make strong contrast, and mix to a neutral grey.',
+  comp: 'Complementary: two colours opposite each other on the colour wheel. They give strong contrast. Mixed as paints, they make a dull grey or brown.',
   analog: 'Analogous: colours next to each other on the wheel. They feel calm and flow into each other.',
   triad: 'Triad: three colours spread evenly round the wheel. Lively and balanced.',
-  mono: 'Mono: one colour in light and dark shades. Clean and simple.'
+  mono: 'Mono: one colour in lighter and darker shades. Clean and simple.'
 };
 const NOTES = {
-  kaleido: 'Each line is copied round the centre and mirrored: that is symmetry.',
+  kaleido: 'Each line is repeated around the centre and mirrored. This repeating pattern is called symmetry.',
   spiro: 'A small wheel rolls inside a big wheel, with a pen in the small wheel.',
-  flow: 'Invisible wind pushes thousands of tiny pens along curving paths.',
+  flow: 'A hidden flow field steers thousands of tiny pens along curving paths.',
   pools: 'Soft pools of your colours grow and overlap. Watch what the overlaps become.'
 };
 
@@ -133,7 +133,7 @@ function show() {
   ST.action(s.left, '↪️', 'Redo', function () { if (!L.running && L.hist.redo()) CC.sfx.tick(); });
   ST.action(s.left, '🧹', 'Start again', function () { if (!L.running) ST.confirm($stage(), 'Start again?', 'This clears your painting.', function () { L.hist.push(ST.canvasEntry(L.ctx, W, H)); L.ctx.fillStyle = paperColour(); L.ctx.fillRect(0, 0, W, H); say('Press Create to make a painting.'); }); });
   ST.action(s.right, '💾', 'Save', save, 'primary'); ST.action(s.right, '🖨️', 'Print', function () { window.print(); });
-  ST.tool(s.rail, 'brush', '🖌️', 'Brush', function (id) { L.tool = id; }, true); ST.tool(s.rail, 'eraser', '🩹', 'Rubber', function (id) { L.tool = id; }, false);
+  ST.tool(s.rail, 'brush', '🖌️', 'Brush', function (id) { L.tool = id; }, true); ST.tool(s.rail, 'eraser', '🩹', 'Eraser', function (id) { L.tool = id; }, false);
   // create
   const mk = ST.section(s.side, 'Create');
   ST.choice(mk, STYLES, L.style, function (id) { L.style = id; note.textContent = NOTES[id]; });

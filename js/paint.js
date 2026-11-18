@@ -80,7 +80,7 @@ function openPic(pic) {
 function openBlank() {
   P.view = 'blank'; P.pic = null; P.svg = null; const o = screen('blank'), s = o.s;
   ST.tool(s.rail, 'brush', '🖌️', 'Brush', function (id) { P.tool = id; }, P.tool === 'brush');
-  ST.tool(s.rail, 'eraser', '🩹', 'Rubber', function (id) { P.tool = id; }, P.tool === 'eraser');
+  ST.tool(s.rail, 'eraser', '🩹', 'Eraser', function (id) { P.tool = id; }, P.tool === 'eraser');
   ST.tool(s.rail, 'paper', '🪣', 'Fill paper', function (id) { P.tool = id; }, P.tool === 'paper');
   const sz = ST.section(s.side, 'Size'); ST.slider(sz, 'Brush size', 4, 50, P.size, function (v) { P.size = v; }, true);
   backgroundSection(s);

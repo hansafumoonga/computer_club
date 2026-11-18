@@ -7,8 +7,8 @@ const MODES = {
   skills:   { icon: '🗺️', name: 'Click & Type Quest', desc: 'Learn the mouse and keyboard', color: '#ff7ac8', cert: true },
   fruit:    { icon: '🍉', name: 'Slice & Pop',   desc: 'Press the letter to slice or pop!', color: '#ff6b86' },
   words:    { icon: '🔤', name: 'Word Hunt',     desc: 'Find the computer words', color: '#22c6c6' },
-  jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Hop over things, duck under bees', color: '#ffd23f' },
-  blaster:  { icon: '🚀', name: 'Star Blaster',  desc: 'Pop the friendly space rocks', color: '#6bcb77' },
+  jump:     { icon: '🏃', name: 'Jump Over!',    desc: 'Jump over obstacles, duck under bees', color: '#ffd23f' },
+  blaster:  { icon: '🚀', name: 'Star Blaster',  desc: 'Pop the friendly asteroids', color: '#6bcb77' },
   piano:    { icon: '🎹', name: 'Piano',         desc: 'Play songs on 5 keys', color: '#ff9f45' },
   commando: { icon: '🤖', name: 'Commando Run',  desc: 'Run, jump and blast the bots', color: '#a77bff' },
   pattern:  { icon: '🎵', name: 'Pattern Pop!',  desc: 'Watch, listen and copy', color: '#22c6c6' },
@@ -101,7 +101,14 @@ function showMenu() {
       const n = cnt[g[0]], t = document.createElement('button');
       t.type = 'button'; t.className = 'group-tab' + (app.group === g[0] ? ' on' : ''); t.setAttribute('role', 'tab'); t.setAttribute('aria-selected', app.group === g[0] ? 'true' : 'false');
       t.innerHTML = '<span class="gi">' + g[1] + '</span><span class="gn">' + g[2] + '</span><span class="gc">' + n + '</span>';
+      t.tabIndex = app.group === g[0] ? 0 : -1;
       t.addEventListener('click', function () { app.group = g[0]; draw(); });
+      /* the arrow keys move between the level tabs (Home and End jump to the first and last) */
+      t.addEventListener('keydown', function (e) {
+        const at = shown.indexOf(g), to = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? at + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? at - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? shown.length - 1 : null;
+        if (to === null) return;
+        e.preventDefault(); app.group = shown[(to + shown.length) % shown.length][0]; draw(); tabs.querySelector('.group-tab.on').focus();
+      });
       tabs.appendChild(t);
     });
     y.modes.filter(function (id) { return tof[id] === app.group; }).forEach(function (id) {

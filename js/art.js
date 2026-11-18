@@ -123,7 +123,7 @@ function make(adv) {
     const c = A.ui.shell.ctx; c.innerHTML = ''; c.hidden = true;
     if (A.tool === 'stamp') { c.hidden = false; STAMPS.forEach(function (s) { const b = el('button', 'st-stampbtn' + (s === A.stamp ? ' on' : ''), s); b.type = 'button'; b.addEventListener('click', function () { b.blur(); A.stamp = s; c.querySelectorAll('.st-stampbtn').forEach(function (x) { x.classList.toggle('on', x === b); }); }); c.appendChild(b); }); }
     else if (SHAPES.indexOf(A.tool) >= 0) { c.hidden = false; c.appendChild(el('span', 'st-ctxlab', 'Shape:')); ST.choice(c, [['f', 'Filled'], ['o', 'Outline']], A.filled ? 'f' : 'o', function (id) { A.filled = id === 'f'; }); }
-    else if (A.tool === 'text') { c.hidden = false; c.appendChild(el('span', 'st-ctxlab', 'Click on the paper and type. Press Enter to place the text. Size sets how big.')); }
+    else if (A.tool === 'text') { c.hidden = false; c.appendChild(el('span', 'st-ctxlab', 'Click on the paper and type. Press Enter to place the text. Size sets the size of the text.')); }
     else if (A.tool === 'pick') { c.hidden = false; c.appendChild(el('span', 'st-ctxlab', 'Click on your painting to pick up a colour.')); }
   }
   /* layers (Design Studio) */

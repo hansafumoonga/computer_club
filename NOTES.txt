@@ -238,9 +238,10 @@ CODE REVIEW (all games checked together)
   - .tmp.driveupload/ (Google Drive's temporary copies) had been committed by mistake; it is removed and listed in .gitignore. Three unused style rules were removed.
   - LEAK CHECK: a delayed 'level done' or reward screen (Word Hunt, Slice & Pop, Shortcut Lab, Piano) now only appears if the game is still on screen (CC.modeShown(id) in core.js), so it cannot pop up over the menu after a child leaves.
 
-LEARNING PATH (js/main.js)
+LEARNING PATH AND LEVEL TABS (js/main.js)
   - PATH is the one list of every game in skill order (mouse, clicking and building, parts of a computer, mouse + keyboard, letters, words, proper typing, desktop, shortcuts, letter, spreadsheet, network, then design, then the arrow-key games).
-  - YEAR_SETS says which games each year gets; each year's menu is PATH filtered by that set, so the ORDER is set in one place. The menu opens on the Learning path tab (numbered cards, 'Start here' on step 1); the other tabs show the same games by kind with the same step numbers.
+  - YEAR_SETS says which games each year gets; each year's menu is PATH filtered by that set, so the ORDER is set in one place ('Start here' marks the first game).
+  - YEAR_LEVELS sorts each year's games into the tabs Beginner (b), Medium (m), Advanced (a) and Advanced Pro (p), separately for each year so the levels suit the age. The arcade games always go in the Skill Games tab (TIERS, last entry). A level with no games for a year is not shown, and the menu opens on the tab of the year's first game.
 
 CODE AUDIT (colours, shadowing, dead code)
   - CSS: 73 colour declarations that a later rule with the same selector always overrode (so they never showed) were removed, mostly in builder.css (an old light theme under the dark one), skills.css, mouseclub.css and style.css; 19 empty rules, the unused --radius and --ink2 variables and the old header key styles (.bkey) went too. A before/after check of the computed colours on 48 screens (the menus, the other pages and 18 games in play) found no change except animated glows.

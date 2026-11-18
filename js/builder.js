@@ -51,9 +51,9 @@ function hush() { setTalk(false); if (window.speechSynthesis) try { speechSynthe
 function bo(R, text, say) { if (R && R.ui && R.ui.bt) R.ui.bt.textContent = text; speak(say || text); }
 const HOW = { type: 'Look at the word. Find each letter on the keyboard and press it. The next letter glows!', click: 'Use the mouse to add each piece. I will show you what to do!' };
 const KINDLONG = {
-  click: 'Move the mouse onto the glowing piece and press the left button once.',
-  drag: 'Press the mouse button on the piece below, hold it down, move to the dotted spot, then let go.',
-  dbl: 'Click the glowing piece two times, very fast. Click, click!',
+  click: 'Move the pointer onto the glowing piece and press the left button once.',
+  drag: 'Press the left mouse button on the piece below and hold it down. Move the pointer to the dotted spot, then release the button.',
+  dbl: 'Click the glowing piece twice, quickly. Click, click!',
   right: 'Press the RIGHT mouse button on the glowing piece. A little menu opens. Then press Add.'
 };
 
@@ -62,7 +62,7 @@ const KINDS = [['click'], ['click'], ['drag'], ['drag'], ['dbl'], ['right'], ['c
 const TIPS = {
   click: '🖱️ Click the glowing piece!',
   drag: '✋ Drag the piece onto its spot!',
-  dbl: '🖱️🖱️ Double-click the glowing piece: click twice, fast!',
+  dbl: '🖱️🖱️ Double-click the glowing piece: click twice, quickly!',
   right: '👉 Right-click the glowing piece, then press Add!'
 };
 
@@ -145,7 +145,7 @@ function startRun() {
   R.ui.dots = el('div', 'bd-dots'); b.pieces.forEach(function () { R.ui.dots.appendChild(el('i')); });
   hud.appendChild(map); hud.appendChild(chip); hud.appendChild(R.ui.dots);
   if (S.door === 'type') { const hb = el('button', 'btn ico', '💡'); hb.type = 'button'; hb.setAttribute('aria-label', 'show me the key'); hb.title = 'Show me the key'; hb.addEventListener('click', function () { hb.blur(); showHint(R); }); hud.appendChild(hb); }
-  if (S.door === 'click') { const sm = el('button', 'btn ico', '🖱️'); sm.type = 'button'; sm.setAttribute('aria-label', 'show me with the mouse'); sm.title = 'Show me'; sm.addEventListener('click', function () { sm.blur(); demo(R, 'Watch the mouse. ' + TIPS[R.kind]); }); hud.appendChild(sm); }
+  if (S.door === 'click') { const sm = el('button', 'btn ico', '🖱️'); sm.type = 'button'; sm.setAttribute('aria-label', 'show me with the mouse'); sm.title = 'Show me'; sm.addEventListener('click', function () { sm.blur(); demo(R, 'Watch the pointer. ' + TIPS[R.kind]); }); hud.appendChild(sm); }
   const vb = el('button', 'btn ico' + (S.voice ? '' : ' off'), '🗣️'); vb.type = 'button'; vb.setAttribute('aria-label', 'voice on or off'); vb.title = 'Bo voice'; vb.addEventListener('click', function () { vb.blur(); S.voice = !S.voice; vb.classList.toggle('off', !S.voice); if (!S.voice) hush(); }); hud.appendChild(vb);
   p.appendChild(hud);
   const scene = el('div', 'bd-scene'); scene.innerHTML = svgFor(b); p.appendChild(scene); R.svg = scene.firstChild;
@@ -301,7 +301,7 @@ function setupTask(R) {
     fresh.addEventListener('contextmenu', function (e) { e.preventDefault(); e.stopPropagation(); openMenu(R, e.clientX, e.clientY); });
     fresh.addEventListener('click', function () { R.ui.tip.textContent = 'That was the LEFT button. Try the RIGHT button!'; pulse(R); later(function () { if (S.run === R && R.kind === 'right') R.ui.tip.textContent = TIPS.right; }, 2400); });
   } else if (kind === 'drag') {
-    fresh.addEventListener('click', function () { if (R.picked) place(R); else { R.ui.tip.textContent = 'Pick up the piece below first!'; R.misses++; } });
+    fresh.addEventListener('click', function () { if (R.picked) place(R); else { R.ui.tip.textContent = 'Drag the piece below first!'; R.misses++; } });
     setupDrag(R);
   }
 }
@@ -359,7 +359,7 @@ function finish(R) {
 }
 function update(dt) {
   const R = S.run; if (!R || R.phase !== 'play') return;
-  if (R.door === 'click') { R.idle += dt; if (R.idle > 10 && !R.demoing && !R.float && !R.menu) { R.idle = 0; demo(R, 'Watch the mouse. ' + TIPS[R.kind]); } return; }
+  if (R.door === 'click') { R.idle += dt; if (R.idle > 10 && !R.demoing && !R.float && !R.menu) { R.idle = 0; demo(R, 'Watch the pointer. ' + TIPS[R.kind]); } return; }
   if (R.door !== 'type') return;
   R.idle += dt; const hintAt = S.year === 3 ? 8 : 5, autoAt = S.year === 1 ? 13 : 18;
   if (R.idle > hintAt && !R.hint) showHint(R);

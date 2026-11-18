@@ -16,16 +16,16 @@ function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { co
 /* ================= the games and their ten stages =================
    t = what kind of stage it is, n = how many to do, sz = size of the things (bigger = easier), speed = how fast they move. */
 const GAMES = [
-  { id: 'move', icon: '🐝', name: 'Move', color: '#22b8cf', desc: 'Move the mouse.', demo: 'Moving the mouse', stages: [
-    { t: 'collect', n: 3, sz: 4.2, e: '⭐', icon: '⭐', title: 'Shiny stars', voice: 'Move the mouse onto each shining star.', text: 'Touch the stars.' },
-    { t: 'collect', n: 4, sz: 3.4, e: '🌟', icon: '🌟', title: 'More stars', voice: 'Move the mouse onto every star.', text: 'Touch every star.' },
-    { t: 'follow', sz: 3.8, e: '🦋', need: 7, speed: 0.5, icon: '🦋', title: 'Butterfly', voice: 'Follow the butterfly with the mouse. Stay close to it!', text: 'Follow the butterfly.' },
-    { t: 'path', n: 6, sz: 3.1, amp: 0.2, e: '🌼', last: '🏠', icon: '🐝', title: 'Bee path', voice: 'Help the bee fly home. Touch each flower, one after the other.', text: 'Help the bee. Touch each flower.' },
-    { t: 'drift', n: 6, sz: 3.6, speed: 0.09, e: '🫧', icon: '🫧', title: 'Bubbles', voice: 'Touch the bubbles with the mouse to pop them!', text: 'Pop the bubbles!' },
-    { t: 'collect', n: 5, sz: 2.9, ordered: true, e: '🍎', icon: '🍎', title: 'In order', voice: 'Touch the apples in order: 1, 2, 3, 4, 5.', text: 'Touch the apples: 1, 2, 3, 4, 5.' },
-    { t: 'wander', n: 5, sz: 3.3, speed: 0.14, e: '🐟', icon: '🐟', title: 'Catch the fish', voice: 'Catch the fish! Move the mouse onto it.', text: 'Catch the fish!' },
-    { t: 'path', n: 8, sz: 2.5, amp: 0.28, e: '🌸', last: '🏡', icon: '🌸', title: 'Winding path', voice: 'Follow the winding path. Touch each flower in order.', text: 'Follow the flowers home.' },
-    { t: 'drift', n: 10, sz: 3.1, speed: 0.15, e: '🫧', icon: '🎈', title: 'Bubble pop', voice: 'Pop ten bubbles by moving the mouse over them.', text: 'Pop ten bubbles!' },
+  { id: 'move', icon: '🐝', name: 'Move', color: '#22b8cf', desc: 'Move the pointer with the mouse.', demo: 'Moving the mouse', stages: [
+    { t: 'collect', n: 3, sz: 4.2, e: '⭐', icon: '⭐', title: 'Shiny stars', voice: 'Move the pointer onto each shining star.', text: 'Move the pointer onto each star.' },
+    { t: 'collect', n: 4, sz: 3.4, e: '🌟', icon: '🌟', title: 'More stars', voice: 'Move the pointer onto every star.', text: 'Move the pointer onto every star.' },
+    { t: 'follow', sz: 3.8, e: '🦋', need: 7, speed: 0.5, icon: '🦋', title: 'Butterfly', voice: 'Move the pointer to follow the butterfly. Stay close to it!', text: 'Follow the butterfly with the pointer.' },
+    { t: 'path', n: 6, sz: 3.1, amp: 0.2, e: '🌼', last: '🏠', icon: '🐝', title: 'Bee path', voice: 'Help the bee fly home. Move the pointer onto each flower, one after the other.', text: 'Help the bee. Point at each flower in turn.' },
+    { t: 'drift', n: 6, sz: 3.6, speed: 0.09, e: '🫧', icon: '🫧', title: 'Bubbles', voice: 'Move the pointer over the bubbles to pop them!', text: 'Pop the bubbles with the pointer!' },
+    { t: 'collect', n: 5, sz: 2.9, ordered: true, e: '🍎', icon: '🍎', title: 'In order', voice: 'Move the pointer onto the apples in order: 1, 2, 3, 4, 5.', text: 'Point at the apples in order: 1 to 5.' },
+    { t: 'wander', n: 5, sz: 3.3, speed: 0.14, e: '🐟', icon: '🐟', title: 'Catch the fish', voice: 'Catch the fish! Move the pointer onto it.', text: 'Catch the fish!' },
+    { t: 'path', n: 8, sz: 2.5, amp: 0.28, e: '🌸', last: '🏡', icon: '🌸', title: 'Winding path', voice: 'Follow the winding path. Move the pointer onto each flower in order.', text: 'Follow the flowers home.' },
+    { t: 'drift', n: 10, sz: 3.1, speed: 0.15, e: '🫧', icon: '🎈', title: 'Bubble pop', voice: 'Pop ten bubbles by moving the pointer over them.', text: 'Pop ten bubbles!' },
     { t: 'path', n: 10, sz: 2.3, amp: 0.3, e: '⭐', last: '🏁', icon: '🏁', title: 'Star trail', voice: 'Follow the trail of stars to the flag!', text: 'Follow the stars to the flag.' } ] },
   { id: 'click', icon: '🎈', name: 'Click', color: '#ff7ac8', desc: 'Press the left button once.', demo: 'Clicking with the left button', stages: [
     { t: 'tap', n: 3, sz: 4.7, e: '🎈', icon: '🎈', title: 'Big balloon', voice: 'Click the big balloon. Press the left mouse button once.', text: 'Click the big balloon.' },
@@ -50,7 +50,7 @@ const GAMES = [
     { t: 'dblpick', rounds: 4, options: 4, sz: 3.1, icon: '🌟', title: 'Glow hunt', voice: 'Double-click only the glowing egg.', text: 'Double-click the glowing egg.' },
     { t: 'dblmove', n: 5, sz: 3.1, speed: 0.08, e: '🥚', icon: '🏆', title: 'Egg parade', voice: 'Double-click the moving eggs.', text: 'Double-click the moving eggs.' } ] },
   { id: 'right', icon: '🎁', name: 'Right-click', color: '#a77bff', desc: 'Press the right button.', demo: 'Right-clicking', stages: [
-    { t: 'rtap', n: 1, sz: 5.2, seq: true, e: '🎁', icon: '🎁', title: 'A present', voice: 'Press the RIGHT mouse button on the present. On a laptop, press with two fingers.', text: 'Right-click the present!' },
+    { t: 'rtap', n: 1, sz: 5.2, seq: true, e: '🎁', icon: '🎁', title: 'A present', voice: 'Press the RIGHT mouse button on the present. On a laptop, tap the touchpad with two fingers.', text: 'Right-click the present!' },
     { t: 'rtap', n: 3, sz: 4.2, seq: true, e: '🎁', icon: '🎀', title: 'Three presents', voice: 'Right-click each present to open it.', text: 'Right-click each present.' },
     { t: 'rtap', n: 4, sz: 3.3, e: '🎁', icon: '🎉', title: 'Presents', voice: 'Right-click all the presents.', text: 'Right-click all the presents.' },
     { t: 'hunt', n: 3, sz: 4.3, icon: '🐰', title: 'Hide and seek', voice: 'Animals are hiding in the bushes! Right-click a bush to find one.', text: 'Right-click a bush. Who is hiding?' },
@@ -60,8 +60,8 @@ const GAMES = [
     { t: 'hunt', n: 5, sz: 3.3, icon: '🦊', title: 'Find them all', voice: 'Right-click the bushes to find all the animals.', text: 'Find them all!' },
     { t: 'lr', n: 6, sz: 3.6, icon: '🟠', title: 'Left and right', voice: 'Look at the colour. Green is left, orange is right.', text: 'Green = left. Orange = right.' },
     { t: 'menu', n: 4, sz: 3.6, correct: 1, options: ['✖ Close', '🎉 Surprise', '↩ Back'], e: '📦', icon: '🏆', title: 'Surprise box', voice: 'Right-click the box, then click Surprise.', text: 'Right-click, then Surprise!' } ] },
-  { id: 'drag', icon: '🧺', name: 'Drag and drop', color: '#6bcb77', desc: 'Pick up, move, let go.', demo: 'Dragging and dropping', stages: [
-    { t: 'dragone', sz: 4.2, e: '🐱', zone: '🏠', icon: '🐱', title: 'Home', voice: 'Drag the cat to its house. Press and hold the left button, move, then let go.', text: 'Drag the cat home.' },
+  { id: 'drag', icon: '🧺', name: 'Drag and drop', color: '#6bcb77', desc: 'Press and hold, move, release.', demo: 'Dragging and dropping', stages: [
+    { t: 'dragone', sz: 4.2, e: '🐱', zone: '🏠', icon: '🐱', title: 'Home', voice: 'Drag the cat to its house. Press and hold the left button, move the pointer, then release the button.', text: 'Drag the cat home.' },
     { t: 'pairs', n: 2, sz: 3.7, icon: '🐶', title: 'Homes', voice: 'Drag each animal to its home.', text: 'Drag each animal home.' },
     { t: 'sort', n: 4, bins: 2, sz: 3.3, icon: '🧺', title: 'Sorting', voice: 'Drag the fruit into the fruit basket and the animals into the animal basket.', text: 'Fruit here, animals there.' },
     { t: 'order', n: 3, sz: 3.7, drag: true, icon: '🔢', title: 'Number boxes', voice: 'Drag the numbers into the boxes: 1, 2, 3.', text: 'Drag 1, 2, 3 into the boxes.' },
@@ -71,10 +71,10 @@ const GAMES = [
     { t: 'pairs', n: 4, sz: 2.9, icon: '🐝', title: 'Four homes', voice: 'Match every animal with its home.', text: 'Match all the homes.' },
     { t: 'sort', n: 6, bins: 3, sz: 2.9, icon: '🚗', title: 'Three baskets', voice: 'Sort into three baskets: fruit, animals and vehicles.', text: 'Sort into three baskets.' },
     { t: 'order', n: 5, sz: 3.1, drag: true, icon: '🏆', title: 'Five in a row', voice: 'Put the numbers 1 to 5 in order in the boxes.', text: 'Put 1 to 5 in order.' } ] },
-  { id: 'scroll', icon: '🎡', name: 'Scroll', color: '#ff7a45', desc: 'Turn the wheel, slide two fingers.', demo: 'Scrolling', stages: [
-    { t: 'reach', pages: 2.2, icon: '🎁', title: 'Treasure', voice: 'Scroll down to find the treasure! Turn the mouse wheel. On a laptop, slide two fingers on the pad.', text: 'Scroll down to the treasure!' },
+  { id: 'scroll', icon: '🎡', name: 'Scroll', color: '#ff7a45', desc: 'Turn the wheel or slide two fingers on the touchpad.', demo: 'Scrolling', stages: [
+    { t: 'reach', pages: 2.2, icon: '🎁', title: 'Treasure', voice: 'Scroll down to find the treasure! Turn the mouse wheel. On a laptop, slide two fingers on the touchpad.', text: 'Scroll down to the treasure!' },
     { t: 'reach', pages: 3, icon: '🌳', title: 'Down, down', voice: 'Scroll all the way down to the bottom.', text: 'Scroll to the bottom.' },
-    { t: 'meter', need: 900, icon: '🚀', title: 'Rocket', voice: 'Scroll the wheel to fill the rocket with fuel. Any way you scroll works!', text: 'Scroll to fill the rocket!' },
+    { t: 'meter', need: 900, icon: '🚀', title: 'Rocket', voice: 'Scroll the wheel to fill the rocket with fuel. Any scrolling method works!', text: 'Scroll to fill the rocket!' },
     { t: 'find', n: 2, pages: 3, icon: '🐱', title: 'Find the cats', voice: 'Cats are hiding! Scroll down and click each cat you find.', text: 'Scroll and click the cats.' },
     { t: 'updown', pages: 2.6, icon: '↕️', title: 'Down and up', voice: 'Scroll down to the bottom, then scroll back up to the top.', text: 'Scroll down, then back up.' },
     { t: 'meter', need: 1800, icon: '🚀', title: 'Big rocket', voice: 'Scroll to fill the big rocket with fuel.', text: 'Fill the big rocket!' },
@@ -443,7 +443,7 @@ function dblOn(R, it, onHatch, c) {
   it.el.addEventListener('click', function (e) {
     e.stopPropagation(); if (R.locked || !it.alive) return; const now = performance.now();
     if (it.last && now - it.last < 750) { it.last = 0; onHatch(it); }
-    else { it.last = now; it.el.classList.remove('wob'); void it.el.offsetWidth; it.el.classList.add('wob'); R.idle = 0; R.ui.bt.textContent = 'Click again, fast!'; clearTimeout(R.hintT); R.hintT = later(function () { if (S.run === R) R.ui.bt.textContent = R.cfg.text; }, 2200); }
+    else { it.last = now; it.el.classList.remove('wob'); void it.el.offsetWidth; it.el.classList.add('wob'); R.idle = 0; R.ui.bt.textContent = 'Click again, quickly!'; clearTimeout(R.hintT); R.hintT = later(function () { if (S.run === R) R.ui.bt.textContent = R.cfg.text; }, 2200); }
   });
 }
 function hatch(R, it) { it.el.textContent = '🐥'; win(R, it, 'good', true); }
@@ -451,7 +451,7 @@ TYPES.dbl = function (R, c) {
   R.goal = c.n; const pos = placeN(R, c.n, c.sz); let shown = 0;
   const add = function () { const p = pos[shown++]; const it = newItem(R, c.e, c.sz, p.x, p.y); dblOn(R, it, function (x) { hatch(R, x); }, c); markCur(R, it); };
   if (c.seq) { add(); R.hd.after = function () { later(function () { if (S.run === R && !R.locked && shown < c.n) add(); }, 450); }; } else { for (let k = 0; k < c.n; k++) add(); markCur(R, null); }
-  bgHint(R, 'Click twice, fast!'); R.hd.demo = demoClick(R, 'dbl', function () { return nextAlive(R); }, 2);
+  bgHint(R, 'Click twice, quickly!'); R.hd.demo = demoClick(R, 'dbl', function () { return nextAlive(R); }, 2);
 };
 TYPES.dblpick = function (R, c) {
   R.goal = c.rounds; let target = null;
@@ -524,7 +524,7 @@ function dragSetup(R, c, accepts) {
   function dropOn(it, px, py) {
     const z = R.zones.filter(function (zz) { return Math.hypot(zz.x * R.W - px, zz.y * R.H - py) <= zz.sz * R.u * 0.62; }).sort(function (a, b) { return Math.hypot(a.x * R.W - px, a.y * R.H - py) - Math.hypot(b.x * R.W - px, b.y * R.H - py); })[0];
     if (!z) return false;
-    if (!accepts(it, z)) { wobble(it); hint(R, z.wrong || 'Try another place.'); return false; }
+    if (!accepts(it, z)) { wobble(it); hint(R, z.wrong || 'Try another location.'); return false; }
     z.count = (z.count || 0) + 1; const n = z.count - 1; it.x = z.x + (z.stack ? ((n % 3) - 1) * 0.05 : 0); it.y = z.y + (z.stack ? Math.floor(n / 3) * 0.07 + 0.02 : 0); it.sz = z.stack ? it.sz * 0.7 : it.sz; it.el.classList.remove('lift'); layout(R, it); win(R, it, 'good', true); return true;
   }
   R.hd.addPiece = function (it) {
