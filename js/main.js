@@ -162,6 +162,15 @@ document.querySelectorAll('[data-nav]').forEach(function (b) {
     if (b.dataset.nav === 'home') showSessions(); else { leaveMode(); app.session = null; showOnly($('screen-' + b.dataset.nav)); }
   });
 });
+/* the QR code buttons (the top menu and the How to use page): one click downloads the printable QR code and the blank certificate tracker */
+document.querySelectorAll('.qr-btn').forEach(function (b) {
+  b.addEventListener('click', function (e) {
+    e.preventDefault(); b.blur();
+    ['tech-explorers-qr.pdf', 'downloads/Tech-Explorers-Certificate-Tracker.xlsx'].forEach(function (url, i) {
+      setTimeout(function () { const a = document.createElement('a'); a.href = url; a.download = url.split('/').pop(); document.body.appendChild(a); a.click(); a.remove(); }, i * 400);
+    });
+  });
+});
 $('btn-change-session').addEventListener('click', function () { this.blur(); showSessions(); });
 document.querySelectorAll('[data-action="menu"]').forEach(function (b) { b.addEventListener('click', function () { b.blur(); showMenu(); }); });
 

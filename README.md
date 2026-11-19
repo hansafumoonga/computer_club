@@ -86,7 +86,10 @@ The **Skill Games** tab holds the arcade games (Slice & Pop, Jump Over!, Piano, 
 - Click your year, then a game. Press **F11** for full screen. Sound starts after the first click.
 
 ## QR code for quick access
-`tech-explorers-qr.pdf` is a one-page printable QR code with clear camera instructions (it is also linked from the How to use page). If you host your own copy, make a new QR code for your own address.
+`tech-explorers-qr.pdf` is a one-page printable QR code with clear camera instructions (the QR code buttons download it, with the certificate tracker, see below). If you host your own copy, make a new QR code for your own address.
+
+## Certificate tracker for teachers
+The QR code buttons (in the top menu of every page, and on the How to use page) download two files in one click: the printable QR code (`tech-explorers-qr.pdf`) and a blank Excel sheet (`downloads/Tech-Explorers-Certificate-Tracker.xlsx`) for keeping track of which learners have earned which certificate, and who has had an overall certificate at the end of term. It has one row per learner, a column for every certificate and reward, totals that update by themselves, and a Yes or No for the overall certificate. The sheet is blank on purpose: it holds no learner names, and a teacher should keep their own copy on their own computer. The browser may ask once to allow two downloads.
 
 ## Hosting your own copy
 The live site is hosted free on **Cloudflare Pages**, connected to this repository: every push to `main` updates the site. Any free static host works the same way (Cloudflare Pages, GitHub Pages, Netlify). Use no build command and publish the root folder as it is. If you host your own copy, make a new QR code for your own address.
