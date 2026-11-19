@@ -78,6 +78,7 @@ function leaveMode() {
   const m = CC.modes[app.mode];
   if (m && m.exit) m.exit();
   CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); CC.ui.close(); CC.held = {}; app.mode = null; CC.music.stop();
+  if (CC.practice) CC.practice.leave();                       // Practice (typing for everyone) stops its clock and sounds when you leave it
   document.querySelectorAll('.pause-btn').forEach(function (b) { b.textContent = '⏸'; b.classList.remove('on'); });
 }
 /* the drawn picture of a game (js/icons.js, which every page loads), or null for a game that has none yet (it then keeps its emoji from MODES) */
@@ -155,11 +156,29 @@ CC.goMenu = showMenu;
     box.appendChild(b);
   });
 })();
+/* Practice: typing for everyone. Its files are fetched the first time it is opened, so the games open as fast as they always did. */
+const BUILD = (function () { const s = document.querySelector('script[src*="js/main.js"]'), v = s && s.getAttribute('src').match(/\?v=\d+/); return v ? v[0] : ''; })();
+let practiceLoading = null;
+function loadPractice() {
+  if (CC.practice) return Promise.resolve();
+  if (practiceLoading) return practiceLoading;
+  function file(tag, url) { return new Promise(function (ok, no) { const e = document.createElement(tag); if (tag === 'link') { e.rel = 'stylesheet'; e.href = url + BUILD; } else { e.src = url + BUILD; } e.onload = ok; e.onerror = function () { no(new Error(url)); }; document.head.appendChild(e); }); }
+  practiceLoading = file('link', 'css/practice.css').then(function () { return file('script', 'js/practice_data.js'); }).then(function () { return file('script', 'js/practice_core.js'); })
+    .then(function () { return file('script', 'js/practice_rain.js'); }).then(function () { return file('script', 'js/practice.js'); })
+    .catch(function (e) { practiceLoading = null; throw e; });
+  return practiceLoading;
+}
+function openPractice() {
+  leaveMode(); app.session = null; showOnly($('screen-practice'));
+  const root = $('pr-root');
+  loadPractice().then(function () { if (!$('screen-practice').hidden) CC.practice.open(); })
+    .catch(function () { root.innerHTML = ''; const p = document.createElement('p'); p.style.margin = '24px 0'; p.textContent = 'Practice could not be loaded. Please check your connection and try again.'; root.appendChild(p); });
+}
 /* the Home / About menu on the landing page */
 document.querySelectorAll('[data-nav]').forEach(function (b) {
   b.addEventListener('click', function () {
     b.blur(); CC.audio.init();
-    if (b.dataset.nav === 'home') showSessions(); else { leaveMode(); app.session = null; showOnly($('screen-' + b.dataset.nav)); }
+    if (b.dataset.nav === 'home') showSessions(); else if (b.dataset.nav === 'practice') openPractice(); else { leaveMode(); app.session = null; showOnly($('screen-' + b.dataset.nav)); }
   });
 });
 /* the QR code buttons (the top menu and the How to use page): one click downloads the printable QR code and the blank certificate tracker */

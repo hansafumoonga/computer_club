@@ -1,0 +1,321 @@
+/* practice.js - Practice: typing for everyone, in the same look as the rest of Tech Explorers. Three tabs: Speed Test, Drills and Word Rain.
+   Nothing is saved: no scores, no names, no settings. A result card can be downloaded as a picture.
+   Loaded the first time Practice is opened (see main.js), so the games open as fast as before. */
+(function () {
+'use strict';
+const CC = window.CC, Core = CC.practiceCore;
+const root = document.getElementById('pr-root');
+function el(tag, cls, text, attrs) {
+  const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text;
+  if (attrs) Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+  return e;
+}
+function fmt(n) { return String(Math.round(n)); }
+function pct(n) { return n >= 99.95 ? '100%' : n.toFixed(1) + '%'; }
+function clock(s) { s = Math.round(s); return s < 60 ? s + ' s' : Math.floor(s / 60) + ' min ' + (s % 60 < 10 ? '0' : '') + (s % 60) + ' s'; }
+const KEYNAME = { ' ': 'space', '+': 'extra letters' };
+function keyName(k) { return KEYNAME[k] || k; }
+const KEYCOL = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6'];            // the five key colours of the site
+const PAL = { line: 'rgba(255,255,255,.12)', dim: '#b7b8de', net: '#ffd23f', raw: '#5ac8ff', bad: '#ff5c72' };
+
+/* what is chosen on screen (kept only while the page is open) */
+const st = {
+  tab: 'drills',
+  time: 30,
+  weak: [], area: null, rainCtl: null, redraw: null, built: false, host: null
+};
+
+/* ---------- the speed-over-time graph ---------- */
+function drawChart(cv, series) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 640, h = cv.clientHeight || 190;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const L = 40, R = 12, T = 12, B = 26, pw = w - L - R, ph = h - T - B;
+  let max = 20; series.forEach(function (s) { max = Math.max(max, s.net, s.raw); });
+  const step = max > 120 ? 40 : max > 60 ? 20 : 10; max = Math.ceil(max * 1.08 / step) * step;
+  const total = Math.max(1, series[series.length - 1].t);
+  const X = function (t) { return L + pw * t / total; }, Y = function (v) { return T + ph * (1 - v / max); };
+  g.font = '12px "Trebuchet MS", "Segoe UI", sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'right';
+  for (let v = 0; v <= max; v += step) { g.strokeStyle = PAL.line; g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(L + pw, Y(v)); g.stroke(); g.fillStyle = PAL.dim; g.fillText(String(v), L - 6, Y(v)); }
+  g.textAlign = 'center'; g.textBaseline = 'top'; const ticks = total <= 20 ? 5 : total <= 70 ? 10 : 30;
+  for (let t = 0; t <= total; t += ticks) { g.fillStyle = PAL.dim; g.fillText(t + 's', X(t), T + ph + 7); }
+  function line(key, col, wd) { g.strokeStyle = col; g.lineWidth = wd; g.lineJoin = 'round'; g.beginPath(); series.forEach(function (s, i) { i ? g.lineTo(X(s.t), Y(s[key])) : g.moveTo(X(s.t), Y(s[key])); }); g.stroke(); }
+  line('raw', PAL.raw, 2); line('net', PAL.net, 3.2);
+  g.fillStyle = PAL.bad; series.forEach(function (s) { if (s.errs > 0) { g.beginPath(); g.arc(X(s.t), Y(s.raw) - 9, 3.5, 0, 6.2832); g.fill(); } });
+}
+
+/* ---------- the result card (a picture to download), in the site's colours ---------- */
+function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function makeCard(res, meta, name) {
+  const W = 1200, H = 630, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+  const SANS = '"Trebuchet MS", "Segoe UI", system-ui, Arial, sans-serif';
+  g.fillStyle = '#15163a'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = '#3a3e8a'; g.lineWidth = 10; rrect(g, 14, 14, W - 28, H - 28, 30); g.stroke();
+  g.strokeStyle = '#ffd23f'; g.lineWidth = 2.5; rrect(g, 30, 30, W - 60, H - 60, 20); g.stroke();
+  // TECH EXPLORERS in key caps, like the landing page
+  const t = 'TECH EXPLORERS'; let x = 64, k = 0; g.textBaseline = 'middle'; g.textAlign = 'center';
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] === ' ') { x += 18; continue; }
+    g.fillStyle = 'rgba(0,0,0,.35)'; rrect(g, x, 62, 34, 34, 8); g.fill(); g.fillStyle = KEYCOL[k % 5]; rrect(g, x, 58, 34, 34, 8); g.fill();
+    g.fillStyle = '#fff'; g.font = 'bold 20px ' + SANS; g.fillText(t[i], x + 17, 76); x += 38; k++;
+  }
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.fillStyle = '#ffd23f'; g.font = 'bold 40px ' + SANS; g.fillText('Typing Practice', 64, 150);
+  g.fillStyle = '#b7b8de'; g.font = '22px ' + SANS; g.fillText(meta.title, 64, 186);
+  g.textAlign = 'right'; g.fillText(new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }), W - 64, 76);
+  const who = (name || '').trim().slice(0, 30); if (who) { g.fillStyle = '#f5f4ff'; g.font = 'bold 34px ' + SANS; g.fillText(who, W - 64, 120); }
+  g.textAlign = 'left';
+  g.fillStyle = 'rgba(0,0,0,.4)'; g.font = 'bold 190px ' + SANS; g.fillText(fmt(res.net), 62, 386);
+  g.fillStyle = '#ffd23f'; g.fillText(fmt(res.net), 56, 380);
+  g.fillStyle = '#b7b8de'; g.font = '26px ' + SANS; g.fillText('words per minute (net speed)', 64, 424);
+  const tiles = [['Accuracy', pct(res.acc), '#22c6c6'], ['Raw speed', fmt(res.raw) + ' wpm', '#5ac8ff']];
+  if (res.consistency !== undefined) tiles.push(['Consistency', res.consistency == null ? '-' : res.consistency + '%', '#a77bff']);
+  tiles.push(['Time', clock(res.seconds), '#ff9f45']);
+  (meta.extra || []).slice(0, 2).forEach(function (e, i) { tiles.push([e.label, e.value, i ? '#6bcb77' : '#ff7a8a']); });
+  const cols = tiles.length > 4 ? 3 : 2, tx = 500, gap = 14, tw = Math.floor((W - 64 - tx - gap * (cols - 1)) / cols), th = 100;
+  tiles.forEach(function (tl, i) {
+    const bx = tx + (i % cols) * (tw + gap), by = 206 + Math.floor(i / cols) * (th + gap);
+    g.fillStyle = '#1f2150'; rrect(g, bx, by, tw, th, 20); g.fill(); g.strokeStyle = tl[2]; g.lineWidth = 4; g.stroke();
+    g.fillStyle = '#b7b8de'; g.font = '19px ' + SANS; g.fillText(tl[0], bx + 18, by + 33);
+    g.fillStyle = tl[2]; g.font = 'bold ' + (cols === 3 ? 30 : 36) + 'px ' + SANS; g.fillText(tl[1], bx + 18, by + 80);
+  });
+  if (res.series && res.series.length >= 2) {
+    const sx = 64, sy = 462, sw = W - 128, sh = 96, ser = res.series, total = Math.max(1, ser[ser.length - 1].t); let max = 20; ser.forEach(function (s) { max = Math.max(max, s.net, s.raw); });
+    g.fillStyle = 'rgba(10,12,40,.6)'; rrect(g, sx - 12, sy - 12, sw + 24, sh + 24, 14); g.fill();
+    function ln(key, col, wd) { g.strokeStyle = col; g.lineWidth = wd; g.lineJoin = 'round'; g.beginPath(); ser.forEach(function (s, i) { const px = sx + sw * s.t / total, py = sy + sh * (1 - s[key] / (max * 1.08)); i ? g.lineTo(px, py) : g.moveTo(px, py); }); g.stroke(); }
+    ln('raw', '#5ac8ff', 2); ln('net', '#ffd23f', 4);
+  }
+  return cv;
+}
+function downloadCard(res, meta, name) {
+  const cv = makeCard(res, meta, name), who = (name || '').trim().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
+  cv.toBlob(function (b) { if (!b) return; const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'typing-result-' + fmt(res.net) + 'wpm' + (who ? '-' + who : '') + '.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); }, 'image/png');
+}
+
+/* ---------- the result screen ---------- */
+function showResult(host, res, meta, acts) {
+  host.innerHTML = ''; acts = acts || {}; st.redraw = null;
+  const box = el('div', 'pr-result'); host.appendChild(box);
+  const h = el('h2', 'pr-h2', 'Result', { tabindex: '-1' }); box.appendChild(h);
+  box.appendChild(el('p', 'pr-meta', meta.title));
+  box.appendChild(el('p', 'pr-sr', 'Result: ' + fmt(res.net) + ' words per minute, ' + pct(res.acc) + ' accuracy.', { role: 'status' }));
+  const tiles = el('div', 'pr-tiles'); box.appendChild(tiles);
+  function tile(label, value, colour, big) { const t = el('div', 'pr-tile' + (big ? ' big' : '')); t.style.setProperty('--c', colour); t.appendChild(el('div', 'pr-tl', label)); t.appendChild(el('div', 'pr-tv', value)); tiles.appendChild(t); }
+  tile('Net speed', fmt(res.net) + ' wpm', '#ffd23f', true); tile('Accuracy', pct(res.acc), '#22c6c6'); tile('Raw speed', fmt(res.raw) + ' wpm', '#5ac8ff');
+  if (res.consistency !== undefined) tile('Consistency', res.consistency == null ? 'n/a' : res.consistency + '%', '#a77bff');
+  tile('Time', clock(res.seconds), '#ff9f45');
+  (meta.extra || []).forEach(function (x, i) { tile(x.label, x.value, i % 2 ? '#6bcb77' : '#ff7a8a'); });
+  if (res.series && res.series.length >= 2) {
+    const w = el('div', 'pr-chartwrap'), k = el('div', 'pr-chartkey'); k.innerHTML = '<span class="k1"></span>Net speed<span class="k2"></span>Raw speed<span class="k3"></span>Mistakes'; w.appendChild(k);
+    const cv = el('canvas', 'pr-chart', null, { role: 'img', 'aria-label': 'Graph of your speed in words per minute for each second' }); w.appendChild(cv); box.appendChild(w);
+    st.redraw = function () { if (cv.isConnected) drawChart(cv, res.series); }; requestAnimationFrame(function () { st.redraw && st.redraw(); });
+  }
+  if (res.weak && res.weak.length) {
+    const wk = el('div', 'pr-weak'); wk.appendChild(el('h3', 'pr-h3', 'Keys to practise'));
+    const ul = el('ul', 'pr-weaklist'); res.weak.forEach(function (x) { const li = el('li'); li.appendChild(el('kbd', null, keyName(x.key))); li.appendChild(document.createTextNode(x.errors + (x.errors === 1 ? ' mistake' : ' mistakes'))); ul.appendChild(li); });
+    wk.appendChild(ul);
+    if (acts.weak) { const b = el('button', 'btn', 'Practise these keys', { type: 'button' }); b.addEventListener('click', function () { b.blur(); st.weak = res.weak.map(function (x) { return x.key; }); acts.weak(); }); wk.appendChild(b); }
+    box.appendChild(wk);
+  }
+  const bench = el('div', 'pr-bench'); bench.appendChild(el('h3', 'pr-h3', 'For comparison'));
+  const track = el('div', 'pr-track'); const me = el('i', 'pr-me'), avg = el('i', 'pr-avg');
+  me.style.left = Math.min(100, Math.max(0, res.net / 120 * 100)) + '%'; avg.style.left = (52 / 120 * 100) + '%';
+  me.appendChild(el('b', null, 'You')); avg.appendChild(el('b', null, '52')); track.appendChild(avg); track.appendChild(me); bench.appendChild(track);
+  bench.appendChild(el('p', 'pr-small', 'The average in a 2018 study of 168,000 volunteers was 52 wpm.'));
+  box.appendChild(bench);
+  const card = el('div', 'pr-cardrow'); const lab = el('label', 'pr-lab', 'Name on the card (optional)'); const inp = el('input', 'pr-input', null, { type: 'text', maxlength: '30', autocomplete: 'off', placeholder: 'Your name' }); lab.appendChild(inp);
+  const dl = el('button', 'btn primary', 'Download result card', { type: 'button' }); dl.addEventListener('click', function () { dl.blur(); downloadCard(res, meta, inp.value); });
+  card.appendChild(lab); card.appendChild(dl); box.appendChild(card);
+  const row = el('div', 'pr-actions');
+  if (acts.again) { const b = el('button', 'btn primary', acts.againLabel || 'Try again', { type: 'button' }); b.addEventListener('click', function () { b.blur(); acts.again(); }); row.appendChild(b); }
+  if (acts.more) { const b = el('button', 'btn', acts.moreLabel || 'Back', { type: 'button' }); b.addEventListener('click', function () { b.blur(); acts.more(); }); row.appendChild(b); }
+  box.appendChild(row);
+  h.focus({ preventScroll: false });
+}
+
+/* ---------- the typing area (used by the Speed Test and the Drills): the Typing Racer text line, with a yellow block on the next key ---------- */
+function makeArea(o) {
+  const S = new Core.Session(o.words); if (o.mode === 'time') S.endOnLast = false;
+  const wrap = el('div', 'pr-area');
+  const live = el('div', 'pr-live'); const tLeft = el('span', 'pr-stat timer'), tWpm = el('span', 'pr-stat'), tAcc = el('span', 'pr-stat'); live.appendChild(tLeft); live.appendChild(tWpm); live.appendChild(tAcc);
+  const hint = el('div', 'pr-starthint', o.hint || 'Start typing to begin  \u00b7  Esc to restart');
+  const box = el('div', 'pr-textbox'), view = el('div', 'pr-view'), inner = el('div', 'pr-text');
+  const cap = el('input', 'pr-capture', null, { type: 'text', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': 'Typing area. The test starts when you begin typing.' });
+  const focusMsg = el('div', 'pr-focusmsg', 'Click here to continue typing');
+  view.appendChild(inner); box.appendChild(view); box.appendChild(focusMsg); box.appendChild(cap);
+  wrap.appendChild(live); wrap.appendChild(box); wrap.appendChild(hint);
+  const els = []; let timer = 0, finished = false;
+  function addWord(i) {
+    const w = S.words[i], we = { w: el('span', 'w'), chars: [], extras: [], sp: el('span', 'sp', ' ') };
+    for (let j = 0; j < w.length; j++) { const c = el('span', 'c', w.charAt(j)); we.w.appendChild(c); we.chars.push(c); }
+    els[i] = we; inner.appendChild(we.w); inner.appendChild(we.sp);
+  }
+  for (let i = 0; i < S.words.length; i++) addWord(i);
+  function paint(i) {
+    const we = els[i]; if (!we) return; const w = S.words[i], t = i < S.wi ? S.typed[i] : i === S.wi ? S.buf : '', here = i === S.wi && !S.done;
+    for (let j = 0; j < w.length; j++) we.chars[j].className = 'c' + (j < t.length ? (t.charAt(j) === w.charAt(j) ? ' ok' : ' bad') : '') + (here && j === t.length ? ' cur' : '');
+    while (we.extras.length > Math.max(0, t.length - w.length)) we.w.removeChild(we.extras.pop());
+    while (we.extras.length < t.length - w.length) { const x = el('span', 'c bad x', t.charAt(w.length + we.extras.length)); we.w.appendChild(x); we.extras.push(x); }
+    we.sp.className = 'sp' + (here && t.length >= w.length ? ' cur' : '');
+    we.w.className = 'w' + (i < S.wi && S.typed[i] !== w ? ' wrong' : '');
+  }
+  function place() {                                    // keep the line you are typing on the second of the three visible lines
+    const i = Math.min(S.wi, els.length - 1), we = els[i]; if (!we) return;
+    const cur = S.buf.length < we.chars.length ? we.chars[S.buf.length] : we.sp, y = cur.offsetTop, lh = els[0].w.offsetHeight || 40;
+    inner.style.transform = 'translateY(' + (-Math.max(0, Math.round(y / lh) - 1) * lh) + 'px)';
+  }
+  function topUp() { if (o.more && S.words.length - S.wi < 60) { const from = S.words.length, add = o.more(60); S.more(add); for (let i = from; i < S.words.length; i++) addWord(i); } }
+  function hud() {
+    const now = performance.now(), s = S.stats(now);
+    if (o.mode === 'time') tLeft.textContent = '⏱ ' + Math.max(0, Math.ceil(o.time - (S.t0 == null ? 0 : s.elapsed))) + ' s'; else tLeft.textContent = Math.min(S.wi, S.words.length) + ' / ' + S.words.length + ' words';
+    tWpm.textContent = S.t0 != null && s.elapsed >= 3 ? '⚡ ' + fmt(s.net) + ' wpm' : ''; tWpm.hidden = !tWpm.textContent;
+    tAcc.textContent = S.keys ? '🎯 ' + pct(s.acc) : ''; tAcc.hidden = !tAcc.textContent;
+  }
+  function end() {
+    if (finished) return; finished = true; clearInterval(timer); cap.blur(); wrap.classList.add('done');
+    for (let i = 0; i < els.length; i++) paint(i);
+    o.onDone(S.result(), S);
+  }
+  function loop() {
+    const now = performance.now(); if (S.t0 != null) S.tick(now);
+    if (o.mode === 'time' && S.t0 != null && (now - S.t0) / 1000 >= o.time) { S.finish(S.t0 + o.time * 1000); end(); return; }
+    if (S.done) { end(); return; }
+    hud();
+  }
+  cap.addEventListener('keydown', function (e) {
+    if (finished || e.isComposing) return;
+    if (e.key === 'Escape') { e.preventDefault(); o.onRestart && o.onRestart(); return; }
+    if (e.key === 'Tab' || e.key === 'Enter') { if (e.key === 'Enter') e.preventDefault(); return; }
+    const altGr = e.altKey && e.getModifierState && e.getModifierState('AltGraph');
+    if (e.key === 'Backspace') { e.preventDefault(); const p = S.wi; S.back(e.ctrlKey || e.altKey); paint(p); paint(S.wi); place(); hud(); return; }
+    if ((e.ctrlKey || e.metaKey || e.altKey) && !altGr) return;
+    if (e.key.length !== 1) return;
+    e.preventDefault();
+    if (S.t0 == null) { hint.hidden = true; }
+    const p = S.wi; if (!S.key(e.key, performance.now())) return;
+    paint(p); paint(S.wi); if (S.wi + 1 < els.length) paint(S.wi + 1); topUp(); place(); hud();
+    if (S.done) end();
+  });
+  cap.addEventListener('focus', function () { wrap.classList.remove('blurred'); }); cap.addEventListener('blur', function () { if (!finished) wrap.classList.add('blurred'); });
+  box.addEventListener('mousedown', function () { setTimeout(function () { cap.focus(); }, 0); });
+  function relayout() { if (!finished) place(); }
+  paint(0); hud(); wrap.classList.add('blurred');
+  requestAnimationFrame(function () { place(); });
+  timer = setInterval(loop, 100);
+  return { el: wrap, focus: function () { cap.focus(); place(); }, destroy: function () { finished = true; clearInterval(timer); }, relayout: relayout, session: S };
+}
+
+/* ---------- small controls (the site's own pill buttons) ---------- */
+function chip(label, on, fn, disabled) {
+  const b = el('button', 'btn pr-chip' + (on ? ' on' : ''), label, { type: 'button', 'aria-pressed': on ? 'true' : 'false' }); if (disabled) b.disabled = true;
+  b.addEventListener('click', function () { b.blur(); fn(); }); return b;
+}
+function group(label, options, get, set, o) {
+  o = o || {}; const g = el('div', 'pr-group'); g.appendChild(el('span', 'pr-glabel', label)); const row = el('div', 'pr-chips', null, { role: 'group', 'aria-label': label }); g.appendChild(row);
+  options.forEach(function (op) { row.appendChild(chip(op.label, get() === op.value, function () { set(op.value); }, o.disabled)); });
+  return g;
+}
+
+function destroyActive() {
+  if (st.area) { st.area.destroy(); st.area = null; }
+  if (st.rainCtl) { st.rainCtl.stop(); st.rainCtl = null; }
+  st.redraw = null;
+}
+
+/* ---------- tab 1: Speed Test (everyday words; you choose only how long) ---------- */
+function renderTest(host) {
+  destroyActive(); host.innerHTML = '';
+  const bar = el('div', 'pr-controls'); host.appendChild(bar);
+  bar.appendChild(group('Length', [15, 30, 60].map(function (n) { return { label: n + ' s', value: n }; }), function () { return st.time; }, function (v) { st.time = v; renderTest(host); }));
+  const stage = el('div', 'pr-stage'); host.appendChild(stage);
+  function start() {
+    if (st.area) st.area.destroy(); st.area = null; st.redraw = null; stage.innerHTML = '';
+    const area = makeArea({
+      words: Core.words(120), mode: 'time', time: st.time, more: function (n) { return Core.words(n); }, onRestart: start,
+      onDone: function (res) {
+        st.weak = res.weak.map(function (x) { return x.key; });
+        showResult(stage, res, { title: st.time + ' seconds' }, { again: start, weak: function () { setTab('drills', 'weak'); } });
+      }
+    });
+    st.area = area; stage.appendChild(area.el); area.focus();
+  }
+  start();
+}
+
+/* ---------- tab 2: Drills (one short exercise: your weak keys if you have some, otherwise a warm-up) ---------- */
+function renderDrills(host, arg) {
+  destroyActive(); host.innerHTML = '';
+  const stage = el('div', 'pr-stage'); host.appendChild(stage);
+  function go() {
+    destroyActive(); stage.innerHTML = '';
+    const weak = st.weak.length > 0, title = weak ? 'Your weak keys' : 'Warm-up';
+    const area = makeArea({
+      words: weak ? Core.weakWords(st.weak, 30) : Core.words(30), mode: 'words', onRestart: go,
+      onDone: function (res) { st.weak = res.weak.map(function (x) { return x.key; }); showResult(stage, res, { title: title }, { again: go, againLabel: 'Practise again', weak: function () { renderDrills(host, 'weak'); } }); }
+    });
+    st.area = area; stage.appendChild(area.el); area.focus();
+  }
+  if (arg === 'weak' && st.weak.length) { go(); return; }
+  const card = el('div', 'pr-startcard'); card.appendChild(el('div', 'pr-bigicon', st.weak.length ? '\ud83c\udfaf' : '\ud83d\udd25'));
+  card.appendChild(el('h2', 'pr-h2', st.weak.length ? 'Your weak keys' : 'Warm-up'));
+  if (st.weak.length) card.appendChild(el('p', 'pr-small', st.weak.slice(0, 5).map(keyName).join('  ')));
+  const b = el('button', 'btn primary pr-go', '\u25b6 Start', { type: 'button' }); b.addEventListener('click', function () { b.blur(); go(); }); card.appendChild(b); stage.appendChild(card); b.focus();
+}
+
+/* ---------- tab 3: Word Rain (the same game and look as Year 6, with no choices to make) ---------- */
+function renderRain(host) {
+  destroyActive(); host.innerHTML = '';
+  if (!CC.practiceRain) { host.appendChild(el('p', 'pr-lead', 'Word Rain could not be loaded. Please reload the page and try again.')); return; }
+  const stage = el('div', 'pr-stage'); host.appendChild(stage);
+  function begin() {
+    destroyActive(); stage.innerHTML = '';
+    st.rainCtl = CC.practiceRain.start(stage, { sound: true }, {
+      el: el, fmt: fmt, pct: pct,
+      done: function (res, meta) {
+        st.rainCtl = null; st.weak = (res.weak || []).map(function (x) { return x.key; });
+        showResult(stage, res, meta, { again: begin, againLabel: '\ud83d\udd01 Play again', weak: function () { setTab('drills', 'weak'); } });
+      }
+    });
+  }
+  const card = el('div', 'pr-startcard'); card.appendChild(el('div', 'pr-bigicon', '\ud83c\udf27\ufe0f')); card.appendChild(el('h2', 'pr-h2', 'Word Rain'));
+  card.appendChild(el('p', 'pr-small', 'Type the falling words to pop them!'));
+  const go = el('button', 'btn primary pr-go', '\u25b6 Go!', { type: 'button' }); go.addEventListener('click', function () { go.blur(); begin(); }); card.appendChild(go); stage.appendChild(card); go.focus();
+}
+
+/* ---------- the frame: heading, tabs ---------- */
+const TABS = [{ id: 'drills', icon: '🎯', label: 'Drills' }, { id: 'test', icon: '⚡', label: 'Speed Test' }, { id: 'rain', icon: '🌧️', label: 'Word Rain' }];
+function setTab(id, arg) { st.tab = id; renderTab(arg); }
+function renderTab(arg) {
+  destroyActive(); if (!st.host) return;
+  root.querySelectorAll('[role=tab]').forEach(function (b) { const on = b.dataset.tab === st.tab; b.setAttribute('aria-selected', on ? 'true' : 'false'); b.classList.toggle('on', on); b.tabIndex = on ? 0 : -1; });
+  st.host.setAttribute('aria-labelledby', 'pr-tab-' + st.tab);
+  ({ test: renderTest, drills: renderDrills, rain: renderRain })[st.tab](st.host, arg);
+}
+function build() {
+  root.innerHTML = ''; root.className = 'pr';
+  root.appendChild(el('h1', 'pr-title', '⌨️ Practice')); root.appendChild(el('p', 'pr-sub', 'Typing for everyone'));
+  if ((window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || window.innerWidth < 700) root.appendChild(el('p', 'pr-note', 'Best on a computer with a keyboard.', { role: 'note' }));
+  const tabs = el('div', 'group-tabs pr-tabs', null, { role: 'tablist', 'aria-label': 'Practice' });
+  TABS.forEach(function (x) {
+    const b = el('button', 'group-tab', null, { type: 'button', role: 'tab', id: 'pr-tab-' + x.id, 'aria-controls': 'pr-panel' }); b.dataset.tab = x.id;
+    b.appendChild(el('span', 'gi', x.icon)); b.appendChild(el('span', 'gn', x.label));
+    b.addEventListener('click', function () { b.blur(); setTab(x.id); });
+    b.addEventListener('keydown', function (e) {
+      const i = TABS.findIndex(function (y) { return y.id === st.tab; }), to = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? TABS.length - 1 : null;
+      if (to === null) return; e.preventDefault(); setTab(TABS[(to + TABS.length) % TABS.length].id); root.querySelector('[role=tab][aria-selected=true]').focus();
+    });
+    tabs.appendChild(b);
+  });
+  root.appendChild(tabs);
+  st.host = el('div', 'pr-panel', null, { role: 'tabpanel', id: 'pr-panel' }); root.appendChild(st.host);
+  window.addEventListener('resize', function () { if (st.area) st.area.relayout(); if (st.redraw) st.redraw(); });
+  st.built = true;
+}
+
+CC.practice = {
+  open: function () { if (!st.built) build(); st.tab = st.tab || 'test'; renderTab(); },
+  leave: function () { destroyActive(); },
+  ui: { el: el, showResult: showResult, fmt: fmt, pct: pct, clock: clock },
+  _st: st, _makeCard: makeCard
+};
+})();

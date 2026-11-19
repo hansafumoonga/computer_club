@@ -88,6 +88,15 @@ The **Skill Games** tab holds the arcade games (Slice & Pop, Jump Over!, Piano, 
 ## QR code for quick access
 `tech-explorers-qr.pdf` is a one-page printable QR code with clear camera instructions (the QR code buttons download it, with the certificate tracker, see below). If you host your own copy, make a new QR code for your own address.
 
+## Practice (typing for everyone)
+**Practice** is a button in the top menu (next to How to use, About and Author). It is for anyone, not only the learners, and it keeps the look of the rest of the site (indigo panels, pill buttons, the Typing Racer text line). It needs a computer with a keyboard. Nothing is saved or sent anywhere: no scores, names or settings, and the page forgets everything when it is closed. It is kept deliberately simple, with almost nothing to choose.
+- **Drills:** one short exercise, 30 words: your weak keys from the last result if you have some, otherwise a warm-up.
+- **Speed Test:** everyday English words; the only choice is the length (15, 30 or 60 seconds). The result shows net speed, accuracy, raw speed, consistency, a graph, the most-missed keys and a downloadable result card (a picture, with an optional name).
+- **Word Rain:** the same game and look as Year 6 (balloon words, storm sky, lightning, thunder, combos), on Medium speed for 2 minutes with everyday words. It reuses the Word Rain classes in `css/typing.css`; the Typing Club version for Years 4 to 6 is unchanged. The sound can be switched off in the game.
+- **How it measures:** net speed = correct characters / 5 / minutes; raw speed counts every character typed; accuracy = correct key presses / all key presses (Backspace is not counted); consistency = 100% minus the variation (standard deviation / mean) of the second-by-second speed. For comparison it quotes the average of 52 words per minute from a 2018 study of 168,000 volunteers (Aalto University and the University of Cambridge).
+- **Files:** `css/practice.css`, `js/practice_data.js` (the word list), `js/practice_core.js` (word making and the scoring maths, with no page code so it can be tested alone), `js/practice.js` (the screen, tabs, Speed Test, Drill, results and the result card) and `js/practice_rain.js` (Word Rain). They are fetched the first time Practice is opened (see `openPractice` in `js/main.js`), so the games open as fast as before.
+- **Words:** English, British spelling.
+
 ## Certificate tracker for teachers
 The QR code buttons (in the top menu of every page, and on the How to use page) download two files in one click: the printable QR code (`tech-explorers-qr.pdf`) and a blank Excel sheet (`downloads/Tech-Explorers-Certificate-Tracker.xlsx`) for keeping track of which learners have earned which certificate, and who has had an overall certificate at the end of term. It has one row per learner, a column for every certificate and reward, totals that update by themselves, and a Yes or No for the overall certificate. The sheet is blank on purpose: it holds no learner names, and a teacher should keep their own copy on their own computer. The browser may ask once to allow two downloads.
 
