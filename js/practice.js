@@ -16,33 +16,13 @@ function clock(s) { s = Math.round(s); return s < 60 ? s + ' s' : Math.floor(s /
 const KEYNAME = { ' ': 'space', '+': 'extra letters' };
 function keyName(k) { return KEYNAME[k] || k; }
 const KEYCOL = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6'];            // the five key colours of the site
-const PAL = { line: 'rgba(255,255,255,.12)', dim: '#b7b8de', net: '#ffd23f', raw: '#5ac8ff', bad: '#ff5c72' };
 
 /* what is chosen on screen (kept only while the page is open) */
 const st = {
   tab: 'drills',
   time: 30,
-  weak: [], area: null, rainCtl: null, redraw: null, built: false, host: null
+  weak: [], area: null, rainCtl: null, built: false, host: null
 };
-
-/* ---------- the speed-over-time graph ---------- */
-function drawChart(cv, series) {
-  const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 640, h = cv.clientHeight || 190;
-  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const L = 40, R = 12, T = 12, B = 26, pw = w - L - R, ph = h - T - B;
-  let max = 20; series.forEach(function (s) { max = Math.max(max, s.net, s.raw); });
-  const step = max > 120 ? 40 : max > 60 ? 20 : 10; max = Math.ceil(max * 1.08 / step) * step;
-  const total = Math.max(1, series[series.length - 1].t);
-  const X = function (t) { return L + pw * t / total; }, Y = function (v) { return T + ph * (1 - v / max); };
-  g.font = '12px "Trebuchet MS", "Segoe UI", sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'right';
-  for (let v = 0; v <= max; v += step) { g.strokeStyle = PAL.line; g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(L + pw, Y(v)); g.stroke(); g.fillStyle = PAL.dim; g.fillText(String(v), L - 6, Y(v)); }
-  g.textAlign = 'center'; g.textBaseline = 'top'; const ticks = total <= 20 ? 5 : total <= 70 ? 10 : 30;
-  for (let t = 0; t <= total; t += ticks) { g.fillStyle = PAL.dim; g.fillText(t + 's', X(t), T + ph + 7); }
-  function line(key, col, wd) { g.strokeStyle = col; g.lineWidth = wd; g.lineJoin = 'round'; g.beginPath(); series.forEach(function (s, i) { i ? g.lineTo(X(s.t), Y(s[key])) : g.moveTo(X(s.t), Y(s[key])); }); g.stroke(); }
-  line('raw', PAL.raw, 2); line('net', PAL.net, 3.2);
-  g.fillStyle = PAL.bad; series.forEach(function (s) { if (s.errs > 0) { g.beginPath(); g.arc(X(s.t), Y(s.raw) - 9, 3.5, 0, 6.2832); g.fill(); } });
-}
 
 /* ---------- the result card (a picture to download), in the site's colours ---------- */
 function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
@@ -65,26 +45,16 @@ function makeCard(res, meta, name) {
   g.textAlign = 'right'; g.fillText(new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }), W - 64, 76);
   const who = (name || '').trim().slice(0, 30); if (who) { g.fillStyle = '#f5f4ff'; g.font = 'bold 34px ' + SANS; g.fillText(who, W - 64, 120); }
   g.textAlign = 'left';
-  g.fillStyle = 'rgba(0,0,0,.4)'; g.font = 'bold 190px ' + SANS; g.fillText(fmt(res.net), 62, 386);
-  g.fillStyle = '#ffd23f'; g.fillText(fmt(res.net), 56, 380);
-  g.fillStyle = '#b7b8de'; g.font = '26px ' + SANS; g.fillText('words per minute (net speed)', 64, 424);
-  const tiles = [['Accuracy', pct(res.acc), '#22c6c6'], ['Raw speed', fmt(res.raw) + ' wpm', '#5ac8ff']];
-  if (res.consistency !== undefined) tiles.push(['Consistency', res.consistency == null ? '-' : res.consistency + '%', '#a77bff']);
-  tiles.push(['Time', clock(res.seconds), '#ff9f45']);
-  (meta.extra || []).slice(0, 2).forEach(function (e, i) { tiles.push([e.label, e.value, i ? '#6bcb77' : '#ff7a8a']); });
-  const cols = tiles.length > 4 ? 3 : 2, tx = 500, gap = 14, tw = Math.floor((W - 64 - tx - gap * (cols - 1)) / cols), th = 100;
+  g.fillStyle = 'rgba(0,0,0,.4)'; g.font = 'bold 230px ' + SANS; g.fillText(fmt(res.net), 62, 486);
+  g.fillStyle = '#ffd23f'; g.fillText(fmt(res.net), 56, 480);
+  g.fillStyle = '#b7b8de'; g.font = '30px ' + SANS; g.fillText('words per minute', 64, 536);
+  const tiles = [['Accuracy', pct(res.acc), '#22c6c6'], ['Time', clock(res.seconds), '#ff9f45']];
   tiles.forEach(function (tl, i) {
-    const bx = tx + (i % cols) * (tw + gap), by = 206 + Math.floor(i / cols) * (th + gap);
-    g.fillStyle = '#1f2150'; rrect(g, bx, by, tw, th, 20); g.fill(); g.strokeStyle = tl[2]; g.lineWidth = 4; g.stroke();
-    g.fillStyle = '#b7b8de'; g.font = '19px ' + SANS; g.fillText(tl[0], bx + 18, by + 33);
-    g.fillStyle = tl[2]; g.font = 'bold ' + (cols === 3 ? 30 : 36) + 'px ' + SANS; g.fillText(tl[1], bx + 18, by + 80);
+    const bx = 520 + i * 316, by = 300, tw = 300, th = 150;
+    g.fillStyle = '#1f2150'; rrect(g, bx, by, tw, th, 24); g.fill(); g.strokeStyle = tl[2]; g.lineWidth = 5; g.stroke();
+    g.fillStyle = '#b7b8de'; g.font = '24px ' + SANS; g.fillText(tl[0], bx + 24, by + 48);
+    g.fillStyle = tl[2]; g.font = 'bold 52px ' + SANS; g.fillText(tl[1], bx + 24, by + 116);
   });
-  if (res.series && res.series.length >= 2) {
-    const sx = 64, sy = 462, sw = W - 128, sh = 96, ser = res.series, total = Math.max(1, ser[ser.length - 1].t); let max = 20; ser.forEach(function (s) { max = Math.max(max, s.net, s.raw); });
-    g.fillStyle = 'rgba(10,12,40,.6)'; rrect(g, sx - 12, sy - 12, sw + 24, sh + 24, 14); g.fill();
-    function ln(key, col, wd) { g.strokeStyle = col; g.lineWidth = wd; g.lineJoin = 'round'; g.beginPath(); ser.forEach(function (s, i) { const px = sx + sw * s.t / total, py = sy + sh * (1 - s[key] / (max * 1.08)); i ? g.lineTo(px, py) : g.moveTo(px, py); }); g.stroke(); }
-    ln('raw', '#5ac8ff', 2); ln('net', '#ffd23f', 4);
-  }
   return cv;
 }
 function downloadCard(res, meta, name) {
@@ -94,22 +64,14 @@ function downloadCard(res, meta, name) {
 
 /* ---------- the result screen ---------- */
 function showResult(host, res, meta, acts) {
-  host.innerHTML = ''; acts = acts || {}; st.redraw = null;
+  host.innerHTML = ''; acts = acts || {};
   const box = el('div', 'pr-result'); host.appendChild(box);
   const h = el('h2', 'pr-h2', 'Result', { tabindex: '-1' }); box.appendChild(h);
   box.appendChild(el('p', 'pr-meta', meta.title));
   box.appendChild(el('p', 'pr-sr', 'Result: ' + fmt(res.net) + ' words per minute, ' + pct(res.acc) + ' accuracy.', { role: 'status' }));
   const tiles = el('div', 'pr-tiles'); box.appendChild(tiles);
   function tile(label, value, colour, big) { const t = el('div', 'pr-tile' + (big ? ' big' : '')); t.style.setProperty('--c', colour); t.appendChild(el('div', 'pr-tl', label)); t.appendChild(el('div', 'pr-tv', value)); tiles.appendChild(t); }
-  tile('Net speed', fmt(res.net) + ' wpm', '#ffd23f', true); tile('Accuracy', pct(res.acc), '#22c6c6'); tile('Raw speed', fmt(res.raw) + ' wpm', '#5ac8ff');
-  if (res.consistency !== undefined) tile('Consistency', res.consistency == null ? 'n/a' : res.consistency + '%', '#a77bff');
-  tile('Time', clock(res.seconds), '#ff9f45');
-  (meta.extra || []).forEach(function (x, i) { tile(x.label, x.value, i % 2 ? '#6bcb77' : '#ff7a8a'); });
-  if (res.series && res.series.length >= 2) {
-    const w = el('div', 'pr-chartwrap'), k = el('div', 'pr-chartkey'); k.innerHTML = '<span class="k1"></span>Net speed<span class="k2"></span>Raw speed<span class="k3"></span>Mistakes'; w.appendChild(k);
-    const cv = el('canvas', 'pr-chart', null, { role: 'img', 'aria-label': 'Graph of your speed in words per minute for each second' }); w.appendChild(cv); box.appendChild(w);
-    st.redraw = function () { if (cv.isConnected) drawChart(cv, res.series); }; requestAnimationFrame(function () { st.redraw && st.redraw(); });
-  }
+  tile('Speed', fmt(res.net) + ' wpm', '#ffd23f', true); tile('Accuracy', pct(res.acc), '#22c6c6'); tile('Time', clock(res.seconds), '#ff9f45');
   if (res.weak && res.weak.length) {
     const wk = el('div', 'pr-weak'); wk.appendChild(el('h3', 'pr-h3', 'Keys to practise'));
     const ul = el('ul', 'pr-weaklist'); res.weak.forEach(function (x) { const li = el('li'); li.appendChild(el('kbd', null, keyName(x.key))); li.appendChild(document.createTextNode(x.errors + (x.errors === 1 ? ' mistake' : ' mistakes'))); ul.appendChild(li); });
@@ -117,12 +79,6 @@ function showResult(host, res, meta, acts) {
     if (acts.weak) { const b = el('button', 'btn', 'Practise these keys', { type: 'button' }); b.addEventListener('click', function () { b.blur(); st.weak = res.weak.map(function (x) { return x.key; }); acts.weak(); }); wk.appendChild(b); }
     box.appendChild(wk);
   }
-  const bench = el('div', 'pr-bench'); bench.appendChild(el('h3', 'pr-h3', 'For comparison'));
-  const track = el('div', 'pr-track'); const me = el('i', 'pr-me'), avg = el('i', 'pr-avg');
-  me.style.left = Math.min(100, Math.max(0, res.net / 120 * 100)) + '%'; avg.style.left = (52 / 120 * 100) + '%';
-  me.appendChild(el('b', null, 'You')); avg.appendChild(el('b', null, '52')); track.appendChild(avg); track.appendChild(me); bench.appendChild(track);
-  bench.appendChild(el('p', 'pr-small', 'The average in a 2018 study of 168,000 volunteers was 52 wpm.'));
-  box.appendChild(bench);
   const card = el('div', 'pr-cardrow'); const lab = el('label', 'pr-lab', 'Name on the card (optional)'); const inp = el('input', 'pr-input', null, { type: 'text', maxlength: '30', autocomplete: 'off', placeholder: 'Your name' }); lab.appendChild(inp);
   const dl = el('button', 'btn primary', 'Download result card', { type: 'button' }); dl.addEventListener('click', function () { dl.blur(); downloadCard(res, meta, inp.value); });
   card.appendChild(lab); card.appendChild(dl); box.appendChild(card);
@@ -177,7 +133,7 @@ function makeArea(o) {
     o.onDone(S.result(), S);
   }
   function loop() {
-    const now = performance.now(); if (S.t0 != null) S.tick(now);
+    const now = performance.now();
     if (o.mode === 'time' && S.t0 != null && (now - S.t0) / 1000 >= o.time) { S.finish(S.t0 + o.time * 1000); end(); return; }
     if (S.done) { end(); return; }
     hud();
@@ -219,7 +175,6 @@ function group(label, options, get, set, o) {
 function destroyActive() {
   if (st.area) { st.area.destroy(); st.area = null; }
   if (st.rainCtl) { st.rainCtl.stop(); st.rainCtl = null; }
-  st.redraw = null;
 }
 
 /* ---------- tab 1: Speed Test (everyday words; you choose only how long) ---------- */
@@ -229,7 +184,7 @@ function renderTest(host) {
   bar.appendChild(group('Length', [15, 30, 60].map(function (n) { return { label: n + ' s', value: n }; }), function () { return st.time; }, function (v) { st.time = v; renderTest(host); }));
   const stage = el('div', 'pr-stage'); host.appendChild(stage);
   function start() {
-    if (st.area) st.area.destroy(); st.area = null; st.redraw = null; stage.innerHTML = '';
+    if (st.area) st.area.destroy(); st.area = null; stage.innerHTML = '';
     const area = makeArea({
       words: Core.words(120), mode: 'time', time: st.time, more: function (n) { return Core.words(n); }, onRestart: start,
       onDone: function (res) {
@@ -308,7 +263,7 @@ function build() {
   });
   root.appendChild(tabs);
   st.host = el('div', 'pr-panel', null, { role: 'tabpanel', id: 'pr-panel' }); root.appendChild(st.host);
-  window.addEventListener('resize', function () { if (st.area) st.area.relayout(); if (st.redraw) st.redraw(); });
+  window.addEventListener('resize', function () { if (st.area) st.area.relayout(); });
   st.built = true;
 }
 

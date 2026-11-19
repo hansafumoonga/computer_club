@@ -36,7 +36,7 @@ function start(host, cfg, api) {
   f.appendChild(el('div', 'rain-water'));
   const banner = el('div', 'rain-banner'); banner.hidden = true; f.appendChild(banner);
 
-  const R = { phase: 'count', t: 0, dur: 120, words: [], caught: 0, bonus: 0, popped: 0, missed: 0, combos: 0, streak: 0, best: 0, target: null, good: 0, errors: 0, err: {}, spawnT: 0.2, comboT: (12 + Math.random() * 5) * clamp(sp.gap[0] / 2, 0.9, 2.2), comboWait: 0, comboN: 0, lastLane: -1, skyT: 6 + Math.random() * 4, lastFlash: -9, series: [], sec: 0, keysPrev: 0, errPrev: 0, snd: null, sndOn: !!cfg.sound, paused: false };
+  const R = { phase: 'count', t: 0, dur: 120, words: [], caught: 0, bonus: 0, popped: 0, missed: 0, combos: 0, streak: 0, best: 0, target: null, good: 0, errors: 0, err: {}, spawnT: 0.2, comboT: (12 + Math.random() * 5) * clamp(sp.gap[0] / 2, 0.9, 2.2), comboWait: 0, comboN: 0, lastLane: -1, skyT: 6 + Math.random() * 4, lastFlash: -9, snd: null, sndOn: !!cfg.sound, paused: false };
   let raf = 0, last = 0, stopped = false;
 
   /* ---- sound (optional) ---- */
@@ -167,24 +167,18 @@ function start(host, cfg, api) {
   function onVis() { if (document.hidden && R.phase === 'play' && !R.paused) togglePause(); }
   document.addEventListener('visibilitychange', onVis);
   function stop() { stopped = true; cancelAnimationFrame(raf); document.removeEventListener('keydown', onKey, true); document.removeEventListener('visibilitychange', onVis); timers.forEach(clearTimeout); timers.length = 0; sndStop(); }
-  function sample(final) {
-    const t = final ? R.t : R.sec, c = chars(), min = Math.max(R.t, 0.001) / 60, k = keys();
-    R.series.push({ t: t, net: c / 5 / min, raw: k / 5 / min, inst: (k - R.keysPrev) / 5 * 60 / (final ? Math.max(R.t - Math.floor(R.t), 0.5) : 1), errs: R.errors - R.errPrev });
-    R.keysPrev = k; R.errPrev = R.errors;
-  }
   function finish() {
     if (R.phase === 'done') return; R.phase = 'done';
-    if (R.t - R.sec >= 0.5) sample(true);
     stop(); sfx('levelComplete');
     const sec = Math.max(R.t, 1), min = sec / 60, weak = Object.keys(R.err).map(function (k) { return { key: k, errors: R.err[k] }; }).sort(function (a, b) { return b.errors - a.errors; }).slice(0, 5);
-    const res = { net: chars() / 5 / min, raw: keys() / 5 / min, acc: acc(), seconds: sec, correct: R.good, wrong: R.errors, extra: 0, missed: R.missed, words: R.popped, series: R.series, weak: weak };
-    const meta = { title: 'Word Rain - 2 minutes', extra: [{ label: 'Caught', value: String(score()) }, { label: 'Missed', value: String(R.missed) }, { label: 'Combos', value: String(R.combos) }] };
+    const res = { net: chars() / 5 / min, acc: acc(), seconds: sec, weak: weak };
+    const meta = { title: 'Word Rain - 2 minutes' };
     api.done(res, meta);
   }
 
   /* ---- each frame ---- */
   function update(dt) {
-    R.t += dt; while (R.sec + 1 <= R.t) { R.sec++; sample(false); }
+    R.t += dt;
     const H = f.clientHeight || 340, p = Math.min(1, R.t / R.dur), q = Math.pow(p, 1.2), v = (H - 60) / (sp.fall[0] - (sp.fall[0] - sp.fall[1]) * q);   // the rain speeds up only a little during the round
     R.skyT -= dt; if (R.skyT <= 0) { R.skyT = 8 + Math.random() * 7; flash(true); sfx('thunder', 0); }
     R.spawnT -= dt; if (R.spawnT <= 0 && R.dur - R.t > 3) { if (R.comboWait > 0) R.spawnT = 0.15; else R.spawnT = spawn(1) ? (sp.gap[0] - (sp.gap[0] - sp.gap[1]) * q) * (0.85 + Math.random() * 0.3) : 0.15; }
