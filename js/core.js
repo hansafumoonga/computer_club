@@ -14,7 +14,8 @@ CC.keep = {
     try { const r = JSON.parse(localStorage.getItem('te_' + k)); if (r && Date.now() - r.t < this.hours * 3600000) return r.v; localStorage.removeItem('te_' + k); } catch (e) {}
     return null;
   },
-  save: function (k, v) { try { localStorage.setItem('te_' + k, JSON.stringify({ t: Date.now(), v: v })); } catch (e) {} }
+  save: function (k, v) { try { localStorage.setItem('te_' + k, JSON.stringify({ t: Date.now(), v: v })); return true; } catch (e) { return false; } },     // true when it was kept (the disk may be full or switched off)
+  drop: function (k) { try { localStorage.removeItem('te_' + k); } catch (e) {} }                                                                     // remove a safety copy now
 };
 /* clear everything that has expired, for every game, so a name typed on a shared computer does not linger */
 (function () { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('te_') === 0) CC.keep.load(k.slice(3)); }); } catch (e) { } })();

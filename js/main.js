@@ -79,6 +79,7 @@ function leaveMode() {
   if (m && m.exit) m.exit();
   CC.paused = false; if (CC.audio.ctx) CC.audio.ctx.resume(); CC.ui.close(); CC.held = {}; app.mode = null; CC.music.stop();
   if (CC.practice) CC.practice.leave();                       // Practice (typing for everyone) stops its clock and sounds when you leave it
+  if (CC.tools && CC.tools.leave) CC.tools.leave();           // the Tools keep their work safe (the 3 hour copy) when you leave them
   document.querySelectorAll('.pause-btn').forEach(function (b) { b.textContent = '⏸'; b.classList.remove('on'); });
 }
 /* the drawn picture of a game (js/icons.js, which every page loads), or null for a game that has none yet (it then keeps its emoji from MODES) */
@@ -145,6 +146,8 @@ function startMode(id) {
   CC.modes[real].enter(Object.assign({ year: Number(app.session) }, m.args || {}));
 }
 CC.goMenu = showMenu;
+/* a file dropped on the page by mistake would make the browser open it and leave the site (and the work on screen). A drop that no part of the page asked for is ignored. */
+['dragover', 'drop'].forEach(function (t) { window.addEventListener(t, function (e) { const types = e.dataTransfer && e.dataTransfer.types; if (types && Array.prototype.indexOf.call(types, 'Files') >= 0 && !e.defaultPrevented) e.preventDefault(); }); });
 
 /* the landing page: one card per year */
 (function buildYearCards() {
@@ -158,16 +161,17 @@ CC.goMenu = showMenu;
 })();
 /* Practice: typing for everyone. Its files are fetched the first time it is opened, so the games open as fast as they always did. */
 const BUILD = (function () { const s = document.querySelector('script[src*="js/main.js"]'), v = s && s.getAttribute('src').match(/\?v=\d+/); return v ? v[0] : ''; })();
-let practiceLoading = null;
+/* one loader for files that are fetched only when needed (Practice, Tools, and lessons that use the shared document libraries): each file is fetched once, in the order given */
+const fileLoads = {};
+function fetchFile(url) {
+  return new Promise(function (ok, no) { const css = /\.css$/.test(url), e = document.createElement(css ? 'link' : 'script'); if (css) { e.rel = 'stylesheet'; e.href = url + BUILD; } else e.src = url + BUILD; e.onload = ok; e.onerror = function () { no(new Error(url)); }; document.head.appendChild(e); });
+}
+CC.loadFiles = function (urls) {
+  return urls.reduce(function (p, url) { return p.then(function () { return fileLoads[url] || (fileLoads[url] = fetchFile(url).catch(function (e) { delete fileLoads[url]; throw e; })); }); }, Promise.resolve());     // a failed file can be tried again
+};
 function loadPractice() {
   if (CC.practice) return Promise.resolve();
-  if (practiceLoading) return practiceLoading;
-  function file(tag, url) { return new Promise(function (ok, no) { const e = document.createElement(tag); if (tag === 'link') { e.rel = 'stylesheet'; e.href = url + BUILD; } else { e.src = url + BUILD; } e.onload = ok; e.onerror = function () { no(new Error(url)); }; document.head.appendChild(e); }); }
-  practiceLoading = file('link', 'css/practice.css').then(function () { return file('script', 'js/practice_data.js'); }).then(function () { return file('script', 'js/practice_core.js'); })
-    .then(function () { return file('script', 'js/practice_rain.js'); }).then(function () { return file('script', 'js/practice.js'); })
-    .then(function () { if (!CC.practice) throw new Error('practice.js did not start'); })
-    .catch(function (e) { practiceLoading = null; throw e; });       // a failed or half-loaded attempt can be tried again
-  return practiceLoading;
+  return CC.loadFiles(['css/practice.css', 'js/practice_data.js', 'js/practice_core.js', 'js/practice_rain.js', 'js/practice.js']).then(function () { if (!CC.practice) throw new Error('practice.js did not start'); });
 }
 function openPractice() {
   leaveMode(); app.session = null; showOnly($('screen-practice'));
@@ -175,11 +179,18 @@ function openPractice() {
   loadPractice().then(function () { if (!$('screen-practice').hidden) CC.practice.open(); })
     .catch(function (e) { console.error(e); root.innerHTML = ''; const p = document.createElement('p'); p.style.margin = '24px 0'; p.textContent = 'Practice could not be loaded. Please check your connection and try again.'; root.appendChild(p); });
 }
+/* Tools: a Word Processor and a Number Grid for everyone (files load the first time they are opened) */
+function openTools(which) {
+  leaveMode(); app.session = null; showOnly($('screen-tools'));
+  const root = $('tl-root');
+  CC.loadFiles(['css/tools.css', 'js/tools.js']).then(function () { if (!$('screen-tools').hidden) CC.tools.open(root, which); })
+    .catch(function (e) { console.error(e); root.textContent = ''; const p = document.createElement('p'); p.className = 'tl-loading'; p.textContent = 'Tools could not be loaded. Please check your connection and try again.'; root.appendChild(p); });
+}
 /* the Home / About menu on the landing page */
 document.querySelectorAll('[data-nav]').forEach(function (b) {
   b.addEventListener('click', function () {
     b.blur(); CC.audio.init();
-    if (b.dataset.nav === 'home') showSessions(); else if (b.dataset.nav === 'practice') openPractice(); else { leaveMode(); app.session = null; showOnly($('screen-' + b.dataset.nav)); }
+    if (b.dataset.nav === 'home') showSessions(); else if (b.dataset.nav === 'practice') openPractice(); else if (b.dataset.nav === 'tools') openTools(); else { leaveMode(); app.session = null; showOnly($('screen-' + b.dataset.nav)); }
   });
 });
 /* the QR code buttons (the top menu and the How to use page): one click downloads the printable QR code and the blank certificate tracker */

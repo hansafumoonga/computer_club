@@ -1,0 +1,113 @@
+/* sheet.css - the Number Grid (the spreadsheet in the Tools screen). Loaded the first time the Number Grid is opened. */
+.sh{display:flex;flex-direction:column;height:100%;min-height:0;position:relative;color:#1a1b3f;font-family:"Segoe UI",Arial,sans-serif;background:#e7e9f3}
+.sh button,.sh select,.sh input,.sh textarea{font-family:inherit}
+.sh-bar{flex:none;display:flex;align-items:center;gap:8px;background:#217346;color:#fff;padding:5px 10px}
+.sh-logo{font-size:1.2rem}
+.sh-name{font-size:1rem;font-weight:bold;width:min(280px,30%);padding:.25em .5em;border:2px solid transparent;border-radius:6px;background:rgba(255,255,255,.16);color:#fff}
+.sh-name:focus{outline:none;background:#fff;color:#1a1b3f;border-color:#a8dcbc}
+.sh-state{font-size:.8rem;opacity:.92;margin-right:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-state.bad{color:#ffd0d6;opacity:1;font-weight:bold}
+.sh-msg{font-size:.85rem;max-width:36%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(255,255,255,.2);padding:.15em .6em;border-radius:6px}
+.sh-msg:empty{display:none}.sh-msg.bad{background:#b3261e}
+.sh-b{font:inherit;min-width:32px;height:30px;padding:0 8px;border-radius:5px;border:1px solid transparent;background:transparent;color:#1a1b3f;cursor:pointer;font-size:.92rem;display:inline-flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap}
+.sh-bar .sh-b{color:#fff}.sh-bar .sh-b:hover{background:rgba(255,255,255,.24)}
+.sh-b:hover{background:#dcefe3;border-color:#8fc4a4}
+.sh-b:disabled{opacity:.4;cursor:default;background:transparent;border-color:transparent}
+.sh-b.on{background:#c6e6d2;border-color:#4fa873}
+.sh-b.bold{font-weight:bold}.sh-b.italic{font-style:italic;font-family:Georgia,serif}.sh-b.underline{text-decoration:underline}.sh-b.strike{text-decoration:line-through}
+.sh-b.colorbtn{font-weight:bold;border-bottom:4px solid #c00000;border-radius:5px 5px 0 0}
+.sh-b.primary{background:#217346;color:#fff;border-color:#217346;padding:0 16px}
+.sh-b.wide{width:100%;justify-content:flex-start}
+.sh-tabs{flex:none;display:flex;align-items:flex-end;gap:2px;padding:4px 10px 0;background:#f3f4f8;border-bottom:1px solid #c7caef}
+.sh-tab{font:inherit;font-size:.92rem;padding:.4em 1.1em;border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;background:transparent;color:#2b2f5f;cursor:pointer}
+.sh-tab:hover{background:#e0efe6}
+.sh-tab.on{background:#fff;border-color:#c7caef;font-weight:bold;margin-bottom:-1px;padding-bottom:calc(.4em + 1px)}
+.sh-panels{flex:none;background:#fff;border-bottom:1px solid #c7caef;min-height:68px}
+.sh-panel{display:flex;flex-wrap:wrap;align-items:stretch;padding:4px 6px 2px}
+.sh-panel[hidden]{display:none}
+.sh-grp{position:relative;display:flex;flex-wrap:wrap;align-items:center;align-content:flex-start;gap:3px;padding:2px 10px 17px;border-right:1px solid #d3d6ea;max-width:430px}
+.sh-grp:last-child{border-right:0}
+.sh-grp .gl{position:absolute;left:0;right:0;bottom:1px;text-align:center;font-size:.68rem;color:#6a6f96}
+.sh-grp .brk{flex-basis:100%;height:0}
+.sh-sel{font-size:.85rem;height:28px;border:1px solid #aab4dc;border-radius:4px;background:#fff;color:#1a1b3f}
+.sh-font{width:122px}.sh-size{width:56px}.sh-fmt{width:150px}
+.sh-fx{flex:none;display:flex;align-items:center;gap:4px;padding:4px 8px;background:#fff;border-bottom:1px solid #c7caef}
+.sh-ref{width:92px;text-align:center;font-weight:bold;border:1px solid #c7caef;border-radius:3px;padding:.2em .3em;font-size:.9rem}
+.sh-fxin{flex:1;min-width:0;font-size:1rem;padding:.2em .5em;border:1px solid #c7caef;border-radius:3px;font-family:Consolas,"Courier New",monospace}
+.sh-fxin:focus,.sh-ref:focus{outline:2px solid #217346;outline-offset:-1px}
+.sh-b.fxb{min-width:26px;height:26px;padding:0;font-weight:bold;color:#55598f;font-style:italic;font-family:Georgia,serif}
+.sh-b.fxb.ok{color:#b9bfd8;font-style:normal}.sh-b.fxb.no{color:#b9bfd8;font-style:normal}
+.sh.editing .sh-b.fxb.ok{color:#1f8a4a}.sh.editing .sh-b.fxb.no{color:#e02f44}
+.sh-main{position:relative;flex:1;min-height:0;background:#fff;overflow:hidden}
+.sh-scroll{position:absolute;left:46px;top:24px;right:0;bottom:0;overflow:auto;background:#fff;cursor:cell}
+.sh-sizer{position:absolute;left:0;top:0;width:1px;height:1px}
+.sh-view{position:absolute;left:46px;top:24px;overflow:hidden;pointer-events:none}
+.sh-colh{position:absolute;left:46px;top:0;right:0;height:24px;overflow:hidden;background:#eceef6;border-bottom:1px solid #c7caef;user-select:none}
+.sh-rowh{position:absolute;left:0;top:24px;bottom:0;width:46px;overflow:hidden;background:#eceef6;border-right:1px solid #c7caef;user-select:none}
+.sh-corner{position:absolute;left:0;top:0;width:46px;height:24px;background:#eceef6;border-right:1px solid #c7caef;border-bottom:1px solid #c7caef;cursor:pointer;z-index:2}
+.sh-corner::after{content:"";position:absolute;right:5px;bottom:4px;border:7px solid transparent;border-right-color:#aab0d2;border-bottom-color:#aab0d2}
+.sh-h{position:absolute;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#55598f;border-right:1px solid #d3d6ea;border-bottom:1px solid #d3d6ea;cursor:pointer}
+.sh-colh .sh-h{top:0;height:24px}.sh-rowh .sh-h{left:0;width:46px}
+.sh-h.on{background:#d3e9db;color:#14532d;font-weight:bold}.sh-h.all{background:#217346;color:#fff}
+.sh-grip{position:absolute;z-index:2;cursor:col-resize;width:7px;top:0;height:24px}
+.sh-grip.row{cursor:row-resize;left:0;width:46px;height:7px;top:auto}
+.sh-cells,.sh-charts{position:absolute;left:0;top:0;right:0;bottom:0}
+.sh-c{position:absolute;box-sizing:border-box;display:flex;overflow:visible;border-right:1px solid #e1e3ef;border-bottom:1px solid #e1e3ef;background:#fff;padding:0 3px;white-space:nowrap;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:14.67px;color:#000;line-height:1.2;align-items:flex-end}
+.sh-c.ng{border-right-color:transparent;border-bottom-color:transparent}
+.sh-t{display:block;width:100%;overflow:hidden;position:relative;z-index:1;pointer-events:none}
+.sh-c.wr{white-space:pre-wrap;overflow:hidden;word-break:break-word}.sh-c.wr .sh-t{overflow:visible}
+.sh-c.k-err{color:#b3261e}
+.sh-selbox{position:absolute;box-sizing:border-box;border:1px solid #217346;background:rgba(33,115,70,.14);z-index:4;pointer-events:none}
+.sh-actbox{position:absolute;box-sizing:border-box;border:2px solid #217346;z-index:5;pointer-events:none}
+.sh-fill{position:absolute;width:8px;height:8px;background:#217346;border:1px solid #fff;z-index:6;cursor:crosshair;pointer-events:auto}
+.sh-fillprev{position:absolute;box-sizing:border-box;border:2px dashed #217346;z-index:5;pointer-events:none}
+.sh-clipbox{position:absolute;box-sizing:border-box;border:2px dashed #217346;z-index:5;pointer-events:none}.sh-clipbox.cut{border-color:#b04a00}
+.sh-edit{position:absolute;z-index:8;pointer-events:auto;box-sizing:border-box;resize:none;overflow:hidden;white-space:pre;border:2px solid #217346;background:#fff;color:#000;padding:0 3px;margin:0;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;font-size:14.67px;line-height:1.2;outline:none}
+.sh-edit[hidden]{display:none}
+.sh-sink{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;border:0;padding:0;margin:0;resize:none;pointer-events:none;z-index:-1}
+.sh-hint{position:absolute;z-index:9;pointer-events:auto;background:#fffdf0;border:1px solid #b9a45a;border-radius:6px;padding:4px 6px;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:440px;font-size:.82rem}
+.sh-hint[hidden]{display:none}
+.sh-hi{display:block;width:100%;text-align:left;font:inherit;font-size:.82rem;border:0;background:transparent;padding:2px 6px;border-radius:4px;cursor:pointer;color:#1a1b3f}
+.sh-hi.on,.sh-hi:hover{background:#dcefe3}
+.sh-sig{font-family:Consolas,"Courier New",monospace}.sh-sig .cur{font-weight:bold;color:#217346;text-decoration:underline}
+.sh-sigd{color:#55598f;margin-top:2px}
+.sh-chart{position:absolute;pointer-events:auto;background:#fff;border:1px solid #8fc4a4;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden;z-index:3}
+.sh-chhead{flex:none;display:flex;align-items:center;gap:4px;background:#dcefe3;padding:2px 6px;height:28px;cursor:move;box-sizing:border-box}
+.sh-chname{flex:1;font-size:.8rem;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sh-chhead .sh-b{min-width:24px;height:22px;padding:0 4px}.sh-chtype{font-size:.75rem;height:22px}
+.sh-chbody{flex:1;min-height:0;overflow:hidden}.sh-chbody svg{display:block;width:100%;height:100%}
+.sh-chgrip{position:absolute;right:0;bottom:0;width:14px;height:14px;cursor:nwse-resize;background:linear-gradient(135deg,transparent 50%,#217346 50%)}
+.sh-foot{flex:none;display:flex;align-items:center;gap:8px;padding:2px 8px;background:#f3f4f8;border-top:1px solid #c7caef;font-size:.8rem}
+.sh-sheets{display:flex;align-items:center;gap:2px;min-width:0;overflow:auto}
+.sh-sheet{font:inherit;font-size:.85rem;padding:.25em .9em;border:1px solid transparent;border-bottom:3px solid transparent;background:transparent;color:#2b2f5f;cursor:pointer;white-space:nowrap;border-radius:4px 4px 0 0}
+.sh-sheet:hover{background:#e0efe6}.sh-sheet.on{background:#fff;border-color:#c7caef;border-bottom-color:#217346;font-weight:bold;color:#14532d}
+.sh-sheetin{font:inherit;font-size:.85rem;width:120px;padding:.2em .4em;border:2px solid #217346;border-radius:4px}
+.sh-add{min-width:28px}.sh-more{min-width:24px;padding:0 4px}
+.sh-sum{margin-left:auto;color:#2b2f5f;white-space:nowrap}
+.sh-zoom{display:flex;align-items:center;gap:6px}
+.sh-zoom button{font:inherit;width:22px;height:22px;line-height:1;border-radius:50%;border:1px solid #8fc4a4;background:#fff;color:#14532d;cursor:pointer;padding:0}
+.sh-ov{position:absolute;inset:0;z-index:40;background:rgba(21,22,58,.55);display:flex;align-items:center;justify-content:center;padding:14px}
+.sh-dlg{background:#fff;color:#1a1b3f;border-radius:12px;padding:16px 20px;width:min(560px,94%);max-height:92%;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.sh-dlg h3{margin:0 0 10px;font-size:1.15rem}
+.sh-form label{display:block;font-weight:bold;font-size:.88rem;margin-bottom:8px}
+.sh-form input[type=text],.sh-form input[type=url],.sh-form select{display:block;width:100%;font-size:1rem;padding:.35em .5em;margin-top:3px;border:2px solid #217346;border-radius:6px;box-sizing:border-box;background:#fff}
+.sh-form p{margin:0 0 10px;font-size:.92rem;color:#3d4180}
+.sh-check{font-weight:normal!important;display:flex!important;align-items:center;gap:4px}
+.sh-form .sh-hint{position:static;display:block;font-size:.8rem;color:#55598f;margin:4px 0;background:none;border:0;box-shadow:none;padding:0}
+.sh-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sh-row .sh-b{border:1px solid #8fc4a4;background:#f3f4f8}.sh-row .sh-b.primary{background:#217346;border-color:#217346}
+.sh-pop{position:absolute;z-index:35;background:#fff;color:#1a1b3f;border:1px solid #aab4dc;border-radius:8px;box-shadow:0 8px 22px rgba(0,0,0,.35);padding:6px;display:flex;flex-direction:column;gap:2px;min-width:170px;max-height:60vh;overflow:auto}
+.sh-sw{display:grid;grid-template-columns:repeat(7,26px);gap:4px;padding:2px}
+.sh-swb{width:26px;height:26px;border-radius:5px;border:1px solid rgba(0,0,0,.35);cursor:pointer;padding:0}
+.sh-swb:hover,.sh-swb:focus{outline:2px solid #217346}
+.sh-fnlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:3px;max-height:26vh;overflow:auto;margin:6px 0}
+.sh-fnitem{font:inherit;font-size:.82rem;padding:.25em .4em;border:1px solid #d3d6ea;border-radius:5px;background:#fff;cursor:pointer;text-align:left}
+.sh-fnitem:hover,.sh-fnitem.on{background:#dcefe3;border-color:#4fa873}
+.sh-fninfo{min-height:3.4em;background:#f6f7fb;border-radius:6px;padding:6px 10px;font-size:.88rem}.sh-fninfo b{font-family:Consolas,"Courier New",monospace}.sh-fninfo p{margin:4px 0 0}
+.sh-printpage{display:none}
+@media print{
+  body.sh-printing>*:not(.sh-printpage){display:none!important}
+  body.sh-printing .sh-printpage{display:block!important;position:static;background:#fff;color:#000;font-family:Calibri,Carlito,Arial,sans-serif;font-size:10pt}
+  .sh-printpage table{border-collapse:collapse}.sh-printpage th{background:#eee;font-weight:normal;color:#555;border:1px solid #ccc;padding:2px 6px}
+  .sh-printpage td{border:1px solid #ddd;padding:2px 6px;height:1.3em}
+}

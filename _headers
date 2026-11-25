@@ -1,10 +1,18 @@
-# the Content-Security-Policy lets only this site's own files run and loads nothing from anywhere else (the formulas in Number Grid are read by a small parser, never evaluated)
+# Security headers for every page and file. They are defence in depth: the site's own code is already written so that nothing a learner types, pastes or drops is ever run.
+#  - Content-Security-Policy: only this site's own files run; no inline script; nothing is loaded from anywhere else; no frames, plug-ins or form posts
+#    (the formulas in Number Grid are read by a small parser and never evaluated; pictures in documents are only inline PNG, JPEG, GIF or WebP)
+#  - Cross-Origin-Opener-Policy: the page is isolated from any other site's window
+#  - Strict-Transport-Security: the browser always uses the secure address
+#  - Permissions-Policy: the browser features that a lesson site never needs are switched off
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Cross-Origin-Opener-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+  Strict-Transport-Security: max-age=31536000
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=(), midi=(), accelerometer=(), gyroscope=(), magnetometer=(), display-capture=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
 
 # css and js are loaded with ?v=NUMBER in index.html, so they can be kept for a long time: bump the number when a file changes
 /css/*

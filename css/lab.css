@@ -38,6 +38,7 @@
 .lb-help li::before{content:counter(lbh);flex:none;width:1.6em;height:1.6em;border-radius:50%;background:#4d8dff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85em}
 @keyframes lbHelp{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .lb-body{flex:1 1 auto;min-height:0;display:flex;position:relative}
+.lb-loading{margin:auto;padding:30px;color:#fff;font-size:1.25rem;font-weight:700;text-align:center}
 @keyframes lbGlow{0%,100%{filter:drop-shadow(0 0 3px #ffe14d) drop-shadow(0 0 0 #ffd23f)}50%{filter:drop-shadow(0 0 10px #ffe14d) drop-shadow(0 0 18px #ffd23f)}}
 @keyframes lbPulse{0%,100%{box-shadow:0 0 0 3px #ffe14d,0 0 6px 2px #ffd23f}50%{box-shadow:0 0 0 5px #ffe14d,0 0 20px 8px #ffd23f}}
 
@@ -169,11 +170,42 @@
   body.wl-print .wl-printpage{display:block;color:#000;font-family:Georgia,"Times New Roman",serif;font-size:12pt;line-height:1.6;white-space:pre-wrap;padding:18mm}
 }
 
+/* Type a Letter: pictures, tables and their dialogs */
+.wl-b.tx{padding:0 9px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.wl-grp.fnt{max-width:304px}.wl-grp.par{max-width:172px}.wl-grp.ins{max-width:136px}.wl-grp.tbl{max-width:176px}
+.wl-page table{border-collapse:collapse;width:100%;margin:.3em 0;table-layout:fixed}
+.wl-page td{border:1px solid #6b6f9a;padding:4px 8px;vertical-align:top;word-break:break-word}
+.wl-page td:focus-within{background:#f3f6ff}
+.wl-page img{max-width:100%;height:auto;vertical-align:middle;cursor:pointer}
+.wl-page img.wl-sel{outline:3px solid #4d8dff;outline-offset:2px}
+.wl-prev .pg table,.wl-printpage table{border-collapse:collapse;width:100%;table-layout:fixed}
+.wl-prev .pg td,.wl-printpage td{border:1px solid #6b6f9a;padding:2px 6px;vertical-align:top}
+.wl-prev .pg img,.wl-printpage img{max-width:100%;height:auto}
+.wl-clip{width:min(560px,94%)}
+.wl-ctabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.wl-ctabs .btn{padding:.25em .65em;font-size:.82rem}
+.wl-cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:min(300px,42vh);overflow:auto;padding:4px;margin-bottom:10px}
+.wl-cit{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border:2px solid #c7caef;border-radius:8px;background:#fff;color:#1a1b3f;cursor:pointer;font:inherit;font-size:.74rem}
+.wl-cit:hover,.wl-cit:focus-visible{border-color:#2b579a;background:#eef3ff;outline:none}
+.wl-cit img{width:64px;height:64px;object-fit:contain}
+.wl-tpick{display:grid;grid-template-columns:repeat(5,30px);gap:4px;justify-content:center;margin:8px 0 4px}
+.wl-tc{width:30px;height:30px;padding:0;border:2px solid #aab4dc;border-radius:4px;background:#fff;cursor:pointer}
+.wl-tc.on{background:#c5d5f5;border-color:#2b579a}
+.wl-tc:focus-visible{outline:3px solid #4d8dff;outline-offset:1px}
+.wl-dlg p.wl-tlab{text-align:center;font-weight:bold;color:#1a1b3f;margin:6px 0 12px}
+.ls-page .ls-pic{font-size:2.6em;line-height:1.1;display:inline-block}
+.ls-page table{border-collapse:collapse;margin:.2em auto}
+.ls-page td{border:1.5px solid #6b6f9a;padding:2px 14px}
+
 /* ================= Number Grid: a spreadsheet window ================= */
 .ng-wrap{flex:1;min-width:0;display:flex;gap:10px;min-height:0}
 .ng-app{flex:1;min-width:0;display:flex;flex-direction:column;background:#fff;color:#1a1b3f;border-radius:12px;overflow:hidden;min-height:0;font-family:"Segoe UI",Arial,sans-serif}
 .ng-title{flex:none;display:flex;align-items:center;gap:8px;background:#217346;color:#fff;padding:5px 12px;font-size:.9rem;font-weight:bold}
 .ng-title .dot{width:14px;height:14px;border-radius:3px;background:#fff;box-shadow:inset 0 0 0 3px #217346,inset 0 0 0 4px #fff}
+.ng-title .qa{display:flex;gap:2px;margin-left:4px}
+.ng-title .qa .ng-b{color:#fff;height:26px;min-width:28px;font-size:1rem}
+.ng-title .qa .ng-b:hover{background:rgba(255,255,255,.2);border-color:transparent}
+.ng-title .nm{margin-left:4px}
 .ng-ribbon{flex:none;display:flex;flex-wrap:wrap;align-items:stretch;padding:4px 6px 2px;background:#f3f4f8;border-bottom:1px solid #c7caef}
 .ng-grp{position:relative;display:flex;align-items:center;gap:3px;padding:2px 10px 16px;border-right:1px solid #d3d6ea}
 .ng-grp:last-child{border-right:0}
@@ -320,6 +352,7 @@
 @keyframes lsCur{50%{opacity:0}}
 .nw-dlg .btn:not(.primary),.wl-dlg .btn:not(.primary){background:#eef0fb;color:#1a1b3f;border-color:#c7caef}
 .ls-formula{font-size:clamp(2rem,5.4vw,3.8rem)}.ls-formula small{font-size:.8rem}
+.ls-formula.long{font-size:clamp(1.2rem,2.7vw,2rem);flex-wrap:wrap;justify-content:center}
 
 /* ---------- a glow that cannot be missed: a bright pulsing halo, a gentle beat, and a bouncing arrow ---------- */
 @keyframes lbGlow{0%,100%{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 7px #ffe14d) drop-shadow(0 0 4px #ff9f45)}50%{filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 20px #ffe14d) drop-shadow(0 0 34px #ffb52e) brightness(1.18)}}

@@ -187,13 +187,21 @@ L.done = function (cfg) {   // { stage, stars, title, text, emoji, next, again, 
 
 /* ---------- a whole game from a list of levels: the map, playing, stars, the next level ---------- */
 L.game = function (g) {   // { id, icon, title, sub, color, stage(), root(), levels(year) -> [{ id, title, icon, steps, build }], speak(year) }
-  const S = { year: 1, api: null, prog: null, lv: null };
+  const S = { year: 1, api: null, prog: null, lv: null, loading: null };
   function levels() { return g.levels(S.year); }
-  function home() { if (S.api) S.api.stop(); S.api = null; S.lv = null; L.home({ root: g.root(), icon: g.icon, title: g.title, sub: typeof g.sub === 'function' ? g.sub(S.year) : g.sub, color: g.color, levels: levels(), prog: S.prog, onPick: start, cert: g.cert ? function () { cert(home); } : null }); }
+  function home() { if (S.api) S.api.stop(); S.api = null; S.lv = null; S.loading = null; L.home({ root: g.root(), icon: g.icon, title: g.title, sub: typeof g.sub === 'function' ? g.sub(S.year) : g.sub, color: g.color, levels: levels(), prog: S.prog, onPick: start, cert: g.cert ? function () { cert(home); } : null }); }
   /* the certificate: a gold medal on A4 portrait, only when every level for this year is done (CC.rewards draws it: name box, print, save as a picture) */
   function allDone() { return levels().every(function (x) { return S.prog.done[x.id]; }); }
   function cert(back) { if (!allDone() || !CC.rewards) return; CC.rewards.show({ cert: g.id, portrait: true, art: g.cert.art, hue: g.cert.hue, ring: g.title, hero: g.cert.hero, title: g.cert.hero + ' certificate', game: g.title, year: S.year, levels: levels().length }, back); }
   function start(lv, skip) {
+    /* a level that uses the shared document files (real Word and Excel files, clip art) fetches them once, the first time it is opened */
+    if (lv.needs && !lv.ready && CC.loadFiles) {
+      const root = g.root(), say = function (t) { root.textContent = ''; const p = document.createElement('p'); p.className = 'lb-loading'; p.textContent = t; root.appendChild(p); };
+      if (S.api) S.api.stop(); S.api = null; S.loading = lv; say('Loading...');
+      CC.loadFiles(lv.needs).then(function () { lv.ready = true; if (S.loading === lv) { S.loading = null; start(lv, skip); } },
+        function (e) { console.error(e); if (S.loading === lv) { S.loading = null; say('This lesson could not be loaded. Please check the connection, then go back and try again.'); } });
+      return;
+    }
     const list = levels(), n = list.findIndex(function (x) { return x.id === lv.id; }) + 1; S.lv = lv;
     if (S.api) S.api.stop(); S.api = null;
     const teach = typeof lv.teach === 'function' ? lv.teach(S.year) : lv.teach, speak = g.speak ? g.speak(S.year) : false;
@@ -210,7 +218,7 @@ L.game = function (g) {   // { id, icon, title, sub, color, stage(), root(), lev
   return {
     makey: false,
     enter: function (o) { CC.audio.init(); CC.watchStage(g.stage()); S.year = (o && o.year) || 1; S.prog = L.load(g.id, S.year); home(); },
-    exit: function () { if (S.api) S.api.stop(); S.api = null; L.hush(); CC.ui.close(); g.root().innerHTML = ''; },
+    exit: function () { if (S.api) S.api.stop(); S.api = null; S.loading = null; L.hush(); CC.ui.close(); g.root().innerHTML = ''; },
     onKeyDown: function () { },
     _S: S, _start: function (i) { start(levels()[i]); }, _home: home, _levels: levels, _cert: cert
   };

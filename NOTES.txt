@@ -258,3 +258,29 @@ CODE AUDIT (colours, shadowing, dead code)
   - Certificate tracker for teachers: every .qr-btn (the QR code button in the top menu and the button on the How to use page, handled in main.js) downloads tech-explorers-qr.pdf and downloads/Tech-Explorers-Certificate-Tracker.xlsx, a blank Excel sheet with no names. Without JavaScript the button opens the QR PDF.
   - Practice (typing for everyone, top menu): screen #screen-practice in index.html; css/practice.css and js/practice_data.js, practice_core.js, practice_rain.js, practice.js are loaded on first open by openPractice() in main.js (leaveMode() calls CC.practice.leave() so clocks and sounds stop). Nothing is stored. Three tabs, in this order: Drills (weak keys or a warm-up), Speed Test and Word Rain. Every tab has the same two choices, kept in st.level (beginner/medium/pro, built in controls() with the year-menu tab icons) and st.minutes (1/2/3). Core.words(count, level) makes the text for a level; Word Rain's LEVELS table (js/practice_rain.js) maps each level to a pace (one of the Year 6 speeds), a longest word and how often a long word falls. Scoring maths lives in practice_core.js (Session class), checked with hand-worked cases. Test hooks: CC.practice._st, CC.practice._makeCard, controller._R in Word Rain.
   - Security headers (_headers): the Content-Security-Policy also has frame-ancestors 'none', with X-Frame-Options: DENY, so no other site can show this one in a frame. Practice builds all its text with textContent; the only innerHTML strings are fixed markup or numbers made by the game.
+
+TOOLS, LESSON UPGRADE AND SECURITY REVIEW (version 9)
+  - TOOLS (top menu, next to Practice): a stand-alone Word Processor and Number Grid with no lessons. Screen #screen-tools in index.html; css/tools.css and js/tools.js are fetched the
+    first time the button is pressed (openTools() in js/main.js), and each tool's own files the first time its tab is opened. CC.loadFiles(list) in main.js is the one loader (each file
+    is fetched once, in order, and a failed file can be tried again). Work is kept for CC.keep.hours (3) after the last change in the browser (keys te_writer and te_sheet) and is
+    cleared with the rest of the saved progress; leaving the Tools (leaveMode) saves at once. Nothing is sent anywhere.
+  - FILES: js/docfile.js (ZIP packer, XML escaping, safe file names, CSV that cannot run as a formula, picture type and size from the first bytes), js/docsafe.js (the allow-list cleaner for
+    everything entering a document), js/docx.js (Word file), js/xlsx.js (Excel and CSV file), js/clipart.js (clip art made from the Scene Maker and Paint Studio drawings, always as PNG),
+    js/writer.js (Word Processor), js/sheetfmt.js, sheetparse.js, sheetcalc.js (136 functions), sheetbook.js, sheetdoc.js, sheetchart.js, sheet.js (Number Grid), css/sheet.css.
+  - TYPE A LETTER now has 10 levels: new 'picture' (Add a picture, Year 4 up) and 'table' (Make a table, Year 5 up) sit after 'layout'. The ribbon has Insert and Table groups. The page takes
+    plain text only from outside (paste and drop). Save makes a real Word file (.docx) through js/docx.js (a clean copy of the page, sizes written in points). To change or add a level edit
+    LEVELS in js/letter.js: id, title, icon, min (the first year that sees it), html (the starting page), steps. A step has say (the instruction), sub (a smaller line), win, btn (the
+    ribbon button that glows), tip (the how-to lines) and ok(event, api) (true when done). TEACH holds the slides shown before a level.
+  - NUMBER GRID now has 13 levels: new 'save' (Year 4 up; Save makes a real .xlsx), 'money' (number formats), 'sort' (Year 5 up) and 'if' (IF and COUNTIF, Year 6). The ribbon has Number and Sort groups;
+    Save and Undo are at the top. The small formula engine in js/grid.js is used by every level except one marked full: true (the 'if' level), which uses the full engine of the Tools page (never
+    eval). A level that needs the shared files lists them in needs: [...]; CC.lab (js/lab.js) fetches them before the lesson. Words inside quotation marks in a formula keep their capitals and spaces.
+  - EVERY LEVEL OF THE YEAR IS NEEDED FOR THE CERTIFICATE. A learner who finished the older levels before this upgrade will see the new levels as not done yet, and the certificate button stays
+    locked until they are done. Progress is kept by level id, so nothing already earned is lost and the old levels still show their stars.
+  - SECURITY REVIEW: the cleaner, the file writers and the formula engine were reviewed and tested again. Hostile pages and files (83 attack strings and limit bombs: 0 scripts run, 0 network requests),
+    40,000 random and hostile formulas and damaged saved copies, and a comparison of 633 formulas with real Excel; the saved Word and Excel files open in real Word and Excel without repair. Every game,
+    both lessons and both tools were run with the real _headers in force, with no violations. Changes made in the review: pictures larger than 25 million pixels are refused (a small file can
+    unpack to hundreds of megabytes); a download's address is kept for 40 seconds so a slow save cannot lose its file; the lesson pages' print copy is built from an inert copy of the page;
+    _headers gained Cross-Origin-Opener-Policy, Strict-Transport-Security, X-Permitted-Cross-Domain-Policies, more switched-off browser features, and explicit font, worker, manifest and frame
+    rules with upgrade-insecure-requests in the Content-Security-Policy. See README.md, Security.
+  - TESTS: tests/ (run all with: node tests/run.js; needs only Node). 399 number-format checks, 468 formula and workbook checks, the file helpers, and the 40,000-formula fuzz run.
+  - AFTER CHANGING A CSS OR JS FILE add 1 to the ?v= number in index.html (every line, the same number): browsers keep these files for a month (_headers) and the new number makes them fetch the new one.

@@ -2,7 +2,9 @@
      - a ribbon: clipboard, font (name, size, bold, italic, underline, colour, highlight), paragraph (bullets, numbers, left, centre, right, justify)
      - the usual keys: Ctrl+B / I / U, Ctrl+C / X / V, Ctrl+Z / Y, Ctrl+A, Ctrl+S (save), Ctrl+P (print)
      - a red wavy line under a spelling mistake; right-click it to choose the right spelling
-     - Save really saves a file that opens in a word processor, and Print really prints the page
+     - Insert: clip-art pictures (made bigger or smaller, centred, deleted) and tables (TAB moves between cells; rows and columns can be added)
+     - Save really saves a Word file (.docx) that opens in a word processor, and Print really prints the page
+     - the page only takes plain text from outside (paste and drop); the pictures come from this site's own clip art
    The page is a normal editable box. A level is a list of steps (see lab.js). */
 (function () {
 'use strict';
@@ -17,10 +19,12 @@ function build(body, api, year, lv) {
   body.innerHTML = '<div class="wl-wrap"><div class="wl-title"><span class="qa">' + b('save', '💾', 'Save (Ctrl+S)') + b('undo', '↶', 'Undo (Ctrl+Z)') + b('redo', '↷', 'Redo (Ctrl+Y)') + '</span><span class="nm">Document1</span><span class="app"> - Type a Letter</span></div>' +
     '<div class="wl-bar">' +
       '<div class="wl-grp">' + b('paste', '📋', 'Paste (Ctrl+V)') + b('cut', '✂️', 'Cut (Ctrl+X)') + b('copy', '📄', 'Copy (Ctrl+C)') + '<span class="gl">Clipboard</span></div>' +
-      '<div class="wl-grp"><select class="wl-font" data-sel="font" title="Font" aria-label="font">' + FONTS.map(function (f) { return '<option value="' + f[0] + '" style="font-family:\'' + f[0] + '\'">' + f[1] + '</option>'; }).join('') + '</select><select class="wl-size" data-sel="size" title="Font size" aria-label="font size">' + SIZES.map(function (s) { return '<option value="' + s + '"' + (s === 12 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
+      '<div class="wl-grp fnt"><select class="wl-font" data-sel="font" title="Font" aria-label="font">' + FONTS.map(function (f) { return '<option value="' + f[0] + '" style="font-family:\'' + f[0] + '\'">' + f[1] + '</option>'; }).join('') + '</select><select class="wl-size" data-sel="size" title="Font size" aria-label="font size">' + SIZES.map(function (s) { return '<option value="' + s + '"' + (s === 12 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
         b('bigger', 'A<sup>▲</sup>', 'Bigger letters') + b('smaller', 'A<sub>▼</sub>', 'Smaller letters') + '<i class="brk"></i>' + b('bold', '<b>B</b>', 'Bold (Ctrl+B)') + b('italic', '<i>I</i>', 'Italic (Ctrl+I)') + b('underline', '<u>U</u>', 'Underline (Ctrl+U)') + b('hilite', '<span class="hl">ab</span>', 'Highlight') +
         COLORS.map(function (c, i) { return b('c' + i, '<i style="background:' + c[0] + '"></i>', c[1] + ' letters', 'sw'); }).join('') + '<span class="gl">Font</span></div>' +
-      '<div class="wl-grp">' + b('insertUnorderedList', '<span class="li ul"></span>', 'Bullets') + b('insertOrderedList', '<span class="li ol"></span>', 'Numbering') + '<i class="brk"></i>' + b('justifyLeft', '<span class="al l"></span>', 'Align left') + b('justifyCenter', '<span class="al c"></span>', 'Centre') + b('justifyRight', '<span class="al r"></span>', 'Align right') + b('justifyFull', '<span class="al j"></span>', 'Justify') + '<span class="gl">Paragraph</span></div>' +
+      '<div class="wl-grp par">' + b('insertUnorderedList', '<span class="li ul"></span>', 'Bullets') + b('insertOrderedList', '<span class="li ol"></span>', 'Numbering') + '<i class="brk"></i>' + b('justifyLeft', '<span class="al l"></span>', 'Align left') + b('justifyCenter', '<span class="al c"></span>', 'Centre') + b('justifyRight', '<span class="al r"></span>', 'Align right') + b('justifyFull', '<span class="al j"></span>', 'Justify') + '<span class="gl">Paragraph</span></div>' +
+      '<div class="wl-grp ins">' + b('picture', '🖼️', 'Insert a picture') + b('table', '▦', 'Insert a table') + '<i class="brk"></i>' + b('picSmaller', '➖', 'Make the picture smaller') + b('picLarger', '➕', 'Make the picture larger') + b('picDelete', '🗑️', 'Delete the picture') + '<span class="gl">Insert</span></div>' +
+      '<div class="wl-grp tbl">' + b('rowAdd', '＋ Row', 'Add a row to the table', 'tx') + b('colAdd', '＋ Column', 'Add a column to the table', 'tx') + '<i class="brk"></i>' + b('tableDelete', '🗑️ Delete table', 'Delete the table', 'tx') + '<span class="gl">Table</span></div>' +
       '<div class="wl-grp">' + b('print', '🖨️', 'Print (Ctrl+P)') + '<span class="gl">File</span></div>' +
     '</div><div class="wl-ruler" aria-hidden="true"></div>' +
     '<div class="wl-desk"><div class="wl-page" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true" aria-label="your page"></div></div>' +
@@ -63,7 +67,7 @@ function build(body, api, year, lv) {
   const nearest = function (pt) { return SIZES.reduce(function (a, x) { return Math.abs(x - pt) < Math.abs(a - pt) ? x : a; }, 12); };
 
   /* ---------- clipboard: the browser does the real copy; a copy is also kept here so the Paste button always works ---------- */
-  function grab() { const s = selIn(); if (!s || s.isCollapsed) return; const d = document.createElement('div'); d.appendChild(s.getRangeAt(0).cloneContents()); d.querySelectorAll('.wl-bad').forEach(function (n) { n.classList.remove('wl-bad'); }); st.clip = { html: d.innerHTML, text: s.toString() }; }
+  function grab() { const s = selIn(); if (!s || s.isCollapsed) return; const d = document.createElement('div'); d.appendChild(s.getRangeAt(0).cloneContents()); d.querySelectorAll('.wl-bad').forEach(function (n) { n.classList.remove('wl-bad'); }); d.querySelectorAll('.wl-sel').forEach(function (n) { n.classList.remove('wl-sel'); }); st.clip = { html: d.innerHTML, text: s.toString() }; }
   page.addEventListener('copy', function () { grab(); setTimeout(function () { api.check({ t: 'copy' }); }, 0); });
   page.addEventListener('cut', function () { grab(); setTimeout(function () { changed(); api.check({ t: 'cut' }); }, 0); });
   page.addEventListener('paste', function (e) {
@@ -78,15 +82,120 @@ function build(body, api, year, lv) {
     else api.note('Copy or cut some words first.');
   }
 
+  /* ---------- pictures and tables ---------- */
+  const MAXPICS = 6; let selImg = null, internalDrag = false;
+  /* the picture library and the Word file maker are fetched the first time they are needed (the levels that use them fetch them before they start) */
+  function withFiles(then) {
+    if (CC.clipart && CC.docfile && CC.docsafe && CC.docx) { then(); return; }
+    if (!CC.loadFiles) { api.note('That could not be loaded. Please reload the page and try again.'); return; }
+    api.note('Getting ready...');
+    CC.loadFiles(NEEDS).then(function () { if (page.isConnected) { api.note(''); then(); } }, function (e) { console.error(e); api.note('That could not be loaded. Check the connection and try again.'); });
+  }
+  const selectNode = function (n) { const r = document.createRange(); r.selectNode(n); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); };
+  const caretIn = function (n) { const r = document.createRange(); r.selectNodeContents(n); r.collapse(true); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); page.focus(); };
+  const imgHtml = function (src, w, h, alt, w0) { return '<img src="' + src + '" width="' + w + '" height="' + h + '" alt="' + L.esc(alt) + '" data-w0="' + w0 + '">'; };
+  function insertPicture(p, name) {
+    if (!CC.docfile.parseDataImage(p.src)) return;                       // only a real PNG, made by this site's own clip-art library
+    const w = Math.min(p.w, 240), h = Math.max(1, Math.round(p.h * w / p.w)); page.focus(); restore();
+    document.execCommand('insertHTML', false, imgHtml(p.src, w, h, name, w)); changed(); api.check({ t: 'picture' });
+  }
+  function pictureDialog() {
+    if (body.querySelector('.wl-prev')) return; remember();
+    withFiles(function () {
+      if (page.querySelectorAll('img').length >= MAXPICS) { api.note('This page can hold up to ' + MAXPICS + ' pictures.'); return; }
+      const cats = CC.clipart.cats(); let cur = cats[0].id, busy = false;
+      const ov = dialog('<div class="wl-dlg wl-clip" role="dialog" aria-modal="true" aria-label="Choose a picture"><h4>🖼️ Choose a picture</h4><div class="wl-ctabs"></div><div class="wl-cgrid"></div><div class="row"><button type="button" class="btn" data-a="x">Cancel</button></div></div>');
+      const tabs = ov.querySelector('.wl-ctabs'), grid = ov.querySelector('.wl-cgrid'), close = function () { ov.remove(); page.focus(); };
+      function draw() {
+        tabs.textContent = ''; grid.textContent = '';
+        cats.forEach(function (c) { const b = L.el('button', 'btn' + (c.id === cur ? ' primary' : '')); b.type = 'button'; b.textContent = c.icon + ' ' + c.name; b.addEventListener('click', function () { cur = c.id; draw(); const on = tabs.querySelector('.primary'); if (on) on.focus(); }); tabs.appendChild(b); });
+        CC.clipart.items(cur).forEach(function (it) {
+          const b = L.el('button', 'wl-cit'), im = document.createElement('img'), sp = document.createElement('span'); b.type = 'button'; b.title = it.name; b.setAttribute('aria-label', it.name); im.alt = ''; sp.textContent = it.name; b.append(im, sp); grid.appendChild(b);
+          CC.clipart.png(it.id, 120).then(function (p) { im.src = p.src; }, function () { });
+          b.addEventListener('click', function () { if (busy) return; busy = true; CC.clipart.png(it.id, 300).then(function (p) { ov.remove(); insertPicture(p, it.name); }, function () { busy = false; api.note('That picture could not be added.'); }); });
+        });
+      }
+      draw(); ov.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } });
+      ov.querySelector('[data-a="x"]').addEventListener('click', close); const first = tabs.querySelector('button'); if (first) first.focus();
+    });
+  }
+  function pictureOp(cmd) {
+    const img = selImg && page.contains(selImg) ? selImg : null;
+    if (!img) { api.note('Click the picture first. Then use the size buttons.'); return; }
+    const src = img.getAttribute('src'), at = Array.prototype.indexOf.call(page.querySelectorAll('img'), img);
+    if (!CC.docfile || !CC.docfile.parseDataImage(src)) return;
+    page.focus(); selectNode(img);                                       // the browser's own editing commands are used, so Undo takes the change back
+    if (cmd === 'picDelete') { document.execCommand('delete', false, null); selImg = null; }
+    else {
+      const w = parseInt(img.getAttribute('width'), 10) || 120, h = parseInt(img.getAttribute('height'), 10) || 120, w0 = parseInt(img.getAttribute('data-w0'), 10) || w;
+      const nw = Math.max(40, Math.min(560, Math.round(w * (cmd === 'picLarger' ? 1.25 : 0.8)))), nh = Math.max(1, Math.round(h * nw / w));
+      document.execCommand('insertHTML', false, imgHtml(src, nw, nh, img.alt, w0));
+      const now = page.querySelectorAll('img')[at]; selImg = now || null; if (now) now.classList.add('wl-sel');
+    }
+    changed(); api.check({ t: 'picture' });
+  }
+  page.addEventListener('click', function (e) { if (selImg) selImg.classList.remove('wl-sel'); selImg = e.target && e.target.nodeName === 'IMG' ? e.target : null; if (selImg) selImg.classList.add('wl-sel'); });
+
+  function tableDialog() {
+    if (body.querySelector('.wl-prev')) return; remember();
+    const ov = dialog('<div class="wl-dlg" role="dialog" aria-modal="true" aria-label="Choose the size of the table"><h4>▦ Choose the size of the table</h4><div class="wl-tpick"></div><p class="wl-tlab">Move over the squares</p><div class="row"><button type="button" class="btn" data-a="x">Cancel</button></div></div>');
+    const g = ov.querySelector('.wl-tpick'), lab = ov.querySelector('.wl-tlab'), close = function () { ov.remove(); page.focus(); };
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) { const b = L.el('button', 'wl-tc'); b.type = 'button'; b.dataset.r = r; b.dataset.c = c; b.setAttribute('aria-label', (c + 1) + ' columns and ' + (r + 1) + ' rows'); g.appendChild(b); }
+    const show = function (r, c) { g.querySelectorAll('.wl-tc').forEach(function (b) { b.classList.toggle('on', +b.dataset.r <= r && +b.dataset.c <= c); }); lab.textContent = (c + 1) + ' columns × ' + (r + 1) + ' rows'; };
+    ['mouseover', 'focusin'].forEach(function (ev) { g.addEventListener(ev, function (e) { const b = e.target.closest('.wl-tc'); if (b) show(+b.dataset.r, +b.dataset.c); }); });
+    g.addEventListener('click', function (e) { const b = e.target.closest('.wl-tc'); if (b) { ov.remove(); insertTable(+b.dataset.r + 1, +b.dataset.c + 1); } });
+    ov.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } });
+    ov.querySelector('[data-a="x"]').addEventListener('click', close); g.firstChild.focus();
+  }
+  function insertTable(rows, cols) {
+    page.focus(); restore(); const sl = selIn(); let at = sl ? sl.anchorNode : null; while (at && at.parentNode !== page) at = at.parentNode;       // the table goes after the line (or table) that holds the cursor
+    const t = document.createElement('table'), tb = document.createElement('tbody'), tail = document.createElement('div'); t.setAttribute('data-bd', 'grid'); t.appendChild(tb); tail.appendChild(document.createElement('br'));
+    for (let r = 0; r < rows; r++) { const tr = document.createElement('tr'); for (let c = 0; c < cols; c++) { const td = document.createElement('td'); td.appendChild(document.createElement('br')); tr.appendChild(td); } tb.appendChild(tr); }
+    if (at) { page.insertBefore(t, at.nextSibling); page.insertBefore(tail, t.nextSibling); } else { page.appendChild(t); page.appendChild(tail); }
+    caretIn(t.querySelector('td')); changed(); api.check({ t: 'table' });
+  }
+  const cellNow = function () { const sl = selIn(); if (!sl) return null; const n = sl.anchorNode, e = n.nodeType === 1 ? n : n.parentElement; return e ? e.closest('td') : null; };
+  function tableOp(cmd, toFirst) {
+    const c = cellNow(); if (!c) { api.note('Click inside the table first.'); return; }
+    const row = c.parentElement, t = c.closest('table'), idx = Array.prototype.indexOf.call(row.cells, c), blank = function () { const td = document.createElement('td'); td.appendChild(document.createElement('br')); return td; };
+    if (cmd === 'rowAdd') { if (t.rows.length >= 20) { api.note('A table here can have up to 20 rows.'); return; } const nr = document.createElement('tr'); for (let i = 0; i < row.cells.length; i++) nr.appendChild(blank()); row.parentNode.insertBefore(nr, row.nextSibling); caretIn(nr.cells[toFirst ? 0 : idx]); }
+    else if (cmd === 'colAdd') { if (row.cells.length >= 8) { api.note('A table here can have up to 8 columns.'); return; } Array.prototype.forEach.call(t.rows, function (r) { r.insertBefore(blank(), r.cells[idx + 1] || null); }); caretIn(row.cells[idx + 1]); }
+    else { t.remove(); if (!page.firstElementChild) page.innerHTML = '<div><br></div>'; page.focus(); }
+    changed(); api.check({ t: 'table' });
+  }
+  function tabIn(c, back) {                               // TAB: the next cell. SHIFT + TAB: the cell before. TAB in the last cell adds a row.
+    const cells = Array.prototype.slice.call(c.closest('table').querySelectorAll('td')), i = cells.indexOf(c);
+    if (!back && i === cells.length - 1) { tableOp('rowAdd', true); return; }
+    const n = cells[i + (back ? -1 : 1)]; if (n) caretIn(n);
+  }
+  /* the page takes plain text from outside; moving something inside the page is the browser's own job */
+  page.addEventListener('dragstart', function () { internalDrag = true; }); page.addEventListener('dragend', function () { internalDrag = false; });
+  page.addEventListener('drop', function (e) { if (internalDrag) { setTimeout(changed, 0); return; } e.preventDefault(); const t = e.dataTransfer && e.dataTransfer.getData('text/plain'); if (t) { try { document.execCommand('insertText', false, t.slice(0, 5000)); } catch (x) { } changed(); } });
+
   /* ---------- save (a real file) and print (the real page) ---------- */
-  function clean() { const d = document.createElement('div'); d.innerHTML = page.innerHTML; d.querySelectorAll('.wl-bad').forEach(function (n) { n.classList.remove('wl-bad'); }); return d.innerHTML; }
+  function clean() {                                      // a copy of the page without the editing marks (the red wavy lines, the blue picture frame)
+    const t = document.createElement('template'); t.innerHTML = page.innerHTML;
+    t.content.querySelectorAll('.wl-bad').forEach(function (n) { n.classList.remove('wl-bad'); }); t.content.querySelectorAll('.wl-sel').forEach(function (n) { n.classList.remove('wl-sel'); });
+    const d = document.createElement('div'); d.appendChild(t.content); return d.innerHTML;
+  }
+  function forFile() {                                    // the page as a file: sizes in points, and the page's own font for text that has none
+    const t = document.createElement('template'); t.innerHTML = clean();
+    t.content.querySelectorAll('[style*="font-size"]').forEach(function (n) { const m = /^([\d.]+)px$/.exec(n.style.fontSize); if (m) n.style.fontSize = Math.round(parseFloat(m[1]) / base * 24) / 2 + 'pt'; });
+    t.content.querySelectorAll(':scope > *, td').forEach(function (n) { if (!n.style.fontFamily) n.style.fontFamily = 'Georgia'; });
+    const d = document.createElement('div'); d.appendChild(t.content); return d.innerHTML;
+  }
+  function saveFile(name) {                               // a real Word file (.docx), made from the cleaned copy of the page
+    const DFl = CC.docfile, prev = DFl.noDownload; if (api.noDownload) DFl.noDownload = true;
+    const end = function (ok) { DFl.noDownload = prev; if (!ok) api.note('The file could not be saved.'); };
+    try { CC.docx.saveDocx(CC.docsafe.fragment(forFile()), name, { page: 'a4' }).then(function () { end(true); }, function () { end(false); }); } catch (e) { end(false); }
+  }
   function dialog(html) { const ov = L.el('div', 'wl-prev', html); body.appendChild(ov); return ov; }
   function saveDialog() {
-    const ov = dialog('<div class="wl-dlg"><h4>💾 Save your document</h4><label>File name<input type="text" maxlength="30" value="' + L.esc(st.name || 'My letter') + '"></label><p>The file is saved in the Downloads folder. It opens in a word processor.</p><div class="row"><button type="button" class="btn primary" data-a="save">Save</button><button type="button" class="btn" data-a="x">Cancel</button></div></div>');
+    const ov = dialog('<div class="wl-dlg"><h4>💾 Save your document</h4><label>File name<input type="text" maxlength="30" value="' + L.esc(st.name || 'My letter') + '"></label><p>The file is saved in the Downloads folder as a Word document (.docx). It opens in Word, LibreOffice Writer and Google Docs.</p><div class="row"><button type="button" class="btn primary" data-a="save">Save</button><button type="button" class="btn" data-a="x">Cancel</button></div></div>');
     const inp = ov.querySelector('input'); inp.focus(); inp.select();
     const done = function (ok) {
       if (ok) { st.name = (inp.value.trim() || 'My letter').replace(/[\\/:*?"<>|]+/g, ' '); st.saved = true; q('.wl-title .nm').textContent = st.name; stat.querySelector('.sv').textContent = 'Saved ✔';
-        try { const doc = '<html><head><meta charset="utf-8"><title>' + L.esc(st.name) + '</title></head><body style="font-family:Georgia,serif;font-size:12pt;line-height:1.6">' + clean() + '</body></html>', a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿', doc], { type: 'application/msword' })); a.download = st.name + '.doc'; document.body.appendChild(a); if (!api.noDownload) a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); } catch (e) { }
+        withFiles(function () { saveFile(st.name); });
         L.sfx('good'); }
       ov.remove(); page.focus(); if (ok) api.check({ t: 'save' });
     };
@@ -107,6 +216,9 @@ function build(body, api, year, lv) {
   /* ---------- the ribbon ---------- */
   function run(cmd) {
     if (cmd === 'save') { saveDialog(); return; } if (cmd === 'print') { printDialog(); return; }
+    if (cmd === 'picture') { pictureDialog(); return; } if (cmd === 'table') { tableDialog(); return; }
+    if (cmd === 'picSmaller' || cmd === 'picLarger' || cmd === 'picDelete') { pictureOp(cmd); return; }
+    if (cmd === 'rowAdd' || cmd === 'colAdd' || cmd === 'tableDelete') { tableOp(cmd); return; }
     if (cmd === 'paste') { pasteBtn(); return; }
     page.focus();
     try {
@@ -127,7 +239,7 @@ function build(body, api, year, lv) {
   q('.wl-size').addEventListener('change', function (e) { if (api.st.locked) return; page.focus(); restore(); if (needSel()) { setSize(+e.target.value); changed(); } });
   /* a list box takes the selection away from the page: remember it, and put it back */
   let saved = null; const remember = function () { const s = selIn(); if (s) saved = s.getRangeAt(0).cloneRange(); };
-  const restore = function () { if (!saved) return; const s = window.getSelection(); s.removeAllRanges(); s.addRange(saved); };
+  const restore = function () { if (!saved || !page.contains(saved.commonAncestorContainer)) return; const s = window.getSelection(); s.removeAllRanges(); s.addRange(saved); };
   bar.querySelectorAll('select').forEach(function (s) { s.addEventListener('mousedown', remember); s.addEventListener('focus', remember); });
   stat.querySelectorAll('[data-z]').forEach(function (z) { z.addEventListener('click', function () { st.zoom = Math.max(60, Math.min(180, st.zoom + 20 * +z.dataset.z)); page.style.zoom = st.zoom / 100; stat.querySelector('.zm b').textContent = st.zoom + '%'; }); });
 
@@ -145,6 +257,7 @@ function build(body, api, year, lv) {
   }
   page.addEventListener('input', changed); page.addEventListener('keyup', marks); page.addEventListener('mouseup', function () { setTimeout(marks, 0); });
   page.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab') { const c = cellNow(); if (c) { e.preventDefault(); tabIn(c, e.shiftKey); return; } }
     const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey; if (!mod) return;
     if (k === 's') { e.preventDefault(); saveDialog(); } else if (k === 'p') { e.preventDefault(); printDialog(); }
     else if (k === 'z' || k === 'y') setTimeout(function () { changed(); api.check({ t: k === 'z' && !e.shiftKey ? 'undo' : 'redo' }); }, 0);
@@ -164,6 +277,17 @@ function build(body, api, year, lv) {
   api.onTip = function (s) { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); if (s.btn) [].concat(s.btn).forEach(function (c) { const x = bar.querySelector('[data-cmd="' + c + '"], [data-sel="' + c + '"]'); if (x) x.classList.add('glow'); }); };
   api.onStep = function () { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); setTimeout(function () { api.check({ t: 'step' }); }, 80); };
   api.doc.run = run; api.doc.setSize = setSize;
+  /* what the steps look at: pictures and tables */
+  const D = api.doc, firstCell = function (r, c) { const t = page.querySelector('table'); return t && t.rows[r] && t.rows[r].cells[c] ? t.rows[r].cells[c] : null; };
+  D.pics = function () { return Array.prototype.slice.call(page.querySelectorAll('img')); };
+  D.table = function () { return page.querySelector('table'); };
+  D.cellText = function (r, c) { const x = firstCell(r, c); return x ? x.textContent.replace(/\s+/g, ' ').trim() : ''; };
+  D.rowsFilled = function (n) { const t = page.querySelector('table'); if (!t || t.rows.length < n) return false; return Array.prototype.every.call(t.rows, function (row) { return row.cells.length >= 2 && row.cells[0].textContent.trim() !== '' && row.cells[1].textContent.trim() !== ''; }); };
+  D.cellStyled = function (r, c, test) { const x = firstCell(r, c); if (!x) return false; const n = document.createTreeWalker(x, NodeFilter.SHOW_TEXT).nextNode(); return !!n && test(getComputedStyle(n.parentElement), n.parentElement); };
+  D.picGrew = function () { return D.pics().some(function (im) { const w0 = parseInt(im.getAttribute('data-w0'), 10); return w0 > 0 && (parseInt(im.getAttribute('width'), 10) || 0) >= w0 * 1.2; }); };
+  D.picBlock = function () { const p = page.querySelector('img'); let b = p ? p.parentElement : null; while (b && b !== page && getComputedStyle(b).display === 'inline') b = b.parentElement; return b && b !== page ? b : null; };
+  D.picCentred = function () { const b = D.picBlock(); return !!b && getComputedStyle(b).textAlign === 'center'; };
+  D.afterPicWords = function () { const p = page.querySelector('img'); if (!p || !page.lastChild) return 0; const r = document.createRange(); r.setStartAfter(p); r.setEndAfter(page.lastChild); const t = r.toString().replace(/\s+/g, ' ').trim(); return t ? t.split(' ').length : 0; };
   changed(); st.saved = false; setTimeout(function () { if (page.isConnected && !lv.html) page.focus(); }, 100);
 }
 
@@ -188,14 +312,22 @@ const TEACH = {
     slide('The clipboard and undo', ['Copied or cut text is held temporarily on the clipboard.', 'The clipboard cannot be seen, but it stores the selection until it is replaced.', 'Ctrl+Z undoes the last action. Use it to reverse a mistake.', 'On a Mac, press the Command key instead of Ctrl.'], keysArt([['Ctrl+Z', 'undo'], ['Ctrl+Y', 'redo']]))],
   save: [slide('Why save?', ['Until it is saved, your work is held only in temporary memory and can be lost.', 'Saving stores it as a file with a name.', 'Save regularly: Ctrl+S.'], cards([['💾', 'Save'], ['📁', 'a named file']])),
     slide('Print preview', ['Print preview shows how the page will look on paper.', 'Check it before printing to avoid wasting paper and ink.', 'Ctrl+P opens it.'], cards([['🖨️', 'Print'], ['👀', 'preview']]))],
+  picture: [slide('Pictures in a document', ['A picture can be inserted into a document to illustrate the text.', 'Clip art is a collection of ready-made pictures that can be inserted without drawing them.', 'Click where the picture should go, then choose it from the collection.'], cards([['🖼️', 'insert a picture'], ['🎨', 'clip art']])),
+    slide('Size and position', ['An inserted picture sits in the line of text, like one very large character.', 'To change its size, click the picture to select it, then use the size buttons. The proportions are kept, so the picture is not stretched.', 'The alignment buttons place the picture on the left, in the centre or on the right.'], pageArt('<p style="text-align:center"><span class="ls-pic">🐱</span></p><p style="text-align:center"><i>centred</i></p>')),
+    slide('Captions', ['A caption is a short line of text that explains a picture.', 'It is usually placed directly below the picture.', 'Press ENTER after the picture, then type the caption.'], pageArt('<p style="text-align:center"><span class="ls-pic">🐱</span></p><p style="text-align:center"><i>A cat asleep in the sun</i></p>'))],
+  table: [slide('What is a table?', ['A table arranges information in rows and columns.', 'A row runs across the page. A column runs down the page.', 'Each box where a row and a column meet is a cell, and each cell holds its own text.'], pageArt('<table><tr><td><b>Pet</b></td><td><b>Name</b></td></tr><tr><td>Cat</td><td>Mia</td></tr></table>')),
+    slide('Working in a table', ['Click a cell to place the cursor in it, then type.', 'The TAB key moves the cursor to the next cell. In the last cell, TAB adds a new row.', 'The Table buttons add a row or a column, or delete the table.'], keysArt([['Tab', 'next cell'], ['Shift+Tab', 'previous cell']])),
+    slide('Headings in a table', ['The first row usually holds headings that describe each column.', 'Making the headings bold helps the reader to find information quickly.'], pageArt('<table><tr><td><b>Pet</b></td><td><b>Name</b></td></tr><tr><td>Cat</td><td>Mia</td></tr><tr><td>Dog</td><td>Rex</td></tr></table>'))],
   own: [slide('The structure of a letter', ['A title at the top.', 'A greeting: Dear, a name and a comma.', 'The body text, then a closing: From and your name.'], pageArt('<p style="text-align:center"><b>My News</b></p><p>Dear Sam,</p><p>I have a new bike. It is red.</p><p style="text-align:right">From Tom</p>'))]
 };
 /* ---------- the levels: each one builds on the one before ----------
    1 typing   2 correcting mistakes   3 selecting words: bold, italic, underline   4 font, size and colour   5 lining up the page and lists
-   6 copy, cut and paste   7 save and print   8 a whole letter alone */
+   6 pictures   7 tables   8 copy, cut and paste   9 save and print   10 a whole letter alone */
 const SELECT = ['Select the words: double-click a word, or press and drag across the words.', 'The words turn blue.'];
 const bad = function (w, fix) { return '<span class="wl-bad" data-w="' + w + '" data-fix="' + fix + '">' + w + '</span>'; };
 const d = function (api) { return api.doc; };
+/* the picture library and the Word file maker: the levels that use them fetch them before they start; any other level fetches them if they are needed */
+const NEEDS = ['js/docfile.js', 'js/docsafe.js', 'js/clipart.js', 'js/docx.js'], NEEDS_BY = ['picture', 'save', 'own'];
 const LEVELS = [
   { id: 'type', title: 'Type a letter', icon: '✉️', min: 3, learned: 'You typed a letter with capital letters, a comma and new lines.',
     steps: [
@@ -231,6 +363,21 @@ const LEVELS = [
       { say: 'Move  From Alex  to the right side', sub: 'Click in the line, then click Align right', win: 'A name goes well on the right.', btn: 'justifyRight', tip: ['Click anywhere in the words From Alex.', 'Click the Align right button.'], ok: function (e, a) { return d(a).styled('From Alex', d(a).T.right); } },
       { say: 'Turn the three items to bring into a bullet list', sub: 'Select the three lines, then click Bullets', win: 'A neat list!', btn: 'insertUnorderedList', tip: ['Press just before A hat and drag down to the end of A big smile.', 'All three lines turn blue.', 'Click the Bullets button in the Paragraph group.'], ok: function (e, a) { return d(a).page.querySelectorAll('ul li').length >= 3; } },
       { say: 'Change the bullets to numbers', sub: 'Select the list, then click Numbering', win: '1, 2, 3!', btn: 'insertOrderedList', tip: ['Select the three lines of the list again.', 'Click the Numbering button, next to Bullets.'], ok: function (e, a) { return d(a).page.querySelectorAll('ol li').length >= 3; } }] },
+  { id: 'picture', title: 'Add a picture', icon: '🖼️', min: 4, learned: 'A picture can be inserted, made larger or smaller, and centred. A caption below it explains what it shows.',
+    html: '<div>My Pet Cat</div><div>Our cat sleeps in the sun all day.</div><div><br></div>',
+    steps: [
+      { say: 'Insert a picture on the empty line', sub: 'Click the empty line, click 🖼️, then choose a picture', win: 'The picture is in the document!', btn: 'picture', tip: ['Click on the empty line at the bottom of the page.', 'Click the 🖼️ Picture button in the Insert group.', 'Click any picture in the window.'], ok: function (e, a) { return d(a).pics().length >= 1; } },
+      { say: 'Make the picture larger', sub: 'Click the picture, then click ➕', win: 'Larger, and not stretched.', btn: 'picLarger', tip: ['Click the picture. A blue frame appears around it.', 'Click the ➕ button in the Insert group.'], ok: function (e, a) { return d(a).picGrew(); } },
+      { say: 'Centre the picture', sub: 'Click the picture, then click Centre', win: 'Centred, as in a book.', btn: 'justifyCenter', tip: ['Click the picture to select it.', 'Click the Centre button in the Paragraph group.'], ok: function (e, a) { return d(a).picCentred(); } },
+      { say: 'Write a caption below the picture', sub: 'Press ENTER after the picture, then type at least three words', win: 'The caption tells the reader what the picture shows.', start: function (a) { d(a).st.capBase = d(a).afterPicWords(); }, tip: ['Click just after the picture, then press ENTER.', 'Type a short caption, for example: My cat asleep in the sun.'], ok: function (e, a) { return d(a).afterPicWords() >= (d(a).st.capBase || 0) + 3; } }] },
+  { id: 'table', title: 'Make a table', icon: '▦', min: 5, learned: 'A table arranges information in rows and columns. TAB moves from cell to cell.',
+    html: '<div>Class Pets</div><div><br></div>',
+    steps: [
+      { say: 'Insert a table with 2 columns and 3 rows', sub: 'Click ▦, move over the squares, then click', win: 'A table with rows and columns!', btn: 'table', tip: ['Click on the empty line under the title.', 'Click the ▦ Table button in the Insert group.', 'Move over the squares to choose 2 columns and 3 rows, then click.'], ok: function (e, a) { const t = d(a).table(); return !!t && t.rows.length >= 3 && t.rows[0].cells.length >= 2; } },
+      { say: 'In the first cell type  Pet , press TAB, then type  Name', sub: 'TAB moves the cursor to the next cell', win: 'TAB moves from cell to cell.', tip: ['Click the first cell if the cursor is not in it.', 'Type Pet, then press the TAB key.', 'Type Name.'], ok: function (e, a) { return d(a).cellText(0, 0).toLowerCase() === 'pet' && d(a).cellText(0, 1).toLowerCase() === 'name'; } },
+      { say: 'Fill the next two rows with a pet and its name', sub: 'Type a pet, press TAB, then type its name', win: 'Two rows are complete.', tip: ['Click the first cell of the second row.', 'Type a pet, press TAB, then type its name.', 'Do the same in the third row.'], ok: function (e, a) { return d(a).rowsFilled(3); } },
+      { say: 'Add a fourth row and fill it in', sub: 'Click ＋ Row, or press TAB in the last cell', win: 'A new row!', btn: 'rowAdd', tip: ['Click in the last row.', 'Click the ＋ Row button in the Table group. Or press TAB in the last cell.', 'Type a pet, press TAB, and type its name.'], ok: function (e, a) { return d(a).rowsFilled(4); } },
+      { say: 'Make the headings  Pet  and  Name  bold', sub: 'Select the word in each heading, then click B', win: 'Bold headings help the reader.', btn: 'bold', tip: ['Double-click the word Pet in the first row, then click B.', 'Double-click the word Name, then click B.'], ok: function (e, a) { return d(a).cellStyled(0, 0, d(a).T.bold) && d(a).cellStyled(0, 1, d(a).T.bold); } }] },
   { id: 'copy', title: 'Copy, cut and paste', icon: '📋', min: 4, learned: 'Copy makes another one. Cut moves it. Paste puts it down. Undo takes back a mistake.',
     html: '<div>Shopping list</div><div>Milk</div><div>Bread</div><div>Buy more: </div>',
     steps: [
@@ -252,7 +399,7 @@ const LEVELS = [
       { say: 'Finish with  From  and your name on the right side', win: 'Signed!', btn: 'justifyRight', tip: ['Press ENTER for a new line.', 'Type From and your name.', 'Click Align right.'], ok: function (e, a) { const l = d(a).lines().slice(-1)[0] || ''; return /^from\s+\S{2,}/i.test(l) && d(a).styled(l.split(/\s+/)[1] || 'From', d(a).T.right); } },
       { say: 'Save your letter', sub: 'CTRL + S', win: 'Saved and finished!', btn: 'save', tip: ['Hold CTRL and tap S. Or click the 💾 button at the very top.', 'Type a name and click Save.'], ok: function (e) { return e.t === 'save'; } }] }
 ];
-LEVELS.forEach(function (lv) { lv.teach = TEACH[lv.id]; lv.build = function (body, api, year) { build(body, api, year, lv); }; });
+LEVELS.forEach(function (lv) { lv.teach = TEACH[lv.id]; if (NEEDS_BY.indexOf(lv.id) >= 0) lv.needs = NEEDS; lv.build = function (body, api, year) { build(body, api, year, lv); }; });
 
 CC.modes.letter = L.game({
   id: 'letter', icon: '📝', title: 'Type a Letter', color: '#ff7a45', cert: { hero: 'Word Wizard', art: 'letter', hue: 18 },

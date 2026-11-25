@@ -6,6 +6,8 @@
      - the small square at the corner of the selection is the fill handle: drag it to copy a formula down or across (the cell names move with it)
      - Ctrl+C / Ctrl+X / Ctrl+V copy, cut and paste; Ctrl+Z undoes; Ctrl+B is bold; DELETE clears
      - AutoSum writes the SUM formula for you; the chart buttons draw the table you have selected
+     - number formats (two decimal places, percent) change only how a number is shown; the Sort buttons put a table in order
+     - Save (Ctrl+S) really saves an Excel file (.xlsx); a level about IF and COUNTIF uses the full formula engine (never eval)
    A level is a table to start from and a list of steps (see lab.js). */
 (function () {
 'use strict';
@@ -35,17 +37,58 @@ function calc(src) {
 /* a copied formula keeps pointing at "the cell two to the left", so every cell name moves with it */
 function shift(raw, dc, dr) {
   if (String(raw)[0] !== '=') return raw; let bad = false;
-  const out = raw.replace(REF, function (m, col, row) { const c = COLS.indexOf(col) + dc, r = +row - 1 + dr; if (c < 0 || c >= COLS.length || r < 0 || r >= ROWS) { bad = true; return m; } return at(c, r); });
+  const out = String(raw).split('"').map(function (part, i) { return i % 2 ? part : part.replace(REF, function (m, col, row) { const c = COLS.indexOf(col) + dc, r = +row - 1 + dr; if (c < 0 || c >= COLS.length || r < 0 || r >= ROWS) { bad = true; return m; } return at(c, r); }); }).join('"');   // words inside quotation marks are text
   return bad ? '=#REF!' : out;
 }
 
+/* a formula is kept in capitals without spaces, except the words inside quotation marks, which stay exactly as typed. Missing closing brackets are added. */
+function tidyFormula(raw) {
+  let out = '', q = false;
+  for (let i = 0; i < raw.length; i++) { const ch = raw[i]; if (ch === '"') { q = !q; out += ch; } else out += q ? ch : /\s/.test(ch) ? '' : ch.toUpperCase(); }
+  const bare = out.replace(/"[^"]*"/g, ''), open = (bare.match(/\(/g) || []).length - (bare.match(/\)/g) || []).length;
+  for (let i = 0; i < open; i++) out += ')';
+  return out;
+}
+/* number formats change only what is shown: the number stored in the cell stays the same */
+const NF = { money: { code: '#,##0.00' }, percent: { code: '0%' } };
+function showNum(v, nf) {
+  if (!isFinite(v)) return String(v);
+  if (nf === 'money') { const a = Math.round(Math.abs(v) * 100 + 1e-7) / 100, t = a.toFixed(2).split('.'); return (v < 0 && a > 0 ? '-' : '') + t[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + t[1]; }
+  if (nf === 'percent') { const a = Math.round(Math.abs(v) * 100 + 1e-7); return (v < 0 && a > 0 ? '-' : '') + a + '%'; }
+  return String(v);
+}
+/* the files that Save and the IF level fetch when they are first needed */
+const NEEDS = ['js/docfile.js', 'js/sheetfmt.js', 'js/sheetparse.js', 'js/sheetcalc.js', 'js/sheetbook.js', 'js/xlsx.js'];
+
 function build(body, api, year, lv) {
-  const G = { cells: {}, fmt: {}, c: 0, r: 0, ac: 0, ar: 0, edit: null, point: null, clip: null, undo: [], chart: null, drag: null, blurT: 0 };
+  const G = { cells: {}, fmt: {}, c: 0, r: 0, ac: 0, ar: 0, edit: null, point: null, clip: null, undo: [], chart: null, drag: null, blurT: 0, name: lv.file || 'My spreadsheet', saved: false };
   Object.keys(lv.cells || {}).forEach(function (k) { G.cells[k] = String(lv.cells[k]); });
   (lv.bold || []).forEach(function (k) { G.fmt[k] = { b: 1 }; });
 
   /* ---------- working out what a cell shows ---------- */
+  /* a level that uses IF, COUNTIF and words in formulas has the cells worked out by the full formula engine (the one the Tools page uses);
+     every other level keeps the small engine below */
+  const FULL = !!(lv.full && CC.sheetbook && CC.sheetfmt && CC.sheetcalc);
+  let bk = null, bkSig = '';
+  function engine() {
+    const sig = JSON.stringify(G.cells); if (bk && sig === bkSig) return bk;
+    bkSig = sig; bk = new CC.sheetbook.Book(); bk.bad = {};
+    Object.keys(G.cells).forEach(function (ref) { const p = pos(ref), r = bk.setEntry(0, p.r, p.c, G.cells[ref]); if (!r.ok) bk.bad[ref] = r.msg; });
+    return bk;
+  }
+  function fullValue(ref) {
+    if (!(G.cells[ref] || '').trim()) return ''; const b = engine(); if (b.bad[ref]) return '#NAME?';
+    const p = pos(ref), v = b.get(0, p.r, p.c);
+    if (v === null || v === undefined) return ''; if (v instanceof CC.sheetcalc.Err) return v.code; if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+    return typeof v === 'number' || typeof v === 'string' ? v : '';
+  }
+  const show = function (v, f) {
+    if (v === '') return ''; if (typeof v !== 'number') return String(v);
+    if (f.nf) return FULL ? CC.sheetfmt.format(v, NF[f.nf].code) : showNum(v, f.nf);
+    return FULL ? CC.sheetfmt.format(v, undefined) : String(v);
+  };
   function value(ref, depth) {
+    if (FULL) return fullValue(ref);
     const raw = (G.cells[ref] || '').trim(); depth = depth || 0;
     if (raw[0] !== '=') return isNum(raw) ? Number(raw) : raw;
     if (depth > 24) return '#LOOP!';
@@ -59,17 +102,18 @@ function build(body, api, year, lv) {
     const v = calc(x); return v === null ? '#NAME?' : !isFinite(v) ? '#DIV/0!' : round(v);   // 0/0 and 1/0 both divide by zero
   }
   const isF = function (ref) { return (G.cells[ref] || '').trim()[0] === '='; };
-  const ERRTEXT = { '#NAME?': 'has a spelling mistake. Check the function name and the brackets.', '#VALUE!': 'uses a cell with words in it. Formulas need numbers.', '#DIV/0!': 'is dividing by zero or by an empty cell.', '#LOOP!': 'uses its own cell, so it goes round in a circle.', '#REF!': 'points at a cell that does not exist.' };
+  const ERRTEXT = { '#NAME?': 'has a spelling mistake. Check the function name and the brackets.', '#VALUE!': 'uses a cell with words in it. Formulas need numbers.', '#DIV/0!': 'is dividing by zero or by an empty cell.', '#LOOP!': 'uses its own cell, so it goes round in a circle.', '#REF!': 'points at a cell that does not exist.', '#CIRC!': 'uses its own cell, so it goes round in a circle.', '#NUM!': 'has a number that cannot be used here.', '#N/A': 'cannot find what it is looking for.', '#LIMIT!': 'is too big for this spreadsheet to work out.' };
 
   /* ---------- the window ---------- */
   const rb = function (cmd, label, title, cls) { return '<button type="button" class="ng-b' + (cls ? ' ' + cls : '') + '" data-cmd="' + cmd + '" title="' + title + '" aria-label="' + title + '">' + label + '</button>'; };
-  body.innerHTML = '<div class="ng-wrap"><div class="ng-app"><div class="ng-title"><span class="dot"></span>' + L.esc(lv.file || 'Book1') + ' - Number Grid</div>' +
+  body.innerHTML = '<div class="ng-wrap"><div class="ng-app"><div class="ng-title"><span class="dot"></span><span class="qa">' + rb('save', '💾', 'Save (Ctrl+S)') + rb('undo', '↶', 'Undo (Ctrl+Z)') + '</span><span class="nm">' + L.esc(lv.file || 'Book1') + '</span> - Number Grid</div>' +
     '<div class="ng-ribbon">' +
-      '<div class="ng-grp">' + rb('undo', '↶', 'Undo (Ctrl+Z)') + '<span class="gl">Undo</span></div>' +
       '<div class="ng-grp">' + rb('paste', '📋', 'Paste (Ctrl+V)') + rb('cut', '✂️', 'Cut (Ctrl+X)') + rb('copy', '📄', 'Copy (Ctrl+C)') + '<span class="gl">Clipboard</span></div>' +
       '<div class="ng-grp">' + rb('bold', '<b>B</b>', 'Bold (Ctrl+B)') + rb('italic', '<i>I</i>', 'Italic (Ctrl+I)') + rb('fill', '<span class="fillico">A</span>', 'Fill colour') + '<span class="gl">Font</span></div>' +
       '<div class="ng-grp">' + rb('left', '<span class="al l"></span>', 'Align left') + rb('center', '<span class="al c"></span>', 'Centre') + rb('right', '<span class="al r"></span>', 'Align right') + '<span class="gl">Alignment</span></div>' +
+      '<div class="ng-grp">' + rb('nfMoney', '0.00', 'Two decimal places, for money', 'wide') + rb('nfPercent', '%', 'Percent', 'wide') + rb('nfGeneral', '123', 'General: take the number format away', 'wide') + '<span class="gl">Number</span></div>' +
       '<div class="ng-grp">' + rb('sum', 'Σ AutoSum', 'AutoSum: add the numbers above', 'wide') + '<select class="ng-fn" aria-label="more functions" title="More functions"><option value="">ƒ More</option><option value="AVERAGE">Average</option><option value="MAX">Max</option><option value="MIN">Min</option><option value="COUNT">Count</option></select><span class="gl">Formulas</span></div>' +
+      '<div class="ng-grp">' + rb('sortAsc', 'A→Z', 'Sort smallest to largest, A to Z', 'wide') + rb('sortDesc', 'Z→A', 'Sort largest to smallest, Z to A', 'wide') + '<span class="gl">Sort</span></div>' +
       '<div class="ng-grp">' + rb('bar', '📊', 'Column chart') + rb('pie', '🥧', 'Pie chart') + rb('line', '📈', 'Line chart') + '<span class="gl">Charts</span></div>' +
     '</div>' +
     '<div class="ng-fx"><b class="ref">A1</b><button type="button" class="fxb x" data-cmd="cancel" title="Cancel (Esc)" aria-label="cancel">✕</button><button type="button" class="fxb ok" data-cmd="enter" title="Enter" aria-label="enter">✓</button><span class="fx">fx</span><input type="text" aria-label="formula bar" autocomplete="off" spellcheck="false"></div>' +
@@ -92,7 +136,7 @@ function build(body, api, year, lv) {
     const b = box(), fb = G.drag && G.drag.fill ? G.drag.fill : null, cl = G.clip;
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS.length; c++) {
       const ref = at(c, r), n = td(ref), v = value(ref), f = G.fmt[ref] || {}, inSel = c >= b.c0 && c <= b.c1 && r >= b.r0 && r <= b.r1;
-      n.firstChild.textContent = v === '' ? '' : String(v);
+      n.firstChild.textContent = show(v, f);
       n.className = (typeof v === 'number' ? 'num ' : '') + (typeof v === 'string' && v[0] === '#' ? 'err ' : '') + (f.b ? 'b ' : '') + (f.i ? 'i ' : '') + (f.al ? 'al-' + f.al + ' ' : '') + (f.fill ? 'fillc ' : '') +
         (inSel && (b.c0 !== b.c1 || b.r0 !== b.r1) ? 'rng ' : '') + (c === G.c && r === G.r ? 'sel ' : '') + (G.glow === ref ? 'glow ' : '') +
         (fb && c >= fb.c0 && c <= fb.c1 && r >= fb.r0 && r <= fb.r1 ? 'fillto ' : '') + (cl && c >= cl.c0 && c < cl.c0 + cl.w && r >= cl.r0 && r < cl.r0 + cl.h ? 'ants ' : '');
@@ -100,8 +144,8 @@ function build(body, api, year, lv) {
     thead.querySelectorAll('th[data-c]').forEach(function (t, i) { t.classList.toggle('on', i >= b.c0 && i <= b.c1); }); tbody.querySelectorAll('th[data-r]').forEach(function (t, i) { t.classList.toggle('on', i >= b.r0 && i <= b.r1); });
     refEl.textContent = cur(); if (!G.edit) fx.value = G.cells[cur()] || '';
     const corner = td(at(b.c1, b.r1)); if (!G.edit) corner.appendChild(handle); else if (handle.parentNode) handle.remove();
-    const f = G.fmt[cur()] || {}; [['bold', f.b], ['italic', f.i], ['fill', f.fill], ['left', f.al === 'left'], ['center', f.al === 'center'], ['right', f.al === 'right']].forEach(function (x) { q('[data-cmd="' + x[0] + '"]').classList.toggle('on', !!x[1]); });
-    q('.ng-app').classList.toggle('editing', !!G.edit); modeEl.textContent = G.edit ? (G.edit.mode === 'enter' ? 'Enter' : 'Edit') : 'Ready';
+    const f = G.fmt[cur()] || {}; [['bold', f.b], ['italic', f.i], ['fill', f.fill], ['left', f.al === 'left'], ['center', f.al === 'center'], ['right', f.al === 'right'], ['nfMoney', f.nf === 'money'], ['nfPercent', f.nf === 'percent']].forEach(function (x) { q('[data-cmd="' + x[0] + '"]').classList.toggle('on', !!x[1]); });
+    q('.ng-app').classList.toggle('editing', !!G.edit); modeEl.textContent = G.edit ? (G.edit.mode === 'enter' ? 'Enter' : 'Edit') : G.saved ? 'Saved ✔' : 'Ready';
     const ns = selRefs().map(function (x) { return value(x); }).filter(function (x) { return typeof x === 'number'; });
     aggEl.textContent = ns.length > 1 ? 'Average: ' + round(FN.AVERAGE(ns)) + '     Count: ' + ns.length + '     Sum: ' + round(FN.SUM(ns)) : '';
     drawChart();
@@ -150,9 +194,9 @@ function build(body, api, year, lv) {
   }
 
   /* ---------- changing cells (every change can be undone) ---------- */
-  function keep() { G.undo.push({ cells: JSON.stringify(G.cells), fmt: JSON.stringify(G.fmt) }); if (G.undo.length > 60) G.undo.shift(); }
-  function undo() { if (G.edit) { cancel(); return; } const u = G.undo.pop(); if (!u) { api.note('There is nothing to undo yet.'); return; } G.cells = JSON.parse(u.cells); G.fmt = JSON.parse(u.fmt); G.clip = null; paint(); api.check({ t: 'undo' }); }
-  function setCell(ref, raw) { raw = String(raw == null ? '' : raw).trim(); if (raw[0] === '=') { raw = raw.toUpperCase().replace(/\s+/g, ''); const open = (raw.match(/\(/g) || []).length - (raw.match(/\)/g) || []).length; for (let i = 0; i < open; i++) raw += ')'; } if (raw) G.cells[ref] = raw; else delete G.cells[ref]; }
+  function keep() { G.saved = false; G.undo.push({ cells: JSON.stringify(G.cells), fmt: JSON.stringify(G.fmt) }); if (G.undo.length > 60) G.undo.shift(); }
+  function undo() { if (G.edit) { cancel(); return; } const u = G.undo.pop(); if (!u) { api.note('There is nothing to undo yet.'); return; } G.cells = JSON.parse(u.cells); G.fmt = JSON.parse(u.fmt); G.clip = null; G.saved = false; paint(); api.check({ t: 'undo' }); }
+  function setCell(ref, raw) { raw = String(raw == null ? '' : raw).trim(); if (raw[0] === '=') raw = tidyFormula(raw); if (raw) G.cells[ref] = raw; else delete G.cells[ref]; }
   function select(c, r, extend, via) {
     if (G.edit) commit(); G.c = Math.max(0, Math.min(COLS.length - 1, c)); G.r = Math.max(0, Math.min(ROWS - 1, r)); if (!extend) { G.ac = G.c; G.ar = G.r; } G.glow = null; paint();
     const n = td(cur()); if (n && n.scrollIntoView) n.scrollIntoView({ block: 'nearest', inline: 'nearest' }); api.check({ t: 'select', ref: cur(), via: via });
@@ -175,6 +219,7 @@ function build(body, api, year, lv) {
   function cancel() { endEdit(); paint(); sheet.focus(); }
   function editKey(e) {
     e.stopPropagation(); const k = e.key, formula = e.target.value.trim()[0] === '=';
+    if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 's') { e.preventDefault(); commit(); saveDialog(); return; }
     if (k === 'Enter') { e.preventDefault(); commit(); sheet.focus(); select(G.c, G.r + (e.shiftKey ? -1 : 1), false, 'enter'); }
     else if (k === 'Tab') { e.preventDefault(); commit(); sheet.focus(); select(G.c + (e.shiftKey ? -1 : 1), G.r, false, 'enter'); }
     else if (k === 'Escape') { e.preventDefault(); cancel(); }
@@ -261,14 +306,71 @@ function build(body, api, year, lv) {
     startEdit('edit', '=' + fn + '('); api.note('Now drag over the numbers you want, then press ENTER.');
   }
   function chart(type) { if (G.edit) commit(); if (!makeChart(type)) { api.note('Click a cell inside your table first, then choose a chart.'); return; } L.sfx('pop'); paint(); api.check({ t: 'chart', kind: type }); }
+  /* sorting: the rows of the table move as whole records, and a row of headings stays at the top */
+  function sortTable(asc) {
+    if (G.edit) commit();
+    const b = region(), col = G.c;                                    // one cell selected: the whole table around it. A range selected: just that range.
+    if (b.r1 - b.r0 < 1 || col < b.c0 || col > b.c1) { api.note('Click a cell inside your table first, then click Sort.'); return; }
+    const isText = function (ref) { const v = value(ref); return typeof v === 'string' && v !== '' && v[0] !== '#'; };
+    let first = b.r0, heads = true, nums = false;
+    for (let c = b.c0; c <= b.c1; c++) { if (!isText(at(c, b.r0))) heads = false; if (typeof value(at(c, b.r0 + 1)) === 'number') nums = true; }
+    if (heads && nums) first = b.r0 + 1;
+    const rows = [];
+    for (let r = first; r <= b.r1; r++) { const cells = []; for (let c = b.c0; c <= b.c1; c++) { const ref = at(c, r); cells.push({ raw: G.cells[ref] || '', fmt: G.fmt[ref] ? JSON.parse(JSON.stringify(G.fmt[ref])) : null }); } rows.push({ r: r, key: value(at(col, r)), cells: cells }); }
+    if (rows.length < 2) { api.note('There are not enough rows to sort.'); return; }
+    const rank = function (v) { return v === '' ? 3 : typeof v === 'number' ? 0 : String(v)[0] === '#' ? 2 : 1; };
+    rows.sort(function (x, y) { const a = rank(x.key), c = rank(y.key); if (a !== c) return a - c; let k = 0; if (a === 0) k = x.key - y.key; else if (a === 1) k = String(x.key).toLowerCase().localeCompare(String(y.key).toLowerCase()); return k ? (asc ? k : -k) : x.r - y.r; });
+    keep();
+    rows.forEach(function (it, i) { const nr = first + i; it.cells.forEach(function (x, j) { const to = at(b.c0 + j, nr); setCell(to, shift(x.raw, 0, nr - it.r)); if (x.fmt) G.fmt[to] = x.fmt; else delete G.fmt[to]; }); });
+    L.sfx('pickup'); paint(); api.check({ t: 'sort', asc: !!asc, col: col });
+  }
+  function clearNf() { if (G.edit) commit(); keep(); selRefs().forEach(function (x) { if (G.fmt[x]) delete G.fmt[x].nf; }); paint(); api.check({ t: 'format', key: 'nf' }); }
+
+  /* saving: a real Excel file (.xlsx), made from the cells and their formats */
+  function withFiles(then) {
+    if (CC.xlsx && CC.sheetbook && CC.docfile) { then(); return; }
+    if (!CC.loadFiles) { api.note('That could not be loaded. Please reload the page and try again.'); return; }
+    api.note('Getting ready...');
+    CC.loadFiles(NEEDS).then(function () { if (body.isConnected) { api.note(''); then(); } }, function (e) { console.error(e); api.note('That could not be loaded. Check the connection and try again.'); });
+  }
+  function saveFile(name) {
+    const DFl = CC.docfile, prev = DFl.noDownload; if (api.noDownload) DFl.noDownload = true;
+    try {
+      const out = new CC.sheetbook.Book(), widest = {};
+      Object.keys(G.cells).forEach(function (ref) {
+        const p = pos(ref), raw = G.cells[ref], asTyped = raw[0] === '=' || isNum(raw) ? raw : "'" + raw;       // words stay words: "1/2" typed here is text, so it must not turn into a date in Excel
+        if (!out.setEntry(0, p.r, p.c, asTyped).ok) out.setEntry(0, p.r, p.c, "'" + raw);
+        const f = G.fmt[ref] || {}, shown = show(value(ref), f); widest[p.c] = Math.max(widest[p.c] || 0, shown.length + (f.b ? 1 : 0));      // wide enough for what the cell shows (24,690.00), not for the number inside it
+      });
+      Object.keys(G.fmt).forEach(function (ref) {
+        const f = G.fmt[ref], p = pos(ref), st = {}; if (f.b) st.b = 1; if (f.i) st.i = 1; if (f.al) st.al = f.al[0]; if (f.fill) st.bg = '#fff2a8'; if (f.nf && NF[f.nf]) st.fmt = NF[f.nf].code;
+        if (Object.keys(st).length) out.applyStyle(0, p.r, p.c, p.r, p.c, st);
+      });
+      Object.keys(widest).forEach(function (c) { out.sheets[0].cw[c] = Math.max(64, Math.min(260, 24 + widest[c] * 8)); });
+      CC.xlsx.saveXlsx(out, name);
+    } catch (e) { console.error(e); api.note('The file could not be saved.'); }
+    DFl.noDownload = prev;
+  }
+  function saveDialog() {
+    if (body.querySelector('.wl-prev')) return; if (G.edit) commit();
+    const ov = L.el('div', 'wl-prev', '<div class="wl-dlg" role="dialog" aria-modal="true" aria-label="Save your spreadsheet"><h4>💾 Save your spreadsheet</h4><label>File name<input type="text" maxlength="30" value="' + L.esc(G.name) + '"></label><p>The file is saved in the Downloads folder as an Excel workbook (.xlsx). It opens in Excel, LibreOffice Calc and Google Sheets.</p><div class="row"><button type="button" class="btn primary" data-a="save">Save</button><button type="button" class="btn" data-a="x">Cancel</button></div></div>');
+    body.appendChild(ov); const inp = ov.querySelector('input'); inp.focus(); inp.select();
+    const done = function (ok) {
+      if (ok) { G.name = (inp.value.trim() || 'My spreadsheet').replace(/[\\/:*?"<>|]+/g, ' '); G.saved = true; q('.ng-title .nm').textContent = G.name; withFiles(function () { saveFile(G.name); }); L.sfx('good'); }
+      ov.remove(); sheet.focus(); paint(); if (ok) api.check({ t: 'save' });
+    };
+    inp.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') done(true); else if (e.key === 'Escape') done(false); });
+    ov.querySelector('[data-a="save"]').addEventListener('click', function () { done(true); }); ov.querySelector('[data-a="x"]').addEventListener('click', function () { done(false); });
+  }
   const CMD = {
     undo: undo, copy: function () { copy(false); }, cut: function () { copy(true); }, paste: paste, bold: function () { format('b'); }, italic: function () { format('i'); }, fill: function () { format('fill'); },
     left: function () { format('al', 'left'); }, center: function () { format('al', 'center'); }, right: function () { format('al', 'right'); }, sum: function () { autoSum('SUM'); },
-    bar: function () { chart('bar'); }, pie: function () { chart('pie'); }, line: function () { chart('line'); }, cancel: function () { if (G.edit) cancel(); }, enter: function () { if (G.edit) { commit(); sheet.focus(); } }
+    bar: function () { chart('bar'); }, pie: function () { chart('pie'); }, line: function () { chart('line'); },
+    nfMoney: function () { format('nf', 'money'); }, nfPercent: function () { format('nf', 'percent'); }, nfGeneral: clearNf, sortAsc: function () { sortTable(true); }, sortDesc: function () { sortTable(false); }, save: saveDialog, cancel: function () { if (G.edit) cancel(); }, enter: function () { if (G.edit) { commit(); sheet.focus(); } }
   };
   body.querySelectorAll('[data-cmd]').forEach(function (b) {
     b.addEventListener('mousedown', function (e) { e.preventDefault(); });
-    b.addEventListener('click', function () { if (api.st.locked) return; b.classList.remove('glow'); CMD[b.dataset.cmd](); if (!G.edit) sheet.focus(); });
+    b.addEventListener('click', function () { if (api.st.locked) return; b.classList.remove('glow'); CMD[b.dataset.cmd](); if (!G.edit && !body.querySelector('.wl-prev')) sheet.focus(); });
   });
   q('.ng-fn').addEventListener('change', function (e) { const f = e.target.value; e.target.value = ''; if (f && !api.st.locked) autoSum(f); });
 
@@ -281,6 +383,7 @@ function build(body, api, year, lv) {
     else if (k === 'Home') { e.preventDefault(); select(0, mod ? 0 : G.r, false, 'key'); }
     else if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); clearSel(); } else if (k === 'F2') { e.preventDefault(); startEdit('edit'); }
     else if (k === 'Escape') { if (G.clip) { G.clip = null; paint(); } }
+    else if (mod && k.toLowerCase() === 's') { e.preventDefault(); saveDialog(); }
     else if (mod && /^[acxvzbi]$/i.test(k)) { e.preventDefault(); const c = k.toLowerCase(); if (c === 'a') { G.c = 0; G.r = 0; G.ac = COLS.length - 1; G.ar = ROWS - 1; paint(); api.check({ t: 'range', range: rangeStr() }); } else CMD[{ c: 'copy', x: 'cut', v: 'paste', z: 'undo', b: 'bold', i: 'italic' }[c]](); }
     else if (k.length === 1 && !mod && !e.altKey) { e.preventDefault(); startEdit('enter', k); }
   });
@@ -288,7 +391,7 @@ function build(body, api, year, lv) {
   api.onTip = function (s) { G.glow = s.cell || null; body.querySelectorAll('.ng-b.glow').forEach(function (b) { b.classList.remove('glow'); }); if (s.btn) [].concat(s.btn).forEach(function (c) { const b = q('[data-cmd="' + c + '"]'); if (b) b.classList.add('glow'); }); paint(); };
   api.onStep = function () { G.glow = null; body.querySelectorAll('.ng-b.glow').forEach(function (b) { b.classList.remove('glow'); }); paint(); setTimeout(function () { api.check({ t: 'step' }); }, 80); };
   const baseStop = api.stop; api.stop = function () { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); baseStop(); };
-  api.g = { val: value, isF: isF, raw: function (r) { return (G.cells[r] || '').trim(); }, sel: cur, range: rangeStr, fmt: function (r) { return G.fmt[r] || {}; }, editing: function () { return !!G.edit; }, chart: function () { return G.chart; }, G: G,
+  api.g = { val: value, shown: function (r) { return show(value(r), G.fmt[r] || {}); }, isF: isF, raw: function (r) { return (G.cells[r] || '').trim(); }, sel: cur, range: rangeStr, fmt: function (r) { return G.fmt[r] || {}; }, editing: function () { return !!G.edit; }, chart: function () { return G.chart; }, G: G,
     select: function (ref) { const P = pos(ref); select(P.c, P.r, false, 'click'); }, selectRange: function (a, b) { const A = pos(a), B = pos(b); if (G.edit) commit(); G.c = A.c; G.r = A.r; G.ac = B.c; G.ar = B.r; paint(); api.check({ t: 'range', range: rangeStr() }); },
     set: function (ref, raw) { const P = pos(ref); if (G.edit) commit(); G.c = G.ac = P.c; G.r = G.ar = P.r; G.edit = { mode: 'enter' }; ed.value = raw; fx.value = raw; commit(); }, cmd: function (c) { CMD[c](); }, shift: shift,
     fill: function (a, b) { const A = pos(a), B = pos(b); G.c = G.ac = A.c; G.r = G.ar = A.r; G.drag = { kind: 'fill', src: box(), fill: B.r > A.r ? { c0: A.c, c1: A.c, r0: A.r + 1, r1: B.r } : { c0: A.c + 1, c1: B.c, r0: A.r, r1: A.r } }; onUp(); } };
@@ -312,6 +415,8 @@ function mg(o) {
 const fm = function (parts) { return '<div class="ls-formula">' + parts.map(function (p) { return '<span class="' + p[0] + '">' + p[1] + (p[2] ? '<small>' + p[2] + '</small>' : '') + '</span>'; }).join('') + '</div>'; };
 const keysArt = function (list) { return '<div class="ls-row">' + list.map(function (k) { return '<div class="ls-card"><span class="ls-key">' + k[0] + '</span>' + k[1] + '</div>'; }).join('') + '</div>'; };
 const slide = function (h, p, art) { return { h: h, p: p, art: art }; };
+const cards = function (list) { return '<div class="ls-row">' + list.map(function (k) { return '<div class="ls-card"><span class="ic">' + k[0] + '</span>' + k[1] + '</div>'; }).join('') + '</div>'; };
+const fml = function (parts) { return fm(parts).replace('class="ls-formula"', 'class="ls-formula long"'); };
 const SHOP = { A1: 'Item', B1: 'Price', A2: 'Pencil', B2: '2', A3: 'Ruler', B3: '3', A4: 'Book', B4: '5' };
 const TEACH = {
   cells: [slide('What is a spreadsheet?', ['A spreadsheet is a program that organises data in a grid.', 'It is used for lists, tables and calculations.', 'Every box in the grid is called a cell.'], mg()),
@@ -336,17 +441,28 @@ const TEACH = {
     slide('MAX and MIN', ['=MAX(B2:B6) returns the largest value in the range.', '=MIN(B2:B6) returns the smallest value in the range.', 'They are written in the same way as SUM.'], fm([['eq', '=', ''], ['fn', 'MAX', 'largest'], ['op', '(', ''], ['rf', 'B2:B6', 'the range'], ['op', ')', '']]))],
   chart: [slide('What is a chart?', ['A chart is a visual representation of data.', 'Patterns are easier to see in a chart than in a table.', 'Select the data first, then insert a chart.'], '<div class="ls-row"><div class="ls-card"><span class="ic">📊</span>Column</div><div class="ls-card"><span class="ic">🥧</span>Pie</div><div class="ls-card"><span class="ic">📈</span>Line</div></div>'),
     slide('Choosing a chart type', ['Column chart: compares sizes. A taller column means a larger value.', 'Pie chart: shows the proportions of a whole.', 'Line chart: shows change over time.'], '<div class="ls-row"><div class="ls-card"><span class="ic">📊</span>compare</div><div class="ls-card"><span class="ic">🥧</span>shares</div><div class="ls-card"><span class="ic">📈</span>change</div></div>')],
+  save: [slide('Why save a spreadsheet?', ['Until it is saved, a spreadsheet is held only in temporary memory and can be lost.', 'Saving stores it as a file with a name.', 'Press Ctrl+S, or click the save button at the top.'], cards([['💾', 'save'], ['📁', 'a named file']])),
+    slide('Spreadsheet files', ['A spreadsheet is saved as a .xlsx file.', 'The same file opens in Excel, LibreOffice Calc and Google Sheets.', 'The formulas are saved with the file, so they keep calculating.'], cards([['📊', 'a .xlsx file'], ['🖥️', 'Excel, Calc, Sheets']]))],
+  money: [slide('Number formats', ['A number format changes how a number is displayed. The number stored in the cell does not change.', 'Money is usually written with two decimal places: 2.50, not 2.5.', 'Select the cells first, then click the format button.'], mg({ range: ['B2', 'B4'], cells: { A1: 'Item', B1: 'Price', A2: 'Juice', B2: '2.50', A3: 'Crisps', B3: '1.50', A4: 'Fruit', B4: '0.75' } })),
+    slide('Percentages', ['A percentage is a number out of 100. 25% means 25 out of 100, which is 0.25.', 'The Percent format shows 0.25 as 25%. The cell still holds 0.25.', 'The 123 button takes the format away and shows the stored number again.'], keysArt([['0.25', 'stored in the cell'], ['25%', 'shown on the screen']]))],
+  sort: [slide('What is sorting?', ['Sorting puts the rows of a table in order.', 'Ascending order goes from smallest to largest, or from A to Z.', 'Descending order goes from largest to smallest, or from Z to A.'], keysArt([['A→Z', 'ascending'], ['Z→A', 'descending']])),
+    slide('Sort the whole table', ['Click one cell in the column to sort by, then click a sort button.', 'Each row is a record, so the whole row moves together. The facts about one person stay together.', 'The row of headings stays at the top.'], mg({ col: 'B', cells: { A1: 'Name', B1: 'Score', A2: 'Amina', B2: '9', A3: 'Dalitso', B3: '8', A4: 'Chipo', B4: '7' } }))],
+  'if': [slide('Making a decision', ['The IF function lets a spreadsheet choose between two results.', 'It tests a condition. If the condition is true, it gives one result. If it is false, it gives the other.', 'For example: Pass if the score is at least 5.'], fml([['eq', '=', ''], ['fn', 'IF', 'decide'], ['op', '(', ''], ['rf', 'B2&gt;=5', 'test'], ['op', ',', ''], ['rf', '"Pass"', 'if true'], ['op', ',', ''], ['rf', '"Try again"', 'if false'], ['op', ')', '']])),
+    slide('The parts of IF', ['=IF(test, result if true, result if false)', 'The test compares two values with an operator.', 'Words in a formula go inside quotation marks, like "Pass".'], keysArt([['&gt;', 'greater than'], ['&lt;', 'less than'], ['&gt;=', 'at least'], ['=', 'equal to']])),
+    slide('Counting with COUNTIF', ['COUNTIF counts the cells in a range that match a condition.', '=COUNTIF(C2:C5,"Pass") counts the cells in C2:C5 that say Pass.', 'When a score changes, the count updates by itself.'], fml([['eq', '=', ''], ['fn', 'COUNTIF', 'count'], ['op', '(', ''], ['rf', 'C2:C5', 'the range'], ['op', ',', ''], ['rf', '"Pass"', 'what to count'], ['op', ')', '']]))],
   avg: [slide('What is an average?', ['The average (mean) is the total of the values divided by how many values there are.', '8, 5 and 10 total 23. Divided by 3, the mean is 7.67.', '=AVERAGE(B2:B4) performs both steps.'], fm([['eq', '=', ''], ['fn', 'AVERAGE', 'the mean'], ['op', '(', ''], ['rf', 'B2:B4', 'the range'], ['op', ')', '']])),
     slide('Copy down or across', ['Write the formula for the first row.', 'Use the fill handle to copy it down or across.', 'The cell references adjust automatically.'], mg({ cell: 'D2', quiet: 1, handle: 1, cells: { A1: 'Name', B1: 'Maths', C1: 'English', D1: 'Total', A2: 'Amina', B2: '8', C2: '6', D2: '=B2+C2' } }))],
   shop: [slide('Combining the skills', ['Revenue = price x quantity sold.', 'Total revenue = the SUM of the revenue column.', 'Profit = total revenue - costs.'], fm([['eq', '=', ''], ['rf', 'D6', 'total'], ['op', '-', 'take away'], ['rf', 'D7', 'costs']]))]
 };
 /* ---------- the levels: each one builds on the one before ----------
    1 cells and moving   2 typing a table   3 selecting and formatting   4 formulas   5 copying a formula (the fill handle)
-   6 SUM and AutoSum    7 charts           8 totals and averages        9 a whole working sheet */
+   6 SUM and AutoSum    7 charts           8 saving                     9 totals and averages
+   10 number formats    11 sorting         12 IF and COUNTIF            13 a whole working sheet */
 const typeTip = function (cell, what) { return ['Find column ' + cell[0] + ' at the top and row ' + cell.slice(1) + ' at the side.', 'Click cell ' + cell + '. It is glowing.', 'Type ' + what + ' and press ENTER.']; };
 const num = function (cell, n) { return function (e, a) { return a.g.val(cell) === n && !a.g.editing(); }; };
 const formula = function (cell, n, must) { return function (e, a) { return a.g.isF(cell) && a.g.val(cell) === (typeof n === 'function' ? n(a) : n) && (!must || must.test(a.g.raw(cell))) && !a.g.editing(); }; };
 const allF = function (cells, vals) { return function (e, a) { return !a.g.editing() && cells.every(function (c, i) { return a.g.isF(c) && a.g.val(c) === vals[i]; }); }; };
+const nfAll = function (cells, nf) { return function (e, a) { return !a.g.editing() && cells.every(function (c) { return a.g.fmt(c).nf === nf; }); }; };
 const FILL = ['Click the cell with the formula.', 'Find the small square at its bottom right corner.', 'Press on the square, drag to the last cell, and let go.'];
 const LEVELS = [
   { id: 'cells', title: 'Cells and moving', icon: '🔤', min: 4, learned: 'Every cell has a name: its column letter and its row number.',
@@ -411,6 +527,13 @@ const LEVELS = [
       { say: 'Wednesday was really 90 steps. Change B4 to 90.', sub: 'Watch the chart', win: 'The chart changed by itself!', cell: 'B4', tip: typeTip('B4', '90'), ok: function (e, a) { return a.g.val('B4') === 90 && !!a.g.chart() && !a.g.editing(); } },
       { say: 'Click 📈 to see the steps as a line chart', win: 'A line chart shows change from day to day.', btn: 'line', tip: ['Click any cell in the table.', 'Click the 📈 button in the Charts group.'], ok: function (e, a) { const c = a.g.chart(); return !!c && c.type === 'line'; } },
       { say: 'Click 🥧 to see each day as a slice', win: 'A pie chart shows each share of the whole.', btn: 'pie', tip: ['Click any cell in the table.', 'Click the 🥧 button in the Charts group.'], ok: function (e, a) { const c = a.g.chart(); return !!c && c.type === 'pie'; } }] },
+  { id: 'save', title: 'Save your work', icon: '💾', min: 4, learned: 'Save often. A saved spreadsheet is a file that opens in Excel and other programs.', file: 'Pets', needs: NEEDS,
+    cells: { A1: 'Pet', B1: 'Number', A2: 'Cats', B2: 4, A3: 'Dogs', B3: 6, A4: 'Fish', B4: 9, A6: 'Total' }, bold: ['A1', 'B1', 'A6'],
+    notes: ['Saving stores your work as a file with a name.', 'Press Ctrl+S, or click the 💾 button at the top.', 'The file is an Excel workbook (.xlsx). It opens in Excel, LibreOffice Calc and Google Sheets.'],
+    steps: [
+      { say: 'Add one more pet: type  Birds  in A5 and  7  in B5', sub: 'TAB moves across. ENTER moves down.', win: 'Birds are in the table!', cell: 'A5', tip: ['Click cell A5 and type Birds.', 'Press TAB to move to B5.', 'Type 7 and press ENTER.'], ok: function (e, a) { return /^birds$/i.test(String(a.g.val('A5'))) && a.g.val('B5') === 7 && !a.g.editing(); } },
+      { say: 'In B6 total the numbers with  =SUM(B2:B5)', win: 'The total is 26.', cell: 'B6', btn: 'sum', tip: ['Click cell B6.', 'Type =SUM(B2:B5) and press ENTER.'], ok: formula('B6', 26, /SUM/) },
+      { say: 'Save your work: press CTRL + S', sub: 'Give it a name, then click Save', win: 'Saved! The name is at the top now.', btn: 'save', tip: ['Hold CTRL and tap S. Or click the 💾 button at the very top.', 'Type a name for your file.', 'Click Save.'], ok: function (e) { return e.t === 'save'; } }] },
   { id: 'avg', title: 'Totals and averages', icon: '🧮', min: 5, learned: 'AVERAGE shares the total out equally.', file: 'Marks',
     cells: { A1: 'Name', B1: 'Maths', C1: 'English', D1: 'Total', A2: 'Amina', B2: 8, C2: 6, A3: 'Ben', B3: 5, C3: 9, A4: 'Chipo', B4: 10, C4: 7, A6: 'Average' }, bold: ['A1', 'B1', 'C1', 'D1', 'A6'],
     notes: ['The average is the total shared out equally.', '=AVERAGE(B2:B4) adds the cells, then divides by how many there are.', 'Write a formula once, then copy it with the fill handle.', 'ƒ More has Average, Max, Min and Count ready to use.'],
@@ -420,6 +543,31 @@ const LEVELS = [
       { say: 'In B6 type  =AVERAGE(B2:B4)  for the Maths average', win: 'The Maths average is 7.67.', cell: 'B6', tip: ['Click cell B6.', 'Type =AVERAGE(B2:B4) and press ENTER.'], ok: formula('B6', 7.67, /AVERAGE/) },
       { say: 'Drag the fill handle of B6 across to C6', sub: 'The fill handle works sideways too', win: 'The English average is 7.33.', cell: 'B6', tip: ['Click cell B6.', 'Press on the small square at its corner.', 'Drag right to C6 and let go.'], ok: formula('C6', 7.33, /AVERAGE/) },
       { say: 'Drag from A1 to D4, then click 📊', sub: 'The chart uses the first and the last column: the names and the totals', win: 'Chipo has the most marks.', cell: 'A1', btn: 'bar', tip: ['Press on A1, drag to D4 and let go.', 'Click the 📊 button in the Charts group.'], ok: function (e, a) { return !!a.g.chart(); } }] },
+  { id: 'money', title: 'Money and percentages', icon: '💰', min: 5, learned: 'A number format changes how a number looks. The number inside the cell stays the same.', file: 'Tuck shop',
+    cells: { A1: 'Item', B1: 'Price', C1: 'Sold', D1: 'Money', A2: 'Juice', B2: 2.5, C2: 12, A3: 'Crisps', B3: 1.5, C3: 20, A4: 'Fruit', B4: 0.75, C4: 16, A6: 'Discount' }, bold: ['A1', 'B1', 'C1', 'D1'],
+    notes: ['A number format changes only how a number looks.', '0.00 shows two decimal places. Money is usually written like this: 2.50.', '% shows 0.25 as 25%. The cell still holds 0.25.', '123 takes the format away.'],
+    steps: [
+      { say: 'Select the prices B2 to B4 and click 0.00', sub: 'Money is written with two decimal places', win: 'The prices show 2.50, 1.50 and 0.75.', cell: 'B2', btn: 'nfMoney', tip: ['Press on B2, drag down to B4 and let go.', 'Click the 0.00 button in the Number group.'], ok: nfAll(['B2', 'B3', 'B4'], 'money') },
+      { say: 'In D2 type  =B2*C2  and copy it down to D4', sub: 'Price times the number sold', win: 'The money for every item.', cell: 'D2', tip: ['Click cell D2. Type =B2*C2 and press ENTER.', 'Click D2 again.', 'Drag the small square at its corner down to D4.'], ok: allF(['D2', 'D3', 'D4'], [30, 30, 12]) },
+      { say: 'Select D2 to D4 and give the money two decimal places', win: 'Now 30.00, 30.00 and 12.00.', cell: 'D2', btn: 'nfMoney', tip: ['Press on D2, drag down to D4 and let go.', 'Click the 0.00 button in the Number group.'], ok: nfAll(['D2', 'D3', 'D4'], 'money') },
+      { say: 'In B6 type  0.25  then click %', sub: 'A discount of 25%', win: 'The cell shows 25%.', cell: 'B6', btn: 'nfPercent', tip: ['Click cell B6, type 0.25 and press ENTER.', 'Click B6 again.', 'Click the % button in the Number group.'], ok: function (e, a) { return a.g.val('B6') === 0.25 && a.g.fmt('B6').nf === 'percent' && !a.g.editing(); } },
+      { say: 'Click 123 to see the number that is really in B6', sub: 'A number format never changes the number', win: 'The cell still holds 0.25.', cell: 'B6', btn: 'nfGeneral', tip: ['Keep B6 selected.', 'Click the 123 button in the Number group.'], ok: function (e, a) { return a.g.val('B6') === 0.25 && !a.g.fmt('B6').nf && !a.g.editing(); } }] },
+  { id: 'sort', title: 'Sort a table', icon: '🔃', min: 5, learned: 'Sorting puts the rows in order. Each row stays together as a record.', file: 'Scores',
+    cells: { A1: 'Name', B1: 'Score', A2: 'Chipo', B2: 7, A3: 'Amina', B3: 9, A4: 'Ben', B4: 4, A5: 'Dalitso', B5: 8, A6: 'Esther', B6: 6 }, bold: ['A1', 'B1'],
+    notes: ['Ascending: smallest to largest, or A to Z.', 'Descending: largest to smallest, or Z to A.', 'Click one cell in the column to sort by, then click a Sort button.', 'The whole row moves, and the headings stay at the top.'],
+    steps: [
+      { say: 'Click a cell in the Score column, then click Z→A', sub: 'Largest to smallest: the best score goes first', win: 'Amina is first with 9, and her name moved with her score.', cell: 'B2', btn: 'sortDesc', tip: ['Click any cell in the Score column.', 'Click the Z→A button in the Sort group.'], ok: function (e, a) { return ['Amina', 'Dalitso', 'Chipo', 'Esther', 'Ben'].every(function (n, i) { return a.g.val('A' + (i + 2)) === n && a.g.val('B' + (i + 2)) === [9, 8, 7, 6, 4][i]; }); } },
+      { say: 'Now put the names in alphabetical order', sub: 'Click a cell in the Name column, then click A→Z', win: 'A to Z. Each score stayed with its name.', cell: 'A2', btn: 'sortAsc', tip: ['Click any cell in the Name column.', 'Click the A→Z button in the Sort group.'], ok: function (e, a) { return ['Amina', 'Ben', 'Chipo', 'Dalitso', 'Esther'].every(function (n, i) { return a.g.val('A' + (i + 2)) === n && a.g.val('B' + (i + 2)) === [9, 4, 7, 8, 6][i]; }); } },
+      { say: 'Add  Fatima  in A7 and  5  in B7', win: 'Fatima is at the bottom of the table.', cell: 'A7', tip: ['Click cell A7 and type Fatima.', 'Press TAB, type 5 and press ENTER.'], ok: function (e, a) { return /^fatima$/i.test(String(a.g.val('A7'))) && a.g.val('B7') === 5 && !a.g.editing(); } },
+      { say: 'Sort the scores from smallest to largest', sub: 'Click a cell in the Score column, then click A→Z', win: 'Fatima moved up to second place from the bottom, with her score.', cell: 'B2', btn: 'sortAsc', tip: ['Click any cell in the Score column.', 'Click the A→Z button in the Sort group.'], ok: function (e, a) { return [4, 5, 6, 7, 8, 9].every(function (v, i) { return a.g.val('B' + (i + 2)) === v; }) && a.g.val('A3') === 'Fatima'; } }] },
+  { id: 'if', title: 'IF: make a decision', icon: '🔀', min: 6, learned: 'IF chooses one of two results. COUNTIF counts the cells that match.', file: 'Results', full: true, needs: NEEDS,
+    cells: { A1: 'Name', B1: 'Score', C1: 'Result', A2: 'Amina', B2: 8, A3: 'Ben', B3: 4, A4: 'Chipo', B4: 6, A5: 'Dalitso', B5: 3, A7: 'Passes' }, bold: ['A1', 'B1', 'C1', 'A7'],
+    notes: ['=IF(test, result if true, result if false)', 'Words go inside quotation marks: "Pass"', '>= means at least. > means greater than. < means less than.', '=COUNTIF(C2:C5,"Pass") counts the cells that say Pass.'],
+    steps: [
+      { say: 'In C2 type  =IF(B2>=5,"Pass","Try again")', sub: 'Pass if the score is at least 5', win: 'Amina scored 8, so the answer is Pass.', cell: 'C2', tip: ['Click cell C2.', 'Type =IF(B2>=5,"Pass","Try again"). The quotation mark is above the 2 on many keyboards.', 'Press ENTER.'], ok: formula('C2', 'Pass', /^=IF\(/) },
+      { say: 'Copy the formula down to C5', win: 'Every learner has a result.', cell: 'C2', tip: FILL, ok: allF(['C3', 'C4', 'C5'], ['Try again', 'Pass', 'Try again']) },
+      { say: 'Ben worked hard! Change B3 to 7 and watch C3', sub: 'The formula decides again by itself', win: 'Ben now has a Pass.', cell: 'B3', tip: typeTip('B3', '7'), ok: function (e, a) { return a.g.val('B3') === 7 && a.g.val('C3') === 'Pass' && !a.g.editing(); } },
+      { say: 'In B7 count the passes with  =COUNTIF(C2:C5,"Pass")', win: 'Three learners passed.', cell: 'B7', tip: ['Click cell B7.', 'Type =COUNTIF(C2:C5,"Pass") and press ENTER.'], ok: formula('B7', 3, /COUNTIF/) }] },
   { id: 'shop', title: 'Run the tuck shop', icon: '🛒', min: 6, learned: 'You built a real working spreadsheet!', file: 'Tuck shop',
     cells: { A1: 'Item', B1: 'Price', C1: 'Sold', D1: 'Money', A2: 'Juice', B2: 4, C2: 12, A3: 'Crisps', B3: 3, C3: 20, A4: 'Fruit', B4: 2, C4: 15, A6: 'Total', A7: 'Costs', D7: 60, A8: 'Profit' }, bold: ['A6', 'A8'],
     notes: ['Money = price × number sold.', 'Profit = money in − costs.', 'Because you used cell names, every answer updates when a number changes.'],
