@@ -7,6 +7,8 @@ const SPEEDS = [   // seconds for a balloon to cross the screen (at the start an
   { name: 'Very slow', ico: '🐌', fall: [30, 26], gap: [5.0, 4.0], maxCombo: 3 }, { name: 'Slow', ico: '🐢', fall: [23, 19], gap: [3.8, 2.8], maxCombo: 4 },
   { name: 'Medium', ico: '🚶', fall: [17, 13], gap: [3.0, 2.0], maxCombo: 5 }, { name: 'Fast', ico: '🏃', fall: [13, 9.5], gap: [2.3, 1.4], maxCombo: 5 },
   { name: 'Fastest', ico: '⚡', fall: [10, 7], gap: [1.8, 1.0], maxCombo: 5 }];
+/* the three levels: the pace (one of the five Year 6 speeds), the longest everyday word, and how often a long word falls */
+const LEVELS = { beginner: { sp: SPEEDS[1], cap: 5, longShare: 0 }, medium: { sp: SPEEDS[2], cap: 7, longShare: 0 }, pro: { sp: SPEEDS[3], cap: 9, longShare: 0.35 } };
 const BAL = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6', '#4f9bff', '#a77bff', '#ff8ad8'];
 const COMBO_NAME = ['', '', 'DOUBLE', 'TRIPLE', 'QUAD', 'MEGA x5'];
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -17,7 +19,7 @@ function shade(hex, f) {   // f > 0 lightens, f < 0 darkens
 function clockText(secs) { secs = Math.max(0, Math.ceil(secs)); return Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2); }
 
 function start(host, cfg, api) {
-  const el = api.el, sp = SPEEDS[2], timers = [];   // Medium speed, 2 minutes
+  const el = api.el, lv = LEVELS[cfg.level] || LEVELS.medium, sp = lv.sp, timers = [];
   function later(fn, ms) { const id = setTimeout(function () { const i = timers.indexOf(id); if (i >= 0) timers.splice(i, 1); fn(); }, ms); timers.push(id); return id; }
   host.innerHTML = '';
   const play = el('div', 'pr-rainplay'); host.appendChild(play);
@@ -36,7 +38,7 @@ function start(host, cfg, api) {
   f.appendChild(el('div', 'rain-water'));
   const banner = el('div', 'rain-banner'); banner.hidden = true; f.appendChild(banner);
 
-  const R = { phase: 'count', t: 0, dur: 120, words: [], caught: 0, bonus: 0, popped: 0, missed: 0, combos: 0, streak: 0, best: 0, target: null, good: 0, errors: 0, err: {}, spawnT: 0.2, comboT: (12 + Math.random() * 5) * clamp(sp.gap[0] / 2, 0.9, 2.2), comboWait: 0, comboN: 0, lastLane: -1, skyT: 6 + Math.random() * 4, lastFlash: -9, snd: null, sndOn: !!cfg.sound, paused: false };
+  const R = { phase: 'count', t: 0, dur: cfg.minutes * 60, words: [], caught: 0, bonus: 0, popped: 0, missed: 0, combos: 0, streak: 0, best: 0, target: null, good: 0, errors: 0, err: {}, spawnT: 0.2, comboT: (12 + Math.random() * 5) * clamp(sp.gap[0] / 2, 0.9, 2.2), comboWait: 0, comboN: 0, lastLane: -1, skyT: 6 + Math.random() * 4, lastFlash: -9, snd: null, sndOn: !!cfg.sound, paused: false };
   let raf = 0, last = 0, stopped = false;
 
   /* ---- sound (optional) ---- */
@@ -61,8 +63,8 @@ function start(host, cfg, api) {
   function freeLanes(n) { const out = []; for (let l = 0; l < n; l++) { if (!R.words.some(function (w) { return w.lanes.indexOf(l) >= 0 && w.y < 0; })) out.push(l); } return out; }
   function pickWord(maxLen) {
     const used = {}, act = {}; R.words.forEach(function (w) { used[w.text[0]] = 1; act[w.text] = 1; });
-    const all = Core.shuffle(D.EVERYDAY).filter(function (w) { return !used[w[0]] && !act[w]; });
-    const fit = all.filter(function (w) { return w.length <= Math.min(7, maxLen + 2); });
+    const long = Math.random() < lv.longShare, all = Core.shuffle(long ? D.LONG.filter(function (w) { return w.length <= 10; }) : D.EVERYDAY).filter(function (w) { return !used[w[0]] && !act[w]; });
+    const fit = long ? all : all.filter(function (w) { return w.length <= Math.min(lv.cap, maxLen + 2); });
     return fit[0] || all.sort(function (a, b) { return a.length - b.length; })[0] || null;
   }
   function makeDrop(text, color, n) {
@@ -172,7 +174,7 @@ function start(host, cfg, api) {
     stop(); sfx('levelComplete');
     const sec = Math.max(R.t, 1), min = sec / 60, weak = Object.keys(R.err).map(function (k) { return { key: k, errors: R.err[k] }; }).sort(function (a, b) { return b.errors - a.errors; }).slice(0, 5);
     const res = { net: chars() / 5 / min, acc: acc(), seconds: sec, weak: weak };
-    const meta = { title: 'Word Rain - 2 minutes' };
+    const meta = { title: 'Word Rain - ' + cfg.label + ' - ' + cfg.minutes + ' min' };
     api.done(res, meta);
   }
 
@@ -201,7 +203,7 @@ function start(host, cfg, api) {
   }
   function frame(now) {
     if (stopped) return;
-    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+    const dt = Math.min(0.25, Math.max(0, (now - last) / 1000)); last = now;   // real time, so a slow computer does not stretch the game
     if (R.phase === 'play' && !R.paused) update(dt);
     if (!stopped) raf = requestAnimationFrame(frame);
   }

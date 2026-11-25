@@ -1,4 +1,4 @@
-/* practice.js - Practice: typing for everyone, in the same look as the rest of Tech Explorers. Three tabs: Speed Test, Drills and Word Rain.
+/* practice.js - Practice: typing for everyone, in the same look as the rest of Tech Explorers. Three tabs: Drills, Speed Test and Word Rain.
    Nothing is saved: no scores, no names, no settings. A result card can be downloaded as a picture.
    Loaded the first time Practice is opened (see main.js), so the games open as fast as before. */
 (function () {
@@ -13,14 +13,12 @@ function el(tag, cls, text, attrs) {
 function fmt(n) { return String(Math.round(n)); }
 function pct(n) { return n >= 99.95 ? '100%' : n.toFixed(1) + '%'; }
 function clock(s) { s = Math.round(s); return s < 60 ? s + ' s' : Math.floor(s / 60) + ' min ' + (s % 60 < 10 ? '0' : '') + (s % 60) + ' s'; }
-const KEYNAME = { ' ': 'space', '+': 'extra letters' };
-function keyName(k) { return KEYNAME[k] || k; }
 const KEYCOL = ['#ff5c72', '#ff9f45', '#ffd23f', '#6bcb77', '#22c6c6'];            // the five key colours of the site
 
 /* what is chosen on screen (kept only while the page is open) */
 const st = {
   tab: 'drills',
-  time: 30,
+  level: 'medium', minutes: 2,
   weak: [], area: null, rainCtl: null, built: false, host: null
 };
 
@@ -74,7 +72,7 @@ function showResult(host, res, meta, acts) {
   tile('Speed', fmt(res.net) + ' wpm', '#ffd23f', true); tile('Accuracy', pct(res.acc), '#22c6c6'); tile('Time', clock(res.seconds), '#ff9f45');
   if (res.weak && res.weak.length) {
     const wk = el('div', 'pr-weak'); wk.appendChild(el('h3', 'pr-h3', 'Keys to practise'));
-    const ul = el('ul', 'pr-weaklist'); res.weak.forEach(function (x) { const li = el('li'); li.appendChild(el('kbd', null, keyName(x.key))); li.appendChild(document.createTextNode(x.errors + (x.errors === 1 ? ' mistake' : ' mistakes'))); ul.appendChild(li); });
+    const ul = el('ul', 'pr-weaklist'); res.weak.forEach(function (x) { const li = el('li'); li.appendChild(el('kbd', null, x.key)); li.appendChild(document.createTextNode(x.errors + (x.errors === 1 ? ' mistake' : ' mistakes'))); ul.appendChild(li); });
     wk.appendChild(ul);
     if (acts.weak) { const b = el('button', 'btn', 'Practise these keys', { type: 'button' }); b.addEventListener('click', function () { b.blur(); st.weak = res.weak.map(function (x) { return x.key; }); acts.weak(); }); wk.appendChild(b); }
     box.appendChild(wk);
@@ -123,7 +121,7 @@ function makeArea(o) {
   function topUp() { if (o.more && S.words.length - S.wi < 60) { const from = S.words.length, add = o.more(60); S.more(add); for (let i = from; i < S.words.length; i++) addWord(i); } }
   function hud() {
     const now = performance.now(), s = S.stats(now);
-    if (o.mode === 'time') tLeft.textContent = '⏱ ' + Math.max(0, Math.ceil(o.time - (S.t0 == null ? 0 : s.elapsed))) + ' s'; else tLeft.textContent = Math.min(S.wi, S.words.length) + ' / ' + S.words.length + ' words';
+    if (o.mode === 'time') { const left = Math.max(0, Math.ceil(o.time - (S.t0 == null ? 0 : s.elapsed))); tLeft.textContent = '⏱ ' + Math.floor(left / 60) + ':' + ('0' + (left % 60)).slice(-2); } else tLeft.textContent = Math.min(S.wi, S.words.length) + ' / ' + S.words.length + ' words';
     tWpm.textContent = S.t0 != null && s.elapsed >= 3 ? '⚡ ' + fmt(s.net) + ' wpm' : ''; tWpm.hidden = !tWpm.textContent;
     tAcc.textContent = S.keys ? '🎯 ' + pct(s.acc) : ''; tAcc.hidden = !tAcc.textContent;
   }
@@ -162,13 +160,13 @@ function makeArea(o) {
 }
 
 /* ---------- small controls (the site's own pill buttons) ---------- */
-function chip(label, on, fn, disabled) {
-  const b = el('button', 'btn pr-chip' + (on ? ' on' : ''), label, { type: 'button', 'aria-pressed': on ? 'true' : 'false' }); if (disabled) b.disabled = true;
-  b.addEventListener('click', function () { b.blur(); fn(); }); return b;
+function chip(label, on, fn, disabled, key) {
+  const b = el('button', 'btn pr-chip' + (on ? ' on' : ''), label, { type: 'button', 'aria-pressed': on ? 'true' : 'false' }); if (disabled) b.disabled = true; if (key) b.dataset.key = key;
+  b.addEventListener('click', fn); return b;
 }
 function group(label, options, get, set, o) {
   o = o || {}; const g = el('div', 'pr-group'); g.appendChild(el('span', 'pr-glabel', label)); const row = el('div', 'pr-chips', null, { role: 'group', 'aria-label': label }); g.appendChild(row);
-  options.forEach(function (op) { row.appendChild(chip(op.label, get() === op.value, function () { set(op.value); }, o.disabled)); });
+  options.forEach(function (op) { row.appendChild(chip(op.label, get() === op.value, function () { set(op.value); }, o.disabled, op.key)); });
   return g;
 }
 
@@ -177,19 +175,37 @@ function destroyActive() {
   if (st.rainCtl) { st.rainCtl.stop(); st.rainCtl = null; }
 }
 
-/* ---------- tab 1: Speed Test (everyday words; you choose only how long) ---------- */
+/* ---------- the two choices on every tab: the level and the time ---------- */
+const LEVELS = [{ id: 'beginner', label: 'Beginner', ic: 'b' }, { id: 'medium', label: 'Medium', ic: 'm' }, { id: 'pro', label: 'Pro', ic: 'p' }];
+function levelName() { return LEVELS.filter(function (l) { return l.id === st.level; })[0].label; }
+function controls(rebuild) {
+  function redo(key) { rebuild(); const again = st.host.querySelector('[data-key="' + key + '"]'); if (again) again.focus(); }   // the panel is rebuilt, so keyboard focus goes back to the choice that was made
+  const box = el('div', 'pr-controls'), g = el('div', 'pr-group');
+  g.appendChild(el('span', 'pr-glabel', 'Level'));
+  const row = el('div', 'group-tabs pr-levels', null, { role: 'group', 'aria-label': 'Level' });
+  LEVELS.forEach(function (l) {
+    const on = st.level === l.id, b = el('button', 'group-tab' + (on ? ' on' : ''), null, { type: 'button', 'aria-pressed': on ? 'true' : 'false' }), gi = el('span', 'gi'), pic = CC.icons && CC.icons.tab(l.ic);
+    if (pic) gi.appendChild(CC.icons.el(pic)); b.appendChild(gi); b.appendChild(el('span', 'gn', l.label));
+    b.dataset.key = 'level-' + l.id; b.addEventListener('click', function () { st.level = l.id; redo(b.dataset.key); }); row.appendChild(b);
+  });
+  g.appendChild(row); box.appendChild(g);
+  box.appendChild(group('Time', [1, 2, 3].map(function (m) { return { label: '⏱️ ' + m + ' min', value: m, key: 'time-' + m }; }), function () { return st.minutes; }, function (v) { st.minutes = v; redo('time-' + v); }));
+  return box;
+}
+function runTitle(name) { return name + ' - ' + levelName() + ' - ' + st.minutes + ' min'; }
+
+/* ---------- tab: Speed Test ---------- */
 function renderTest(host) {
   destroyActive(); host.innerHTML = '';
-  const bar = el('div', 'pr-controls'); host.appendChild(bar);
-  bar.appendChild(group('Length', [15, 30, 60].map(function (n) { return { label: n + ' s', value: n }; }), function () { return st.time; }, function (v) { st.time = v; renderTest(host); }));
+  host.appendChild(controls(function () { renderTest(host); }));
   const stage = el('div', 'pr-stage'); host.appendChild(stage);
   function start() {
     if (st.area) st.area.destroy(); st.area = null; stage.innerHTML = '';
-    const area = makeArea({
-      words: Core.words(120), mode: 'time', time: st.time, more: function (n) { return Core.words(n); }, onRestart: start,
+    const lv = st.level, area = makeArea({
+      words: Core.words(120, lv), mode: 'time', time: st.minutes * 60, more: function (n) { return Core.words(n, lv); }, onRestart: start,
       onDone: function (res) {
         st.weak = res.weak.map(function (x) { return x.key; });
-        showResult(stage, res, { title: st.time + ' seconds' }, { again: start, weak: function () { setTab('drills', 'weak'); } });
+        showResult(stage, res, { title: runTitle('Speed Test') }, { again: start, weak: function () { setTab('drills', 'weak'); } });
       }
     });
     st.area = area; stage.appendChild(area.el); area.focus();
@@ -197,38 +213,41 @@ function renderTest(host) {
   start();
 }
 
-/* ---------- tab 2: Drills (one short exercise: your weak keys if you have some, otherwise a warm-up) ---------- */
+/* ---------- tab: Drills (your weak keys if you have some, otherwise a warm-up) ---------- */
 function renderDrills(host, arg) {
   destroyActive(); host.innerHTML = '';
+  const ctl = controls(function () { renderDrills(host); }); host.appendChild(ctl);
   const stage = el('div', 'pr-stage'); host.appendChild(stage);
   function go() {
-    destroyActive(); stage.innerHTML = '';
-    const weak = st.weak.length > 0, title = weak ? 'Your weak keys' : 'Warm-up';
+    destroyActive(); stage.innerHTML = ''; ctl.hidden = true;               // the choices step aside while you practise
+    const weak = st.weak.length > 0, lv = st.level, name = weak ? 'Your weak keys' : 'Warm-up';
+    function make(n) { return weak ? Core.weakWords(st.weak, n, lv) : Core.words(n, lv); }
     const area = makeArea({
-      words: weak ? Core.weakWords(st.weak, 30) : Core.words(30), mode: 'words', onRestart: go,
-      onDone: function (res) { st.weak = res.weak.map(function (x) { return x.key; }); showResult(stage, res, { title: title }, { again: go, againLabel: 'Practise again', weak: function () { renderDrills(host, 'weak'); } }); }
+      words: make(120), mode: 'time', time: st.minutes * 60, more: make, onRestart: go,
+      onDone: function (res) { st.weak = res.weak.map(function (x) { return x.key; }); showResult(stage, res, { title: runTitle(name) }, { again: go, againLabel: 'Practise again', more: function () { renderDrills(host); }, moreLabel: '⚙️ Change level', weak: function () { renderDrills(host, 'weak'); } }); }
     });
     st.area = area; stage.appendChild(area.el); area.focus();
   }
   if (arg === 'weak' && st.weak.length) { go(); return; }
   const card = el('div', 'pr-startcard'); card.appendChild(el('div', 'pr-bigicon', st.weak.length ? '\ud83c\udfaf' : '\ud83d\udd25'));
   card.appendChild(el('h2', 'pr-h2', st.weak.length ? 'Your weak keys' : 'Warm-up'));
-  if (st.weak.length) card.appendChild(el('p', 'pr-small', st.weak.slice(0, 5).map(keyName).join('  ')));
+  if (st.weak.length) card.appendChild(el('p', 'pr-small', st.weak.slice(0, 5).join('  ')));
   const b = el('button', 'btn primary pr-go', '\u25b6 Start', { type: 'button' }); b.addEventListener('click', function () { b.blur(); go(); }); card.appendChild(b); stage.appendChild(card); b.focus();
 }
 
-/* ---------- tab 3: Word Rain (the same game and look as Year 6, with no choices to make) ---------- */
+/* ---------- tab: Word Rain (the same game and look as Year 6) ---------- */
 function renderRain(host) {
   destroyActive(); host.innerHTML = '';
   if (!CC.practiceRain) { host.appendChild(el('p', 'pr-lead', 'Word Rain could not be loaded. Please reload the page and try again.')); return; }
+  const ctl = controls(function () { renderRain(host); }); host.appendChild(ctl);
   const stage = el('div', 'pr-stage'); host.appendChild(stage);
   function begin() {
-    destroyActive(); stage.innerHTML = '';
-    st.rainCtl = CC.practiceRain.start(stage, { sound: true }, {
-      el: el, fmt: fmt, pct: pct,
+    destroyActive(); stage.innerHTML = ''; ctl.hidden = true;
+    st.rainCtl = CC.practiceRain.start(stage, { level: st.level, label: levelName(), minutes: st.minutes, sound: true }, {
+      el: el, fmt: fmt,
       done: function (res, meta) {
         st.rainCtl = null; st.weak = (res.weak || []).map(function (x) { return x.key; });
-        showResult(stage, res, meta, { again: begin, againLabel: '\ud83d\udd01 Play again', weak: function () { setTab('drills', 'weak'); } });
+        showResult(stage, res, meta, { again: begin, againLabel: '\ud83d\udd01 Play again', more: function () { renderRain(host); }, moreLabel: '⚙️ Change level', weak: function () { setTab('drills', 'weak'); } });
       }
     });
   }
@@ -270,7 +289,6 @@ function build() {
 CC.practice = {
   open: function () { if (!st.built) build(); st.tab = st.tab || 'test'; renderTab(); },
   leave: function () { destroyActive(); },
-  ui: { el: el, showResult: showResult, fmt: fmt, pct: pct, clock: clock },
   _st: st, _makeCard: makeCard
 };
 })();

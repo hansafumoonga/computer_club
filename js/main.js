@@ -165,14 +165,15 @@ function loadPractice() {
   function file(tag, url) { return new Promise(function (ok, no) { const e = document.createElement(tag); if (tag === 'link') { e.rel = 'stylesheet'; e.href = url + BUILD; } else { e.src = url + BUILD; } e.onload = ok; e.onerror = function () { no(new Error(url)); }; document.head.appendChild(e); }); }
   practiceLoading = file('link', 'css/practice.css').then(function () { return file('script', 'js/practice_data.js'); }).then(function () { return file('script', 'js/practice_core.js'); })
     .then(function () { return file('script', 'js/practice_rain.js'); }).then(function () { return file('script', 'js/practice.js'); })
-    .catch(function (e) { practiceLoading = null; throw e; });
+    .then(function () { if (!CC.practice) throw new Error('practice.js did not start'); })
+    .catch(function (e) { practiceLoading = null; throw e; });       // a failed or half-loaded attempt can be tried again
   return practiceLoading;
 }
 function openPractice() {
   leaveMode(); app.session = null; showOnly($('screen-practice'));
   const root = $('pr-root');
   loadPractice().then(function () { if (!$('screen-practice').hidden) CC.practice.open(); })
-    .catch(function () { root.innerHTML = ''; const p = document.createElement('p'); p.style.margin = '24px 0'; p.textContent = 'Practice could not be loaded. Please check your connection and try again.'; root.appendChild(p); });
+    .catch(function (e) { console.error(e); root.innerHTML = ''; const p = document.createElement('p'); p.style.margin = '24px 0'; p.textContent = 'Practice could not be loaded. Please check your connection and try again.'; root.appendChild(p); });
 }
 /* the Home / About menu on the landing page */
 document.querySelectorAll('[data-nav]').forEach(function (b) {

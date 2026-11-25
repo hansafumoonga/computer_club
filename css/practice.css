@@ -16,6 +16,8 @@
 .pr-glabel{font-weight:bold;color:var(--ink-dim)}
 .pr-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .pr-chip{font-size:.98rem;padding:.4em .95em}
+.pr-levels{margin:0}
+.pr-levels .group-tab{font-size:1rem;padding:.4em 1em}
 .pr-chip:disabled{opacity:.4}
 .pr-go{font-size:1.5rem;padding:.4em 1.7em;border-radius:99px}
 .pr-startcard{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 8px}
