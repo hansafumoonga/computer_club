@@ -114,21 +114,27 @@ function coachGreeting(a) {
   if (l.split(' ').some(shouting)) return CAPS_LOCK;
   if (l.charAt(0) !== 'D') return 'Start the word Dear with a capital D.';
   if (/^Dear [^,]+,\s*\S/.test(l)) return 'Press ENTER after the comma, so your message starts on a new line.';
-  const names = l.slice(4).replace(/,\s*$/, '').trim().split(/\s+/).filter(function (w) { return w && w !== 'and' && w !== '&'; });
-  if (!names.length) return 'Type a space, then a name after Dear.';
+  const words = l.slice(4).replace(/,\s*$/, '').trim().split(/\s+/);
+  if (!/,$/.test(l) && words.length > 1 && /^an?$/.test(words[words.length - 1])) words.pop();   // "Dear Mum a": "and" is still being typed
+  const names = words.filter(function (w) { return w && w !== 'and' && w !== '&'; });
+  if (!names.length) return 'After Dear, leave one space and type a name.';
   if (names.some(function (w) { return /^\p{Ll}/u.test(w); })) return 'A name starts with a capital letter. Hold SHIFT for its first letter.';
   if (/\s,/.test(l)) return 'Do not put a space before the comma.';
-  return /,$/.test(l) ? '' : 'Add a comma after the name.';
+  if (/\s{2,}/.test(l)) return 'Use only one space between the words.';
+  if (/\s(?:and|&),?$/.test(l)) return 'Type the next name, then a comma.';
+  return /,$/.test(l) ? '' : 'When you finish the name, type a comma after it.';
 }
 
 const SENTENCE = /[^.!?]+[.!?]+/g;
 const wordCount = function (s) { return s.split(/\s+/).filter(function (w) { return /\p{L}/u.test(w); }).length; };
-const smallI = function (s) { return /(?:^|\s)i(?=[\s.,!?'’]|$)/.test(s); };
+const smallI = function (s) { return /(?:^|\s)i(?=[\s.,!?'’])/.test(s); };   // (an i at the very end may be the start of "it" or "is", still being typed)
 /* a finished sentence: a capital letter first, at least three words, an end mark with no space before it, and I as a capital */
 const isSentence = function (s) { return /^\p{Lu}/u.test(s) && wordCount(s) >= 3 && !/\s[.!?]+$/.test(s) && !smallI(s) && !shouting(s); };
 const sentencesIn = function (l) { return (l.match(SENTENCE) || []).map(function (s) { return s.trim(); }).filter(isSentence); };
 const SIGN = /^(?:From|Love from|Best wishes),?$/;
 const SIGNED = new RegExp('^(?:From|Love from|Best wishes),? (' + NAMES + ')$', 'u');
+/* a closing typed at the end of a message line, such as "... present. From Leo" (not "From" in the middle of a sentence) */
+const TAIL = /\S\s+(?:From|Love from|Best wishes),?(?:\s+\p{Lu}[\p{L}'’-]*(?:\s+(?:and\s+|&\s+)?\p{Lu}[\p{L}'’-]*)*)?$/u;
 const ONLY_NAME = new RegExp('^' + NAMES + '$', 'u');
 const goodName = function (s) { return ONLY_NAME.test(s) && s.replace(/[^\p{L}]/gu, '').length >= 2 && !s.split(' ').some(shouting); };
 /* the sentences of the message (not the greeting or the closing) */
@@ -164,7 +170,7 @@ function coachClosing(a) {
   const m = /^(?:From|Love from|Best wishes),? (.+)$/.exec(l);
   if (m) return /^\p{Ll}/u.test(m[1]) ? 'Your name starts with a capital letter.' : m[1].split(' ').some(shouting) ? CAPS_LOCK : '';
   if (/^(?:Love From|Best Wishes)\b/.test(l)) return 'Only the first word of a closing needs a capital letter, like this:  Best wishes';
-  if (/\S (?:From|Best wishes)\b/.test(l)) return 'Press ENTER, so the closing starts on a new line.';
+  if (TAIL.test(l)) return 'Press ENTER, so the closing starts on a new line.';
   const above = lines(a)[lines(a).length - 2] || '';
   return SIGN.test(above) && /^\p{Ll}/u.test(l) ? 'Your name starts with a capital letter.' : '';
 }
@@ -179,15 +185,29 @@ function coachDate(a) {
   if (/^\d{1,2}[./-]\d/.test(l)) return 'Write the month as a word, like this: 3 May';
   if (new RegExp('^\\d{1,2}(?:st|nd|rd|th)?(?:' + MONTHS + ')', 'i').test(l)) return 'Put a space between the number and the month.';
   if (/\s{2,}/.test(l)) return 'Use only one space between the words.';
-  const m = new RegExp('(?:^|\\s)(' + MONTHS + ')(?:\\s|$)', 'i').exec(l);
-  if (m && m[1].charAt(0) !== m[1].charAt(0).toUpperCase()) return 'A month starts with a capital letter.';
-  return /^\d{1,2}(?:st|nd|rd|th)? \p{L}{3,}$/u.test(l) ? 'Check the spelling of the month.' : '';
+  if (/\.$/.test(l) && DATE.test(l.slice(0, -1))) return 'A date needs no full stop.';
+  const small = function (names) { const m = new RegExp('(?:^|\\s)(' + names + ')(?=\\s|$)', 'i').exec(l); return !!m && m[1].charAt(0) !== m[1].charAt(0).toUpperCase(); };
+  if (small(DAYS)) return 'A day starts with a capital letter.';
+  if (small(MONTHS)) return 'A month starts with a capital letter.';
+  /* the word after the number: while a month is still being typed, nothing is wrong */
+  const w = new RegExp('^(?:(?:' + DAYS + ') )?\\d{1,2}(?:st|nd|rd|th)?(?: of)? (\\p{L}+)(\\.?)$', 'iu').exec(l);
+  if (!w) return '';
+  const part = w[1].toLowerCase(), month = MONTHS.split('|').filter(function (x) { return x.toLowerCase().indexOf(part) === 0; })[0];
+  if (w[2]) return month && part.length >= 3 ? 'Write the whole month, with no full stop: ' + month : '';
+  if ('of'.indexOf(part) === 0) return '';                        // "3 of May": "of" is being typed
+  if (month) return /^\p{Ll}/u.test(w[1]) ? 'A month starts with a capital letter.' : '';
+  return part.length >= 3 ? 'Check the spelling of the month.' : '';
 }
 
 /* right words in the wrong place */
 const topGreeting = function (a) { const l = typedLine(a); return isGreeting(l) && lines(a)[0] !== l ? 'The greeting goes at the very top of your letter. Delete anything above it.' : coachGreeting(a); };
 const topDate = function (a) { const l = typedLine(a); return DATE.test(l) && lines(a)[0] !== l ? 'The date goes at the very top. Click on the first line.' : coachDate(a); };
-const underDate = function (a) { const l = typedLine(a); return isGreeting(l) && lines(a)[1] !== l ? 'The greeting goes just under the date, above the message.' : coachGreeting(a); };
+const underDate = function (a) {
+  const l = typedLine(a), top = !!l && l === lines(a)[0];
+  if (top && !/\bdear\b/i.test(l)) return '';                    // the cursor is still on the date line: nothing there needs correcting
+  if (top && new RegExp('^(?:\\d|(?:' + DAYS + '|' + MONTHS + ')\\b)', 'i').test(l)) return 'The greeting needs its own line. Click just before Dear and press ENTER.';
+  return isGreeting(l) && lines(a)[1] !== l ? 'The greeting goes just under the date, above the message.' : coachGreeting(a);
+};
 const atEnd = function (a) { const l = lines(a), i = l.findIndex(function (x) { return SIGN.test(x) || SIGNED.test(x); }); return !closed(a) && i >= 0 && l.slice(i + 1).some(function (x) { return sentencesIn(x).length; }) ? 'The closing goes at the very end, below the message.' : coachClosing(a); };
 
 /* a step that is the learner's own words: it is finished when they pause and the rule is met */
@@ -250,7 +270,14 @@ const YEAR2 = [
       { say: 'The word  lik  needs an e. Make it  like', sub: 'Click just after the k, then type e.', voice: 'The second word needs an e. Click just after the k, then type e.', win: 'like is right!', tip: ['Click just after the k in lik.', 'Type the letter e.'], ok: function (e, a) { return /(?:^|\s)like(?!\p{L})/u.test(all(a)); },
         coach: function (a) { return /(?:^|\s)lik(?:e)?(?!\p{L})/u.test(all(a)) ? '' : 'The word should be:  like'; } },
       { say: 'The sentence must start with a capital  I', sub: 'Click just after the small i, press BACKSPACE, then hold SHIFT and press I.', voice: 'The sentence must start with a capital I. Click just after the small i. Press back space. Then hold shift and press I.', win: 'You corrected every mistake!', tip: ['Click just after the small i.', 'Press BACKSPACE once.', 'Hold SHIFT and press I.'], ok: function (e, a) { return exact(a, 'I like my new bike.'); },
-        coach: function (a) { const l = caretLine(a); return /^i /.test(l) ? '' : /^(?:Ii|iI) /.test(l) ? 'Now there are two letters i. Delete the small one.' : coachFor('I like my new bike.')(a); } }] },
+        coach: function (a) {
+          const l = caretLine(a);
+          if (/^i /.test(l)) return '';
+          if (/^(?:Ii|iI) /.test(l)) return 'Now there are two letters i. Delete the small one.';
+          if (/^like my new bike\./.test(l)) return 'Now hold SHIFT and press I.';                             // the small i has just been deleted
+          if (/^Dear [^,]+,\s*(?:i ?)?like/i.test(l)) return 'Click just after the comma and press ENTER.';   // BACKSPACE joined the two lines
+          return coachFor('I like my new bike.')(a);
+        } }] },
   { id: 'y2ask', title: 'Ask and exclaim', icon: '❓', learned: 'A question ends with a question mark. An exclamation mark shows strong feeling. ENTER starts a new line.',
     teach: [
       slide('Question marks', ['A question asks something, and it ends with a question mark.', 'To type one, hold SHIFT and press the key next to the full stop.'], stack(pageArt('<p>How are you<b>?</b></p>'), keysArt([['Shift', 'hold it'], ['? /', 'press once']])), 'A question asks something, and it ends with a question mark. To type one, hold shift and press the key next to the full stop.'),

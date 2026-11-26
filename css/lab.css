@@ -297,9 +297,10 @@
 .lb-slide .art .big{font-size:clamp(4rem,12vw,8rem);line-height:1}
 .lb-slide .tag{display:inline-block;background:#e8ecff;color:#3a3e8a;font-weight:bold;font-size:.85rem;border-radius:99px;padding:.2em .9em;margin-bottom:8px}
 .lb-slide h3{margin:0 0 10px;font-size:clamp(1.5rem,3.2vw,2.4rem);line-height:1.15;color:#1f2a55}
-.lb-slide ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
-.lb-slide li{font-size:clamp(1.05rem,2vw,1.45rem);line-height:1.35;padding-left:1.5em;position:relative}
-.lb-slide li::before{content:"";position:absolute;left:.25em;top:.45em;width:.55em;height:.55em;border-radius:50%;background:#4d8dff}
+/* the lesson's own points only (.txt): a list inside a lesson picture looks like a list on a page, not like more points */
+.lb-slide .txt ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.lb-slide .txt li{font-size:clamp(1.05rem,2vw,1.45rem);line-height:1.35;padding-left:1.5em;position:relative}
+.lb-slide .txt li::before{content:"";position:absolute;left:.25em;top:.45em;width:.55em;height:.55em;border-radius:50%;background:#4d8dff}
 .lb-nav{flex:none;display:flex;justify-content:space-between;gap:12px}
 .lb-nav .btn{min-width:150px}
 .nw-dlg .info{font-size:1.2rem;line-height:1.5;margin:.5em 0 1em}

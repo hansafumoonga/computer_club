@@ -251,6 +251,7 @@ function build(body, api, year, lv) {
     if (inPage) { const s = selIn(), n = s.anchorNode.nodeType === 3 ? s.anchorNode.parentElement : s.anchorNode, c = getComputedStyle(n); q('.wl-size').value = String(nearest(nowPt())); const f = FONTS.filter(function (x) { return c.fontFamily.replace(/["']/g, '').toLowerCase().indexOf(x[0].toLowerCase()) === 0; })[0]; if (f) q('.wl-font').value = f[0]; bar.querySelector('[data-cmd="hilite"]').classList.toggle('on', T.hilite(null, n)); }
   }
   function changed() {
+    if (api.st.locked) ahead = true; else typed = true;
     page.querySelectorAll('.wl-bad').forEach(function (n) { if (n.textContent !== n.dataset.w) n.classList.remove('wl-bad'); });
     if (!page.firstChild) page.innerHTML = '<div><br></div>';
     const t = text().trim(), words = t ? t.split(/\s+/).length : 0; stat.querySelector('.w').textContent = words + (words === 1 ? ' word' : ' words');
@@ -258,8 +259,9 @@ function build(body, api, year, lv) {
     marks(); bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); api.check({ t: 'edit' }); pauseSoon();
   }
   /* The Year 2 and 3 lessons: when typing stops for a moment, a step that waits for the learner's own words (free) is checked,
-     and then a step with a coach() may give one gentle, specific hint (read aloud in Year 2). */
-  let settleT = 0, hintT = 0, hinted = false, spoken = '';
+     and then a step with a coach() may give one gentle, specific hint (read aloud in Year 2). A hint is only about this step's
+     typing: none shows until the learner has typed in the step (or typed ahead while the step before was finishing). */
+  let settleT = 0, hintT = 0, hinted = false, spoken = '', typed = false, ahead = false;
   function pauseSoon() {
     clearTimeout(settleT); clearTimeout(hintT);
     const s = api.step ? api.step() : null; if (!s || !(s.free || s.coach) || api.st.locked) return;
@@ -267,7 +269,7 @@ function build(body, api, year, lv) {
     const live = function () { return page.isConnected && !api.st.dead && !api.st.locked && api.step() === s && !CC.ui.active; };
     const settle = s.settle || 1800;
     if (s.free) settleT = setTimeout(function () { if (live()) api.check({ t: 'pause' }); }, settle);   // (also while the save window is open: a quick CTRL + S must not leave the step waiting)
-    if (s.coach) hintT = setTimeout(function () {
+    if (s.coach && typed) hintT = setTimeout(function () {
       if (!live() || body.querySelector('.wl-prev')) return; let msg = ''; try { msg = s.coach(api) || ''; } catch (e) { console.error(e); }
       if (!msg) return; hinted = true; api.hint(msg); if (year <= 2 && msg !== spoken) { spoken = msg; L.say(msg); }
     }, Math.max(s.coachAfter || 2800, settle + 1000));
@@ -292,7 +294,7 @@ function build(body, api, year, lv) {
   body.addEventListener('mousedown', function (e) { if (menu && !menu.contains(e.target)) closeMenu(); });
 
   api.onTip = function (s) { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); if (s.btn) [].concat(s.btn).forEach(function (c) { const x = bar.querySelector('[data-cmd="' + c + '"], [data-sel="' + c + '"]'); if (x) x.classList.add('glow'); }); };
-  api.onStep = function () { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); hinted = false; spoken = ''; setTimeout(function () { api.check({ t: 'step' }); pauseSoon(); }, 80); };
+  api.onStep = function () { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); hinted = false; spoken = ''; typed = ahead; ahead = false; setTimeout(function () { api.check({ t: 'step' }); pauseSoon(); }, 80); };
   api.doc.run = run; api.doc.setSize = setSize;
   /* what the steps look at: pictures and tables */
   const D = api.doc, firstCell = function (r, c) { const t = page.querySelector('table'); return t && t.rows[r] && t.rows[r].cells[c] ? t.rows[r].cells[c] : null; };
