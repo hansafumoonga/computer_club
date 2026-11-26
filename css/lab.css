@@ -166,8 +166,8 @@
 .wl-printpage{display:none}
 @media print{
   body.wl-print>*:not(.wl-printpage){display:none!important}
-  body.wl-print{background:#fff!important}
-  body.wl-print .wl-printpage{display:block;color:#000;font-family:Georgia,"Times New Roman",serif;font-size:12pt;line-height:1.6;white-space:pre-wrap;padding:18mm}
+  body.wl-print{display:block!important;background:#fff!important}   /* (the site's body is a centred column, which would shrink the letter into the middle of the paper) */
+  body.wl-print .wl-printpage{display:block;color:#000;font-family:Georgia,"Times New Roman",serif;font-size:12pt;line-height:1.6;white-space:pre-wrap;padding:18mm;-webkit-box-decoration-break:clone;box-decoration-break:clone}   /* the margins repeat on every page */
 }
 
 /* Type a Letter: pictures, tables and their dialogs */
@@ -193,6 +193,18 @@
 .wl-tc.on{background:#c5d5f5;border-color:#2b579a}
 .wl-tc:focus-visible{outline:3px solid #4d8dff;outline-offset:1px}
 .wl-dlg p.wl-tlab{text-align:center;font-weight:bold;color:#1a1b3f;margin:6px 0 12px}
+/* Years 2 and 3 (letter_young.js): only the tools their lessons use are shown; Year 2 types with the keyboard only, on a page with larger letters */
+.wl-y2 .wl-bar,.wl-y2 .wl-ruler,.wl-y2 .wl-title .qa [data-cmd="save"]{display:none}
+.wl-y2 .wl-page{font-size:1.65rem}
+.wl-y3 .wl-grp.clip,.wl-y3 .wl-grp.ins,.wl-y3 .wl-grp.tbl{display:none}
+.lb-play:has(.wl-y2) .lb-msg .sub,.lb-play:has(.wl-y3) .lb-msg .sub{font-size:clamp(1rem,1.7vw,1.2rem);color:#e6e8ff}
+.lb-msg.hint{border-color:#ffd23f;background:linear-gradient(160deg,#4a3d12,#2e260c)}
+.lb-play:has(.wl-y2) .lb-msg.hint .sub,.lb-play:has(.wl-y3) .lb-msg.hint .sub{color:#ffe14d;font-weight:bold;font-size:clamp(1.05rem,2vw,1.35rem)}
+.lb-msg.hint .sub::before{content:"👉 "}
+.ls-page.ls-labelled{width:min(100%,470px)}
+.ls-stack{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.ls-stack .ls-page{min-height:0}
+.ls-page .ls-tag{display:inline-block;font:bold .55em "Segoe UI",Arial,sans-serif;background:#e8ecff;color:#3a3e8a;border-radius:99px;padding:.2em .7em;margin-left:.5em;vertical-align:middle;white-space:nowrap}
 .ls-page .ls-pic{font-size:2.6em;line-height:1.1;display:inline-block}
 .ls-page table{border-collapse:collapse;margin:.2em auto}
 .ls-page td{border:1.5px solid #6b6f9a;padding:2px 14px}

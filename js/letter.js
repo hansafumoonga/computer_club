@@ -1,4 +1,5 @@
-/* letter.js - Type a Letter (Years 3 to 6): a small word processor that works the way real ones do (Word, Google Docs, LibreOffice Writer).
+/* letter.js - Type a Letter (Years 2 to 6): a small word processor that works the way real ones do (Word, Google Docs, LibreOffice Writer).
+   The LEVELS at the bottom are for Years 4 to 6; Years 2 and 3 have their own gentler lessons in letter_young.js.
      - a ribbon: clipboard, font (name, size, bold, italic, underline, colour, highlight), paragraph (bullets, numbers, left, centre, right, justify)
      - the usual keys: Ctrl+B / I / U, Ctrl+C / X / V, Ctrl+Z / Y, Ctrl+A, Ctrl+S (save), Ctrl+P (print)
      - a red wavy line under a spelling mistake; right-click it to choose the right spelling
@@ -16,16 +17,16 @@ const HILITE = '#fff27a';
 
 function build(body, api, year, lv) {
   const b = function (cmd, label, title, cls) { return '<button type="button" class="wl-b' + (cls ? ' ' + cls : '') + '" data-cmd="' + cmd + '" title="' + title + '" aria-label="' + title + '">' + label + '</button>'; };
-  body.innerHTML = '<div class="wl-wrap"><div class="wl-title"><span class="qa">' + b('save', '💾', 'Save (Ctrl+S)') + b('undo', '↶', 'Undo (Ctrl+Z)') + b('redo', '↷', 'Redo (Ctrl+Y)') + '</span><span class="nm">Document1</span><span class="app"> - Type a Letter</span></div>' +
+  body.innerHTML = '<div class="wl-wrap' + (lv.ribbon ? ' wl-' + lv.ribbon : '') + '"><div class="wl-title"><span class="qa">' + b('save', '💾', 'Save (Ctrl+S)') + b('undo', '↶', 'Undo (Ctrl+Z)') + b('redo', '↷', 'Redo (Ctrl+Y)') + '</span><span class="nm">Document1</span><span class="app"> - Type a Letter</span></div>' +
     '<div class="wl-bar">' +
-      '<div class="wl-grp">' + b('paste', '📋', 'Paste (Ctrl+V)') + b('cut', '✂️', 'Cut (Ctrl+X)') + b('copy', '📄', 'Copy (Ctrl+C)') + '<span class="gl">Clipboard</span></div>' +
+      '<div class="wl-grp clip">' + b('paste', '📋', 'Paste (Ctrl+V)') + b('cut', '✂️', 'Cut (Ctrl+X)') + b('copy', '📄', 'Copy (Ctrl+C)') + '<span class="gl">Clipboard</span></div>' +
       '<div class="wl-grp fnt"><select class="wl-font" data-sel="font" title="Font" aria-label="font">' + FONTS.map(function (f) { return '<option value="' + f[0] + '" style="font-family:\'' + f[0] + '\'">' + f[1] + '</option>'; }).join('') + '</select><select class="wl-size" data-sel="size" title="Font size" aria-label="font size">' + SIZES.map(function (s) { return '<option value="' + s + '"' + (s === 12 ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select>' +
         b('bigger', 'A<sup>▲</sup>', 'Bigger letters') + b('smaller', 'A<sub>▼</sub>', 'Smaller letters') + '<i class="brk"></i>' + b('bold', '<b>B</b>', 'Bold (Ctrl+B)') + b('italic', '<i>I</i>', 'Italic (Ctrl+I)') + b('underline', '<u>U</u>', 'Underline (Ctrl+U)') + b('hilite', '<span class="hl">ab</span>', 'Highlight') +
         COLORS.map(function (c, i) { return b('c' + i, '<i style="background:' + c[0] + '"></i>', c[1] + ' letters', 'sw'); }).join('') + '<span class="gl">Font</span></div>' +
       '<div class="wl-grp par">' + b('insertUnorderedList', '<span class="li ul"></span>', 'Bullets') + b('insertOrderedList', '<span class="li ol"></span>', 'Numbering') + '<i class="brk"></i>' + b('justifyLeft', '<span class="al l"></span>', 'Align left') + b('justifyCenter', '<span class="al c"></span>', 'Centre') + b('justifyRight', '<span class="al r"></span>', 'Align right') + b('justifyFull', '<span class="al j"></span>', 'Justify') + '<span class="gl">Paragraph</span></div>' +
       '<div class="wl-grp ins">' + b('picture', '🖼️', 'Insert a picture') + b('table', '▦', 'Insert a table') + '<i class="brk"></i>' + b('picSmaller', '➖', 'Make the picture smaller') + b('picLarger', '➕', 'Make the picture larger') + b('picDelete', '🗑️', 'Delete the picture') + '<span class="gl">Insert</span></div>' +
       '<div class="wl-grp tbl">' + b('rowAdd', '＋ Row', 'Add a row to the table', 'tx') + b('colAdd', '＋ Column', 'Add a column to the table', 'tx') + '<i class="brk"></i>' + b('tableDelete', '🗑️ Delete table', 'Delete the table', 'tx') + '<span class="gl">Table</span></div>' +
-      '<div class="wl-grp">' + b('print', '🖨️', 'Print (Ctrl+P)') + '<span class="gl">File</span></div>' +
+      '<div class="wl-grp file">' + b('print', '🖨️', 'Print (Ctrl+P)') + '<span class="gl">File</span></div>' +
     '</div><div class="wl-ruler" aria-hidden="true"></div>' +
     '<div class="wl-desk"><div class="wl-page" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true" aria-label="your page"></div></div>' +
     '<div class="wl-stat"><span>Page 1 of 1</span><span class="w"></span><span class="sv">Not saved</span><span class="zm"><button type="button" data-z="-1" aria-label="zoom out">−</button><b>100%</b><button type="button" data-z="1" aria-label="zoom in">+</button></span></div></div>';
@@ -48,11 +49,11 @@ function build(body, api, year, lv) {
     bold: function (c) { return parseInt(c.fontWeight, 10) >= 600 || c.fontWeight === 'bold'; }, italic: function (c) { return c.fontStyle === 'italic'; },
     underline: function (c, n) { return up(n, function (x) { return /underline/.test(getComputedStyle(x).textDecorationLine || '') || x.tagName === 'U'; }); },
     size: function (pt) { return function (c) { return parseFloat(c.fontSize) >= base * pt / 12 - 0.6; }; }, font: function (re) { return function (c) { return re.test(c.fontFamily); }; },
-    center: function (c) { return c.textAlign === 'center'; }, right: function (c) { return c.textAlign === 'right' || c.textAlign === 'end'; },
+    center: function (c) { return c.textAlign === 'center'; }, right: function (c) { return c.textAlign === 'right' || c.textAlign === 'end'; }, left: function (c) { return c.textAlign === 'left' || c.textAlign === 'start'; },
     color: function (i) { const want = rgb(COLORS[i][0]); return function (c) { return c.color === want; }; },
     hilite: function (c, n) { return up(n, function (x) { const bg = getComputedStyle(x).backgroundColor; return !!bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent'; }); }
   };
-  api.doc = { text: text, has: has, count: count, lines: lines, styled: styled, T: T, page: page, st: st, firstLine: function (test) { const l = lines()[0]; return !!l && styled(l.split(' ')[0], test); } };
+  api.doc = { text: text, has: has, count: count, lines: lines, styled: styled, T: T, page: page, st: st, given: lines(), firstLine: function (test) { const l = lines()[0]; return !!l && styled(l.split(' ')[0], test); } };
 
   /* ---------- the selection ---------- */
   const selIn = function () { const s = window.getSelection(); return s && s.rangeCount && page.contains(s.anchorNode) ? s : null; };
@@ -254,7 +255,22 @@ function build(body, api, year, lv) {
     if (!page.firstChild) page.innerHTML = '<div><br></div>';
     const t = text().trim(), words = t ? t.split(/\s+/).length : 0; stat.querySelector('.w').textContent = words + (words === 1 ? ' word' : ' words');
     if (st.saved) { st.saved = false; stat.querySelector('.sv').textContent = 'Not saved'; }
-    marks(); bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); api.check({ t: 'edit' });
+    marks(); bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); api.check({ t: 'edit' }); pauseSoon();
+  }
+  /* The Year 2 and 3 lessons: when typing stops for a moment, a step that waits for the learner's own words (free) is checked,
+     and then a step with a coach() may give one gentle, specific hint (read aloud in Year 2). */
+  let settleT = 0, hintT = 0, hinted = false, spoken = '';
+  function pauseSoon() {
+    clearTimeout(settleT); clearTimeout(hintT);
+    const s = api.step ? api.step() : null; if (!s || !(s.free || s.coach) || api.st.locked) return;
+    if (hinted) { hinted = false; api.note(s.sub || ''); }                           // typing again: the step's own line comes back
+    const live = function () { return page.isConnected && !api.st.dead && !api.st.locked && api.step() === s && !CC.ui.active; };
+    const settle = s.settle || 1800;
+    if (s.free) settleT = setTimeout(function () { if (live()) api.check({ t: 'pause' }); }, settle);   // (also while the save window is open: a quick CTRL + S must not leave the step waiting)
+    if (s.coach) hintT = setTimeout(function () {
+      if (!live() || body.querySelector('.wl-prev')) return; let msg = ''; try { msg = s.coach(api) || ''; } catch (e) { console.error(e); }
+      if (!msg) return; hinted = true; api.hint(msg); if (year <= 2 && msg !== spoken) { spoken = msg; L.say(msg); }
+    }, Math.max(s.coachAfter || 2800, settle + 1000));
   }
   page.addEventListener('input', changed); page.addEventListener('keyup', marks); page.addEventListener('mouseup', function () { setTimeout(marks, 0); });
   page.addEventListener('keydown', function (e) {
@@ -276,7 +292,7 @@ function build(body, api, year, lv) {
   body.addEventListener('mousedown', function (e) { if (menu && !menu.contains(e.target)) closeMenu(); });
 
   api.onTip = function (s) { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); if (s.btn) [].concat(s.btn).forEach(function (c) { const x = bar.querySelector('[data-cmd="' + c + '"], [data-sel="' + c + '"]'); if (x) x.classList.add('glow'); }); };
-  api.onStep = function () { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); setTimeout(function () { api.check({ t: 'step' }); }, 80); };
+  api.onStep = function () { bar.querySelectorAll('.glow').forEach(function (n) { n.classList.remove('glow'); }); hinted = false; spoken = ''; setTimeout(function () { api.check({ t: 'step' }); pauseSoon(); }, 80); };
   api.doc.run = run; api.doc.setSize = setSize;
   /* what the steps look at: pictures and tables */
   const D = api.doc, firstCell = function (r, c) { const t = page.querySelector('table'); return t && t.rows[r] && t.rows[r].cells[c] ? t.rows[r].cells[c] : null; };
@@ -296,7 +312,7 @@ function build(body, api, year, lv) {
 const keysArt = function (list) { return '<div class="ls-row">' + list.map(function (k) { return '<div class="ls-card"><span class="ls-key">' + k[0] + '</span>' + k[1] + '</div>'; }).join('') + '</div>'; };
 const cards = function (list) { return '<div class="ls-row">' + list.map(function (k) { return '<div class="ls-card"><span class="ic">' + k[0] + '</span>' + k[1] + '</div>'; }).join('') + '</div>'; };
 const pageArt = function (html) { return '<div class="ls-page">' + html + '</div>'; };
-const slide = function (h, p, art) { return { h: h, p: p, art: art }; };
+const slide = function (h, p, art, say) { return { h: h, p: p, art: art, say: say ? h + '. ' + say : '' }; };   // say: what is read aloud, when the written lines hold symbols
 const TEACH = {
   type: [slide('What is a word processor?', ['A word processor is a program for creating text documents.', 'Documents include letters, reports and posters.', 'The text can be edited, saved and printed.'], pageArt('<p>Dear Sam,</p><p>Thank you for the book.</p><p>From Tom<i class="cur"></i></p>')),
     slide('The cursor', ['The thin blinking line is the cursor, also called the insertion point.', 'Typed characters appear at the position of the cursor.', 'Click in the text to move the cursor there.'], pageArt('<p>Dear Sa<i class="cur"></i></p>')),
@@ -321,7 +337,7 @@ const TEACH = {
     slide('Headings in a table', ['The first row usually holds headings that describe each column.', 'Making the headings bold helps the reader to find information quickly.'], pageArt('<table><tr><td><b>Pet</b></td><td><b>Name</b></td></tr><tr><td>Cat</td><td>Mia</td></tr><tr><td>Dog</td><td>Rex</td></tr></table>'))],
   own: [slide('The structure of a letter', ['A title at the top.', 'A greeting: Dear, a name and a comma.', 'The body text, then a closing: From and your name.'], pageArt('<p style="text-align:center"><b>My News</b></p><p>Dear Sam,</p><p>I have a new bike. It is red.</p><p style="text-align:right">From Tom</p>'))]
 };
-/* ---------- the levels: each one builds on the one before ----------
+/* ---------- the levels for Years 4 to 6: each one builds on the one before ----------
    1 typing   2 correcting mistakes   3 selecting words: bold, italic, underline   4 font, size and colour   5 lining up the page and lists
    6 pictures   7 tables   8 copy, cut and paste   9 save and print   10 a whole letter alone */
 const SELECT = ['Select the words: double-click a word, or press and drag across the words.', 'The words turn blue.'];
@@ -330,34 +346,34 @@ const d = function (api) { return api.doc; };
 /* the picture library and the Word file maker: the levels that use them fetch them before they start; any other level fetches them if they are needed */
 const NEEDS = ['js/docfile.js', 'js/docsafe.js', 'js/clipart.js', 'js/docx.js'], NEEDS_BY = ['picture', 'save', 'own'];
 const LEVELS = [
-  { id: 'type', title: 'Type a letter', icon: '✉️', min: 3, learned: 'You typed a letter with capital letters, a comma and new lines.',
+  { id: 'type', title: 'Type a letter', icon: '✉️', min: 4, learned: 'You typed a letter with capital letters, a comma and new lines.',
     steps: [
       { say: 'Click on the page and type:  Dear Sam,', sub: 'Hold SHIFT for the capital letters', win: 'A good start!', tip: ['Click on the white page.', 'Hold SHIFT and press D for a capital D. Do the same for S.', 'The comma key is next to the M key.'], ok: function (e, a) { return d(a).has('dear sam,'); } },
       { say: 'Press ENTER to start a new line', win: 'A new line!', tip: ['Find the big ENTER key on the right of the keyboard.', 'Press it once.'], ok: function (e, a) { return d(a).has('dear sam') && d(a).page.children.length >= 2; } },
       { say: 'Type:  Thank you for the book.', sub: 'End the sentence with a full stop', win: 'A whole sentence!', tip: ['Start with a capital T: hold SHIFT and press T.', 'Press the long SPACE bar between words.', 'The full stop key is two keys right of M.'], ok: function (e, a) { return d(a).has('thank you for the book.'); } },
       { say: 'Start a new line. Type  From  and then your name.', win: 'Your letter is finished!', tip: ['Press ENTER for a new line.', 'Type From, press SPACE, then type your name.'], ok: function (e, a) { return /from\s+\S{2,}/i.test(d(a).lines().slice(-1)[0] || '') && d(a).lines().length >= 3; } }] },
-  { id: 'fix', title: 'Fix the mistakes', icon: '🔧', min: 3, learned: 'A red wavy line means: check this spelling.',
+  { id: 'fix', title: 'Fix the mistakes', icon: '🔧', min: 4, learned: 'A red wavy line means: check this spelling.',
     html: '<div>My ' + bad('scool', 'school') + ' has a big ' + bad('libary', 'library') + '.</div><div>We ' + bad('reed', 'read') + ' books every day day.</div>',
     steps: [
       { say: 'Fix the first red word. It should be  school', sub: 'Click after it, delete it with BACKSPACE, type it again', win: 'school is right!', tip: ['Click just after the red word scool.', 'Press BACKSPACE to delete letters.', 'Type the right letters: school.'], ok: function (e, a) { return d(a).has('school') && !d(a).has('scool'); } },
       { say: 'Right-click the next red word and choose the right spelling', win: 'The computer helped you spell library!', tip: ['Put the pointer on the red word libary.', 'Press the RIGHT mouse button. A small menu opens.', 'Click the word library in the menu.'], ok: function (e, a) { return d(a).has('library') && !d(a).has('libary'); } },
       { say: 'Fix  reed . We  read  books.', win: 'read is right!', tip: ['Right-click the red word and choose read.', 'Or click after it, press BACKSPACE two times, and type ad.'], ok: function (e, a) { return /\bread\b/i.test(d(a).text()) && !d(a).has('reed'); } },
       { say: 'The word  day  is there twice. Delete one.', sub: 'Double-click a word to select it, then press DELETE', win: 'No more mistakes!', tip: ['Double-click the last word day. It turns blue.', 'Press the DELETE key.'], ok: function (e, a) { return d(a).count('day') === 1 && d(a).has('every day'); } }] },
-  { id: 'style', title: 'Bold, italic, underline', icon: '🅱️', min: 3, learned: 'Select the words first. Then B makes them bold, I makes them lean, U draws a line under them.',
+  { id: 'style', title: 'Bold, italic, underline', icon: '🅱️', min: 4, learned: 'Select the words first. Then B makes them bold, I makes them lean, U draws a line under them.',
     html: '<div>My Pet</div><div>I have a dog. His name is Rex.</div><div>He is very fast.</div>',
     steps: [
       { say: 'Make the title  My Pet  bold', sub: 'Select the words, then click B', win: 'Bold! Titles stand out.', btn: 'bold', tip: SELECT.concat('Click the B button at the top.'), ok: function (e, a) { return d(a).styled('My Pet', d(a).T.bold); } },
       { say: 'Make the name  Rex  italic', sub: 'Select the word, then click I', win: 'Italic letters lean over.', btn: 'italic', tip: ['Double-click the word Rex. It turns blue.', 'Click the I button at the top.'], ok: function (e, a) { return d(a).styled('Rex', d(a).T.italic); } },
       { say: 'Underline the words  very fast', sub: 'Select them, then click U', win: 'Underlined!', btn: 'underline', tip: ['Press just before the word very and drag to the end of fast.', 'Both words turn blue.', 'Click the U button at the top.'], ok: function (e, a) { return d(a).styled('very fast', d(a).T.underline); } },
       { say: 'Now use the keyboard: select  dog  and press CTRL + B', win: 'Ctrl+B is the quick way to make words bold.', tip: ['Double-click the word dog.', 'Hold the CTRL key, tap B, then let go.'], ok: function (e, a) { return d(a).styled('dog', d(a).T.bold); } }] },
-  { id: 'font', title: 'Font, size and colour', icon: '🎨', min: 3, learned: 'The font is the shape of the letters. Size is measured in points.',
+  { id: 'font', title: 'Font, size and colour', icon: '🎨', min: 4, learned: 'The font is the shape of the letters. Size is measured in points.',
     html: '<div>Party Time</div><div>Come to my party on Saturday.</div><div>It starts at two.</div><div>Bring a friend!</div>',
     steps: [
       { say: 'Select the title and change its size to 24', sub: 'The size list is next to the font name', win: 'A big title!', btn: 'size', tip: SELECT.concat('Click the size box (it says 12) and choose 24.'), ok: function (e, a) { return d(a).styled('Party Time', d(a).T.size(24)); } },
       { say: 'Change the title font to Comic Sans', win: 'A fun font for a party.', btn: 'font', tip: ['Select the title again if it is not blue.', 'Click the font box (it says Georgia).', 'Choose Comic Sans.'], ok: function (e, a) { return d(a).styled('Party Time', d(a).T.font(/comic/i)); } },
       { say: 'Make the word  Saturday  red', sub: 'Select it, then click the red circle', win: 'Red stands out!', btn: 'c1', tip: ['Double-click the word Saturday.', 'Click the red circle at the top.'], ok: function (e, a) { return d(a).styled('Saturday', d(a).T.color(1)); } },
       { say: 'Highlight  Bring a friend!  in yellow', sub: 'Select the words, then click the highlighter', win: 'Like a real highlighter pen.', btn: 'hilite', tip: ['Drag across Bring a friend! so it turns blue.', 'Click the yellow ab button.'], ok: function (e, a) { return d(a).styled('Bring friend', d(a).T.hilite); } }] },
-  { id: 'layout', title: 'Line up the page', icon: '📐', min: 3, learned: 'Centre the title, keep the writing on the left, and use bullets for a list.',
+  { id: 'layout', title: 'Line up the page', icon: '📐', min: 4, learned: 'Centre the title, keep the writing on the left, and use bullets for a list.',
     html: '<div>Party Time</div><div>Come to my party on Saturday.</div><div>Please bring:</div><div>A hat</div><div>A game</div><div>A big smile</div><div>From Alex</div>',
     steps: [
       { say: 'Put the title  Party Time  in the centre', sub: 'Click in the title, then click Centre', win: 'Centred!', btn: 'justifyCenter', tip: ['Click anywhere in the words Party Time.', 'Click the Centre button in the Paragraph group.'], ok: function (e, a) { return d(a).styled('Party Time', d(a).T.center); } },
@@ -402,10 +418,15 @@ const LEVELS = [
 ];
 LEVELS.forEach(function (lv) { lv.teach = TEACH[lv.id]; if (NEEDS_BY.indexOf(lv.id) >= 0) lv.needs = NEEDS; lv.build = function (body, api, year) { build(body, api, year, lv); }; });
 
+/* the pieces that the Year 2 and 3 lessons (letter_young.js, loaded next) are built from */
+CC.letterKit = { build: build, slide: slide, pageArt: pageArt, keysArt: keysArt, cards: cards, bad: bad, NEEDS: NEEDS };
+const young = function (y) { return CC.letterYoung && CC.letterYoung[y]; };
+
 CC.modes.letter = L.game({
   id: 'letter', icon: '📝', title: 'Type a Letter', color: '#ff7a45', cert: { hero: 'Word Wizard', art: 'letter', hue: 18 },
-  sub: 'A real word processor: type, fix mistakes, and make your page look great.',
+  sub: function (y) { return young(y) ? young(y).sub : 'A real word processor: type, fix mistakes, and make your page look great.'; },
+  speak: function (y) { return y <= 2; }, voiceButton: function (y) { return y === 3; },
   stage: function () { return document.getElementById('stage-letter'); }, root: function () { return document.getElementById('letter-root'); },
-  levels: function (y) { return LEVELS.filter(function (l) { return y >= l.min; }); }
+  levels: function (y) { return young(y) ? young(y).levels : LEVELS.filter(function (l) { return y >= l.min; }); }
 });
 })();

@@ -87,7 +87,7 @@ L.lesson = function (cfg) {   // { root, slides: [{ h, p: [lines], art (html), s
   q('.lb-lv').textContent = cfg.title || '';
   const read = function () { const s = slides[i]; L.say((s.say || (s.h + '. ' + (s.p || []).join(' '))) + (cfg.nudge ? ' ' + (i === slides.length - 1 ? 'Click Start.' : 'Click Next.') : '')); };
   function show() {
-    const s = slides[i]; q('.art').innerHTML = s.art || ''; q('h3').textContent = s.h; q('ul').innerHTML = (s.p || []).map(function (x) { return '<li>' + L.esc(x) + '</li>'; }).join('');
+    const s = slides[i]; q('.art').innerHTML = s.art || ''; q('.txt h3').textContent = s.h; q('.txt ul').innerHTML = (s.p || []).map(function (x) { return '<li>' + L.esc(x) + '</li>'; }).join('');   // (.txt: a picture may hold its own list)
     q('.lb-dots').innerHTML = slides.map(function (x, k) { return '<i class="' + (k < i ? 'd' : k === i ? 'c' : '') + '"></i>'; }).join('');
     q('.lb-prev').style.visibility = i ? 'visible' : 'hidden'; q('.lb-next').textContent = i === slides.length - 1 ? 'Start ▶' : 'Next ▶';
     /* the youngest learners are told what to press, and the button flickers so it cannot be missed */
@@ -107,11 +107,11 @@ L.lesson = function (cfg) {   // { root, slides: [{ h, p: [lines], art (html), s
 
 /* ---------- one level ---------- */
 const IDLE_MS = 25000;
-L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level number), speak, build(body, api), onHome, onDone(stars) }
+L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level number), speak (read aloud), voiceButton (read when asked), build(body, api), onHome, onDone(stars) }
   L.hush(); CC.ui.close();
   const steps = cfg.lv.steps, p = L.el('div', 'lb-play');
   p.innerHTML = '<div class="lb-top"><button type="button" class="btn lb-back" title="Levels" aria-label="levels">🗺️</button><b class="lb-lv"></b><span class="lb-dots"></span>' +
-    (cfg.onLesson ? '<button type="button" class="btn lb-book" title="See the lesson again" aria-label="see the lesson again">📖</button>' : '') + (cfg.speak ? '<button type="button" class="btn lb-voice" title="Say it again" aria-label="say it again">🔊</button>' : '') +
+    (cfg.onLesson ? '<button type="button" class="btn lb-book" title="See the lesson again" aria-label="see the lesson again">📖</button>' : '') + (cfg.speak ? '<button type="button" class="btn lb-voice" title="Say it again" aria-label="say it again">🔊</button>' : cfg.voiceButton ? '<button type="button" class="btn lb-voice" title="Read it to me" aria-label="read it to me">🔊</button>' : '') +
     '<button type="button" class="btn lb-again" title="Start this level again" aria-label="start this level again">↺</button><button type="button" class="btn lb-tipb" title="How do I do it?" aria-label="how do I do it">💡</button></div>' +
     '<div class="lb-msg"><b class="say"></b><i class="sub"></i></div><div class="lb-help" hidden></div><div class="lb-body"></div>';
   cfg.root.innerHTML = ''; cfg.root.appendChild(p);
@@ -120,7 +120,7 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
   const st = { i: 0, miss: 0, tips: 0, locked: false, dead: false, idle: 0, flash: 0, timer: 0 };
   const cur = function () { return steps[st.i]; };
   function dots() { q('.lb-dots').innerHTML = steps.map(function (x, k) { return '<i class="' + (k < st.i ? 'd' : k === st.i ? 'c' : '') + '"></i>'; }).join(''); }
-  function show() { const s = cur(); if (!s) return; msg.classList.remove('good', 'bad'); msg.querySelector('.say').textContent = s.say; msg.querySelector('.sub').textContent = s.sub || ''; }
+  function show() { const s = cur(); if (!s) return; msg.classList.remove('good', 'bad', 'hint'); msg.querySelector('.say').textContent = s.say; msg.querySelector('.sub').textContent = s.sub || ''; }
   function arm() { clearTimeout(st.idle); st.idle = setTimeout(function () { if (st.dead || !p.isConnected) return; if (!st.locked && !CC.ui.active && !document.hidden) tip(true); arm(); }, IDLE_MS); }   /* stops by itself once the level is gone */
   function tip(auto) {
     const s = cur(); if (!s || st.locked) return;
@@ -137,7 +137,7 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
   }
   function good() {
     const s = cur(); st.locked = true; clearTimeout(st.idle); clearTimeout(st.flash); help.hidden = true; L.sfx('good');
-    msg.classList.remove('bad'); msg.classList.add('good'); msg.querySelector('.say').textContent = '✔ ' + (s.win || 'Well done!'); msg.querySelector('.sub').textContent = '';
+    msg.classList.remove('bad', 'hint'); msg.classList.add('good'); msg.querySelector('.say').textContent = '✔ ' + (s.win || 'Well done!'); msg.querySelector('.sub').textContent = '';
     if (cfg.speak) L.say(s.win || 'Well done!');
     const d = q('.lb-dots').children[st.i]; if (d) d.className = 'd';
     const last = st.i >= steps.length - 1;
@@ -159,12 +159,14 @@ L.play = function (cfg) {   // { root, stage, lv: { id, title, steps }, n (level
     /* a slip: a short message, and after two slips the steps appear */
     miss: function (text) {
       if (st.dead || st.locked) return; st.miss++; st.missAll++; L.sfx('softMiss'); arm();
-      msg.classList.remove('good'); msg.classList.add('bad'); msg.querySelector('.say').textContent = text || 'Not quite. Try again!'; msg.querySelector('.sub').textContent = '';
+      msg.classList.remove('good', 'hint'); msg.classList.add('bad'); msg.querySelector('.say').textContent = text || 'Not quite. Try again!'; msg.querySelector('.sub').textContent = '';
       if (cfg.speak) L.say(text || 'Not quite. Try again!');
       clearTimeout(st.flash); st.flash = setTimeout(function () { if (!st.locked && !st.dead) show(); }, 2400);
       if (st.miss >= 2) tip(true);
     },
-    note: function (text) { if (st.locked) return; msg.classList.remove('good', 'bad'); msg.querySelector('.sub').textContent = text; },
+    note: function (text) { if (st.locked) return; msg.classList.remove('good', 'bad', 'hint'); msg.querySelector('.sub').textContent = text; },
+    /* a note that stands out: the gentle hint of the Year 2 and 3 letter lessons */
+    hint: function (text) { if (st.locked) return; api.note(text); msg.classList.add('hint'); },
     tip: tip, touch: arm,
     stop: function () { st.dead = true; clearTimeout(st.idle); clearTimeout(st.flash); clearTimeout(st.timer); if (st.cancelWait) st.cancelWait(); L.hush(); }
   };
@@ -209,7 +211,7 @@ L.game = function (g) {   // { id, icon, title, sub, color, stage(), root(), lev
     if (S.api) S.api.stop(); S.api = null;
     const teach = typeof lv.teach === 'function' ? lv.teach(S.year) : lv.teach, speak = g.speak ? g.speak(S.year) : false;
     if (teach && teach.length && !skip) { L.lesson({ root: g.root(), slides: teach, title: 'Level ' + n + ' · ' + lv.title, speak: speak, nudge: g.nudge ? g.nudge(S.year) : false, onHome: home, onDone: function () { start(lv, true); } }); return; }
-    S.api = L.play({ onApi: function (a) { S.api = a; }, root: g.root(), stage: g.stage(), lv: lv, n: n, speak: g.speak ? g.speak(S.year) : false, build: function (body, api) { lv.build(body, api, S.year); }, onHome: home, onLesson: teach && teach.length ? function () { start(lv); } : null,
+    S.api = L.play({ onApi: function (a) { S.api = a; }, root: g.root(), stage: g.stage(), lv: lv, n: n, speak: g.speak ? g.speak(S.year) : false, voiceButton: g.voiceButton ? g.voiceButton(S.year) : false, build: function (body, api) { lv.build(body, api, S.year); }, onHome: home, onLesson: teach && teach.length ? function () { start(lv); } : null,
       onDone: function (stars) {
         S.prog.done[lv.id] = true; S.prog.stars[lv.id] = Math.max(S.prog.stars[lv.id] || 0, stars); L.save(g.id, S.year, S.prog);
         const next = list[n] || null, all = allDone();

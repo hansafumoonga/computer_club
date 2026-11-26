@@ -42,7 +42,7 @@ const PATH = ['mouseclub', 'buildclick', 'parts', 'skills', 'fruit', 'buildtype'
 /* which games each year gets (the ORDER comes from PATH, so a game is placed once, in one place) */
 const YEAR_SETS = {
   '1': ['mouseclub', 'buildclick', 'skills', 'fruit', 'desktop', 'parts', 'paint', 'magic', 'jump', 'piano'],
-  '2': ['skills', 'fruit', 'buildtype', 'words', 'desktop', 'parts', 'magic', 'art', 'jump', 'piano', 'blaster'],
+  '2': ['skills', 'fruit', 'buildtype', 'words', 'desktop', 'parts', 'letter', 'magic', 'art', 'jump', 'piano', 'blaster'],
   '3': ['skills', 'fruit', 'words', 'desktop', 'parts', 'letter', 'network', 'magic', 'art', 'scene', 'jump', 'piano', 'pattern', 'blaster'],
   '4': ['typing', 'words', 'shortcuts', 'desktop', 'parts', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'],
   '5': ['typing', 'words', 'shortcuts', 'desktop', 'letter', 'grid', 'network', 'design', 'magiclab', 'jump', 'piano', 'pattern', 'blaster', 'commando'],
@@ -59,7 +59,7 @@ const TIER_OF = {}; TIERS.forEach(function (t) { t[3].forEach(function (id) { TI
 /* the level of each game FOR EACH YEAR: b = Beginner, m = Medium, a = Advanced, p = Advanced Pro (the arcade games always go in Skill Games) */
 const YEAR_LEVELS = {
   '1': { b: ['mouseclub', 'buildclick', 'paint', 'magic'], m: ['parts', 'skills', 'desktop'] },
-  '2': { b: ['parts', 'skills', 'magic'], m: ['buildtype', 'words', 'desktop', 'art'] },
+  '2': { b: ['parts', 'skills', 'magic'], m: ['buildtype', 'words', 'desktop', 'letter', 'art'] },
   '3': { b: ['parts', 'skills', 'magic'], m: ['words', 'desktop', 'art', 'scene'], a: ['letter', 'network'] },
   '4': { b: ['parts', 'desktop'], m: ['words', 'typing', 'letter'], a: ['shortcuts', 'design', 'grid'], p: ['network', 'magiclab'] },
   '5': { b: ['words', 'desktop'], m: ['typing', 'letter', 'design'], a: ['shortcuts', 'grid'], p: ['network', 'magiclab'] },

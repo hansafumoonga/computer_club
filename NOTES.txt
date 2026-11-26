@@ -300,3 +300,16 @@ PAGES IN THE WORD PROCESSOR, AND PRINTING
   - PRINT RULES MUST ONLY APPLY TO THEIR OWN SCREEN. Several certificate style sheets used to hide the whole site when printing, so the Word Processor, the Number Grid, the letter
     lesson and the Computer Skills certificate and report printed blank. Each such rule is now limited with :where(body:has(<that screen>)). Never write an unlimited
     'body *{visibility:hidden}'. To check printing, print every screen to PDF and look at it (a print button that runs is not proof that anything comes out).
+  - The site's body is a centred flex column. Type a Letter makes it a plain block while printing (css/lab.css, body.wl-print), or the letter shrinks into the middle of the paper and
+    a right-aligned date stops short of the margin. box-decoration-break: clone gives every page its margins.
+
+TYPE A LETTER FOR YEARS 2 AND 3 (js/letter_young.js)
+  - Year 2 has 7 lessons and Year 3 has 10, each with three steps; Years 4 to 6 still use LEVELS in js/letter.js (their min is now 4). letter.js hands the word processor to
+    letter_young.js as CC.letterKit, and takes CC.letterYoung[year] = { sub, levels } back. It must load after letter.js (index.html). A level's ribbon ('y2' or 'y3') chooses which
+    tools show (css/lab.css, .wl-y2 and .wl-y3). Year 2 is read aloud (speak); Year 3 has a read-aloud button only (voiceButton, in js/lab.js).
+  - A step: say, sub, win, tip, voice, ok(event, api) and, if needed, coach(api) (a hint shown 2.8 s or more after typing stops, read aloud in Year 2) and free: true (the learner's own
+    words: ok() runs only on the 'pause' event, settle milliseconds after the last key, so a half-typed name never finishes a step). Checks are case-sensitive on purpose.
+  - Writing rules taught and checked: capital letters for sentences, names, places, days, months and the word I (not seasons); Mum and Gran take capitals when used as names;
+    a comma follows the greeting; a date needs no commas. When a lesson's words change, test them with real typing, including the usual mistakes.
+  - Each year's certificate needs every one of its lessons. Year 3's lessons are new, so a Year 3 learner who had finished the old five will see the new ones as not done.
+  - Fixed here too: a lesson picture with a list in it took the lesson's own lines (js/lab.js now writes them in '.txt ul'). This had shown on the Years 4 to 6 'Lists' slide.
