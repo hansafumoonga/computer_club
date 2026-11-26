@@ -30,7 +30,9 @@ function mount(host) {
   const tabs = el('div', 'wp-tabs'); tabs.setAttribute('role', 'tablist'); const panels = el('div', 'wp-panels');
   const desk = el('div', 'wp-desk'), sheet = el('div', 'wp-sheet'), page = el('div', 'wp-page');
   page.contentEditable = 'true'; page.spellcheck = true; page.lang = 'en-GB'; page.setAttribute('role', 'textbox'); page.setAttribute('aria-multiline', 'true'); page.setAttribute('aria-label', 'Your document');
-  sheet.appendChild(page); desk.appendChild(sheet);
+  const papersEl = el('div', 'wp-papers'), breaksEl = el('div', 'wp-breaks'), gapsEl = el('div', 'wp-gaps');
+  [papersEl, breaksEl, gapsEl].forEach(function (x) { x.setAttribute('aria-hidden', 'true'); });
+  sheet.append(papersEl, breaksEl, page, gapsEl); desk.appendChild(sheet);
   const stat = el('div', 'wp-stat'), statWords = el('span'), statPages = el('span'), zoomWrap = el('span', 'wp-zoom'), zoomOut = el('button', null, '−'), zoomIn = el('button', null, '+'), zoomLab = el('b', null, '100%');
   zoomOut.type = zoomIn.type = 'button'; zoomOut.setAttribute('aria-label', 'Zoom out'); zoomIn.setAttribute('aria-label', 'Zoom in'); zoomWrap.append(zoomOut, zoomLab, zoomIn); stat.append(statWords, statPages, zoomWrap);
   root.append(bar, tabs, panels, desk, stat);
@@ -57,9 +59,9 @@ function mount(host) {
   }
 
   /* ---------- undo and redo (the page is copied before each change, so tables, pictures and spacing can be undone too) ---------- */
-  const snap = function () { return { h: page.innerHTML, s: selState() }; };
+  const snap = function () { stripGapRows(); return { h: page.innerHTML, s: selState() }; };
   function trim() { let n = 0; undo.forEach(function (u) { n += u.h.length; }); while (undo.length > MAX_UNDO || (n > MAX_UNDO_CHARS && undo.length > 1)) { n -= undo[0].h.length; undo.shift(); } }
-  function begin(force) { if (force) burst = false; if (burst) return; undo.push(snap()); redo.length = 0; trim(); }
+  function begin(force) { stripGapRows(); if (force) burst = false; if (burst) return; undo.push(snap()); redo.length = 0; trim(); }
   function typing() { if (!burst) { undo.push(snap()); redo.length = 0; trim(); burst = true; } clearTimeout(burstTimer); burstTimer = setTimeout(function () { burst = false; }, 900); }
   function endChange() { burst = false; changed(); }
   function swap(from, to) { if (!from.length) return; burst = false; to.push(snap()); const s = from.pop(); page.innerHTML = s.h; applySel(s.s); selImg = null; page.focus(); changed(); }
@@ -125,7 +127,7 @@ function mount(host) {
   function addPicture(src, w, h, alt) {
     const info = DF.parseDataImage(src, DS.LIM.imgChars); if (!info) { say('That picture cannot be added.', 'bad'); return; }
     if (page.querySelectorAll('img').length >= DS.LIM.images) { say('A document can hold up to ' + DS.LIM.images + ' pictures.', 'bad'); return; }
-    const max = Math.min(480, PAPER[S.paper].w - 192); let pw = w, ph = h; if (pw > max) { ph = Math.round(ph * max / pw); pw = max; }
+    const m = maxPicture(); let pw = Math.min(w, 480, m.w), ph = Math.max(1, Math.round(h * pw / w)); if (ph > m.h) { ph = m.h; pw = Math.max(1, Math.round(w * ph / h)); }
     insertHTML('<img src="' + src + '" width="' + pw + '" height="' + ph + '" alt="' + escAttr(alt || '') + '">'); say('Picture added. Click it to change its size.');
   }
   function pickComputer() {
@@ -170,7 +172,7 @@ function mount(host) {
     }); a.focus();
   }
   function field(parent, label, value, type, max) { const l = el('label'), i = el('input'); l.appendChild(document.createTextNode(label)); i.type = type || 'text'; i.value = value || ''; i.maxLength = max || 300; l.appendChild(i); parent.appendChild(l); return i; }
-  function pageBreak() { insertHTML('<hr data-pb="1"><div><br></div>'); }
+  function pageBreak() { restore(); if (cellNow()) { say('A page break cannot go inside a table. Click below the table first.', 'bad'); return; } insertHTML('<hr data-pb="1"><div><br></div>'); showCaret(); }
   function clearFormat() { restore(); begin(true); try { document.execCommand('removeFormat'); document.execCommand('formatBlock', false, '<div>'); } catch (e) { } leafBlocks().forEach(function (b) { b.removeAttribute('style'); b.removeAttribute('data-st'); }); remember(); endChange(); refresh(); }
 
   /* ---------- tables ---------- */
@@ -178,7 +180,8 @@ function mount(host) {
   function tableNow() { const c = cellNow(); return c ? c.closest('table') : null; }
   function cellsInSelection() { const s = sel(); if (!s) return []; const r = s.getRangeAt(0), t = tableNow(); if (!t) return []; const out = []; t.querySelectorAll('td,th').forEach(function (c) { if (r.intersectsNode(c)) out.push(c); }); return out.length ? out : [cellNow()]; }
   function emptyLike(c) { const n = document.createElement(c.nodeName.toLowerCase()); n.innerHTML = '<br>'; const st = c.getAttribute('style'); if (st && /background-color/.test(st)) n.setAttribute('style', st.split(';').filter(function (x) { return /background-color/.test(x); }).join(';')); return n; }
-  function tableOp(op, arg) {
+  function tableOp(op, arg) { stripGapRows(); try { tableOpNow(op, arg); } finally { paginate(); } }
+  function tableOpNow(op, arg) {
     const c = cellNow(); if (!c) return; const row = c.parentElement, t = c.closest('table'), rows = Array.prototype.slice.call(t.rows), ci = Array.prototype.indexOf.call(row.cells, c); begin(true);
     if (op === 'rowAbove' || op === 'rowBelow') { if (rows.length >= DS.LIM.rows) { say('That is the most rows a table can have.', 'bad'); return; } const nr = row.cloneNode(false); Array.prototype.forEach.call(row.cells, function (x) { const e = emptyLike(x); const cs = x.getAttribute('colspan'); if (cs) e.setAttribute('colspan', cs); nr.appendChild(e); }); row.parentNode.insertBefore(nr, op === 'rowAbove' ? row : row.nextSibling); putCaret(nr.cells[Math.min(ci, nr.cells.length - 1)]); }
     else if (op === 'colLeft' || op === 'colRight') { if (row.cells.length >= DS.LIM.cols) { say('That is the most columns a table can have.', 'bad'); return; } rows.forEach(function (r) { const ref = r.cells[Math.min(ci, r.cells.length - 1)]; if (!ref) return; const e = emptyLike(ref); e.removeAttribute('colspan'); r.insertBefore(e, op === 'colLeft' ? ref : ref.nextSibling); }); putCaret(row.cells[op === 'colLeft' ? ci : ci + 1]); }
@@ -194,7 +197,7 @@ function mount(host) {
   }
   function ensureTail() { if (!page.lastElementChild || /^(TABLE|HR)$/.test(page.lastElementChild.nodeName)) { const d = document.createElement('div'); d.innerHTML = '<br>'; page.appendChild(d); } if (!page.firstElementChild) page.innerHTML = '<div><br></div>'; putCaret(page.lastElementChild); }
   function nextCell(back) {
-    const c = cellNow(); if (!c) return false; const cells = Array.prototype.slice.call(c.closest('table').querySelectorAll('td,th')), i = cells.indexOf(c);
+    const c = cellNow(); if (!c) return false; const cells = Array.prototype.filter.call(c.closest('table').querySelectorAll('td,th'), function (x) { return !x.parentElement.classList.contains('wp-gaprow'); }), i = cells.indexOf(c);
     if (!back && i === cells.length - 1) { tableOp('rowBelow'); return true; }
     const n = cells[i + (back ? -1 : 1)]; if (n) putCaret(n); return true;
   }
@@ -202,9 +205,9 @@ function mount(host) {
   /* ---------- pictures already in the document ---------- */
   function selectPicture(img) { if (selImg && selImg !== img) selImg.classList.remove('wp-sel'); selImg = img; if (img) img.classList.add('wp-sel'); refresh(); }
   function pictureOp(op, arg) {
-    if (!selImg || !inPage(selImg)) return; begin(true); const img = selImg, w = parseInt(img.getAttribute('width'), 10) || img.naturalWidth || 200, h = parseInt(img.getAttribute('height'), 10) || img.naturalHeight || 150, max = PAPER[S.paper].w - 192;
-    const size = function (nw) { nw = Math.max(16, Math.min(max, Math.round(nw))); img.setAttribute('width', String(nw)); img.setAttribute('height', String(Math.max(1, Math.round(nw * h / w)))); img.style.width = nw + 'px'; img.style.height = Math.max(1, Math.round(nw * h / w)) + 'px'; };
-    if (op === 'smaller') size(w * 0.8); else if (op === 'larger') size(w * 1.25); else if (op === 'fit') size(max * arg);
+    if (!selImg || !inPage(selImg)) return; begin(true); const img = selImg, w = parseInt(img.getAttribute('width'), 10) || img.naturalWidth || 200, h = parseInt(img.getAttribute('height'), 10) || img.naturalHeight || 150;
+    const m = maxPicture(), size = function (nw) { nw = Math.max(16, Math.min(m.w, Math.floor(m.h * w / h), Math.round(nw))); sizePicture(img, nw, Math.max(1, Math.round(nw * h / w))); };
+    if (op === 'smaller') size(w * 0.8); else if (op === 'larger') size(w * 1.25); else if (op === 'fit') size(textWidth() * arg);
     else if (op === 'align') { let b = img.parentElement; while (b && b !== page && !blockish(b)) b = b.parentElement; if (b && b !== page) b.style.textAlign = arg; }
     else if (op === 'delete') { const p = img.parentNode; img.remove(); selImg = null; if (p && p !== page && !p.firstChild) p.appendChild(document.createElement('br')); }
     else if (op === 'alt') { img.setAttribute('alt', String(arg || '').slice(0, 300)); }
@@ -314,7 +317,7 @@ function mount(host) {
   btn(g, 'date', '📅 Date', 'Add today’s date', function () { insertText(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })); });
 
   g = group('Paper'); lay.p.appendChild(g); select(g, 'paper', 'Paper size', [['a4', 'A4'], ['letter', 'Letter']], function (v) { S.paper = v; paper(); scheduleSave(); });
-  g = group('Page numbers'); lay.p.appendChild(g); btn(g, 'pnums', '# Page numbers', 'Print page numbers at the bottom of each page and in the Word file', function () { S.pageNums = !S.pageNums; refresh(); scheduleSave(); say(S.pageNums ? 'Page numbers will be added when you print or download.' : 'Page numbers are off.'); });
+  g = group('Page numbers'); lay.p.appendChild(g); btn(g, 'pnums', '# Page numbers', 'Print page numbers at the bottom of each page and in the Word file', function () { S.pageNums = !S.pageNums; paginate(); refresh(); scheduleSave(); say(S.pageNums ? 'Page numbers will be added when you print or download.' : 'Page numbers are off.'); });
   g = group('Zoom'); lay.p.appendChild(g); btn(g, 'z-', '−', 'Zoom out', function () { zoom(-10); }); btn(g, 'z+', '+', 'Zoom in', function () { zoom(10); }); btn(g, 'z100', '100%', 'Normal size', function () { zoomTo(100); });
 
   g = group('Rows and columns'); tt.p.appendChild(g);
@@ -350,19 +353,198 @@ function mount(host) {
     const inTable = !!cellNow(), inPic = !!(selImg && inPage(selImg)); tt.t.hidden = !inTable; pt.t.hidden = !inPic;
     if (inTable) { const t = tableNow(); ctl.tBd.value = t.getAttribute('data-bd') || 'grid'; ctl.tH.classList.toggle('on', !!t.rows[0] && t.rows[0].cells[0] && t.rows[0].cells[0].nodeName === 'TH'); }
     if ((tab === 'table' && !inTable) || (tab === 'picture' && !inPic)) showTab('home');
+    showPage();
   }
 
+  /* ---------- pages: the document is shown as separate sheets of paper, with a gap and the page number between them ----------
+     The words stay in one editable box that is never cut or rearranged. At each page end a full-width floating block is placed BEFORE the
+     box (never inside it). It covers the bottom margin, the gap and the next top margin, so the browser itself moves every line that would
+     land there to the next page, splitting a paragraph between its lines as Word does. (The half-pixel text indent in css/tools.css makes
+     sure that even an empty line is moved.) A page break simply makes its page end start early. A table longer than a page cannot flow past
+     a page end, so it is split between two of its rows with a spacer row, which is taken out again before anything is changed, saved,
+     copied or downloaded. Pictures and tables too big for a page are made to fit, because the browser would push them past every page end. */
+  const GAP = 36, MARGIN = 96, MAXPAGES = 500;                 // MARGIN is 2.54 cm, the same as the printed and Word pages
+  let pageCount = 1, drawnKey = '', laying = false, kept = null;   // kept: the page ends from last time, used again when no page break has moved
+  function textWidth() { return PAPER[S.paper].w - 2 * MARGIN; }
+  function textHeight() { return PAPER[S.paper].h - 2 * MARGIN; }
+  function pageTop(k) { return k * (PAPER[S.paper].h + GAP); }
+  function limitOf(k) { return pageTop(k) + PAPER[S.paper].h - MARGIN; }       // the words of page k (counted from 0) end here
+  function nextOf(k) { return pageTop(k + 1) + MARGIN; }                       // and go on here, on the next page
+  function pageOf(y) { return Math.max(0, Math.floor((y - MARGIN) / (PAPER[S.paper].h + GAP))); }
+  function zoneAt(k, from) { return { start: from === undefined ? limitOf(k) : Math.min(from, nextOf(k)), end: nextOf(k) }; }
+  function rowsOf(t) { return Array.prototype.filter.call(t.rows, function (r) { return !r.classList.contains('wp-gaprow'); }); }
+  function stripGapRows() { const rows = page.querySelectorAll('tr.wp-gaprow'); for (let i = 0; i < rows.length; i++) rows[i].remove(); }
+  function cleanPageHtml() { if (!page.querySelector('tr.wp-gaprow')) return page.innerHTML; const c = page.cloneNode(true); c.querySelectorAll('tr.wp-gaprow').forEach(function (r) { r.remove(); }); return c.innerHTML; }
+  function tablesNow() { return Array.prototype.filter.call(page.querySelectorAll('table'), function (t) { return t.rows.length && !t.parentElement.closest('table'); }); }
+  function sizePicture(img, w, h) { img.setAttribute('width', String(w)); img.setAttribute('height', String(h)); img.style.width = w + 'px'; img.style.height = h + 'px'; }
+  function maxPicture() { return { w: textWidth(), h: textHeight() - 12 }; }
+  function fitPictures() {                                      // e.g. a tall pasted picture, or A4 after Letter: scaled down to fit one page
+    const m = maxPicture();
+    page.querySelectorAll('img').forEach(function (img) {
+      const w = parseInt(img.getAttribute('width'), 10), h = parseInt(img.getAttribute('height'), 10); if (!(w > m.w || h > m.h) || !w || !h) return;
+      const k = Math.min(m.w / w, m.h / h); sizePicture(img, Math.max(1, Math.floor(w * k)), Math.max(1, Math.floor(h * k)));
+    });
+  }
+  function fitTables() {                                        // a table too wide for the page is shown with equal columns that fit (only on screen and paper; the saved table is not changed)
+    const all = page.querySelectorAll('table');
+    all.forEach(function (t) { if (t.classList.contains('wp-wide')) { t.classList.remove('wp-wide'); if (!t.className) t.removeAttribute('class'); } });
+    Array.prototype.filter.call(all, function (t) { const p = t.parentElement, cs = getComputedStyle(p); return t.offsetWidth > p.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + 1; }).forEach(function (t) { t.classList.add('wp-wide'); });
+  }
+  function setZones(zones) {                                    // [{ start, end } or null, one for each page end]: the bands of the sheet that no line may use
+    const list = zones.filter(Boolean);
+    while (breaksEl.childNodes.length > list.length * 2) breaksEl.lastChild.remove();
+    while (breaksEl.childNodes.length < list.length * 2) { const i = document.createElement('i'); i.className = breaksEl.childNodes.length % 2 ? 'wp-zone' : 'wp-push'; breaksEl.appendChild(i); }
+    let used = 0;
+    list.forEach(function (z, k) {
+      const a = breaksEl.childNodes[2 * k], b = breaksEl.childNodes[2 * k + 1], push = Math.max(0, z.start - used) + 'px', size = Math.max(0, z.end - z.start) + 'px';
+      if (a.style.height !== push) a.style.height = push; if (b.style.height !== size) b.style.height = size; used = z.end;
+    });
+  }
+  function measurer() { const scale = sheet.getBoundingClientRect().width / PAPER[S.paper].w || 1; return function (y) { return (y - sheet.getBoundingClientRect().top) / scale; }; }
+  function heightOf(e, Y) { const q = e.getBoundingClientRect(); return Y(q.bottom) - Y(q.top); }
+  function contentEnd(Y) {                                      // the bottom of the last line (or table, picture or rule) in the document
+    let n = page.lastChild;
+    while (n && n.nodeType === 1 && !/^(TABLE|IMG|HR|BR)$/.test(n.nodeName) && n.lastChild) n = n.lastChild;
+    if (!n) return 0;
+    if (n.nodeType === 3) { const r = document.createRange(); r.selectNodeContents(n); const rs = r.getClientRects(); if (rs.length) return Y(rs[rs.length - 1].bottom); n = n.parentElement; }
+    if (n.nodeType !== 1) n = n.parentElement;
+    return Y(n.getBoundingClientRect().bottom);
+  }
+  /* add page ends until the last line is on the last page, and take away empty pages after it (but keep at least `keep`, so a page break
+     always starts a new page) */
+  function fill(zones, keep, Y) {
+    const step = PAPER[S.paper].h + GAP, room = textHeight();
+    for (let tries = 0; tries < 20; tries++) {
+      setZones(zones); const n = zones.length, end = contentEnd(Y);
+      if (end > limitOf(n) + 0.5 && n < MAXPAGES - 1) {
+        const add = Math.min(MAXPAGES - 1 - n, Math.max(1, Math.ceil((end - limitOf(n)) / room)));
+        for (let i = 0; i < add; i++) zones.push(zoneAt(n + i));
+        setZones(zones);
+        if (contentEnd(Y) - end < add * step - 2) continue;
+        zones.length = n; setZones(zones);                       // something that fits no page would only be pushed further down: stop here
+      } else if (n > keep && end <= pageTop(n) + MARGIN + 0.5) { zones.length = Math.max(keep, Math.ceil((end - limitOf(0) - 0.5) / step)); setZones(zones); }
+      break;
+    }
+    return zones;
+  }
+  /* the usual documents (words, pictures, short tables, page breaks): the page ends are in their normal places except at page breaks.
+     While every page break stays where it was, last time's page ends are checked and kept, so typing needs no new layout work. */
+  function breakStart(hr, k, Y) { const q = hr.getBoundingClientRect(); return pageOf(Y(q.top)) < k ? pageTop(k) + MARGIN : Y(q.bottom) + 0.5; }   // two breaks together leave an empty page
+  function stillRight(was, breaks, Y) {
+    if (was.paper !== S.paper || breaks.length !== was.marks.length) return false;
+    setZones(was.zones); let keep = 0;
+    return was.marks.every(function (m, i) {
+      if (m.hr !== breaks[i]) return false;
+      const k = Math.max(pageOf(Y(m.hr.getBoundingClientRect().top)), keep); keep = k + 1;
+      return k === m.k && Math.abs(zoneAt(k, breakStart(m.hr, k, Y)).start - m.start) < 0.6;
+    });
+  }
+  function layText(breaks, Y) {
+    if (kept && stillRight(kept, breaks, Y)) return { zones: fill(kept.zones.slice(), kept.keep, Y), keep: kept.keep, marks: kept.marks };
+    let zones = []; for (let k = 0; k < pageCount - 1; k++) zones.push(zoneAt(k));
+    const marks = []; let keep = 0;
+    breaks.forEach(function (hr) {
+      zones = fill(zones, keep, Y);                              // every page up to this break is laid out first
+      const k = Math.min(MAXPAGES - 2, Math.max(pageOf(Y(hr.getBoundingClientRect().top)), keep));
+      while (zones.length <= k) zones.push(zoneAt(zones.length));
+      zones[k] = zoneAt(k, breakStart(hr, k, Y)); marks.push({ hr: hr, k: k, start: zones[k].start }); keep = k + 1;
+    });
+    return { zones: fill(zones, keep, Y), keep: keep, marks: marks };
+  }
+  /* with a table longer than a page, the page ends are placed one at a time from the top, until nothing special is left */
+  function layTables(breaks, long, Y) {
+    const zones = [], through = {}; let b = 0, keep = 0;
+    setZones(zones);
+    for (let k = 0; k < MAXPAGES - 1; k++) {
+      let from;
+      if (b < breaks.length && Y(breaks[b].getBoundingClientRect().top) <= limitOf(k) + 8) { from = breakStart(breaks[b], k, Y); b++; keep = k + 1; }
+      else {
+        const t = splitTable(k, long, Y);
+        if (t && t.done) { zones.push(null); if (t.through) through[k] = true; continue; }
+        if (t && t.tail !== undefined) { from = t.tail + 0.5; if (t.through) through[k] = true; }
+        else if (!t && contentEnd(Y) <= limitOf(k) + 0.5) break;
+      }
+      zones.push(zoneAt(k, from)); setZones(zones);
+      if (b >= breaks.length && long.every(function (x) { return Y(x.getBoundingClientRect().bottom) <= limitOf(k) + 0.5; })) break;
+    }
+    return { zones: fill(zones, keep, Y), through: through };
+  }
+  /* a long table that crosses the end of page k: null (none does), {move} (all of it goes on to the next page), {done} (a spacer row
+     splits it, or one row is too tall for any page and runs on) or {tail} (the page ends just below it) */
+  function splitTable(k, long, Y) {
+    const limit = limitOf(k), next = nextOf(k), top = pageTop(k) + MARGIN;
+    const box = function (e) { const q = e.getBoundingClientRect(); return { top: Y(q.top), bottom: Y(q.bottom) }; };
+    for (let i = 0; i < long.length; i++) {
+      const tb = box(long[i]); if (tb.top >= limit - 0.5 || tb.bottom <= limit + 0.5) continue;
+      const rows = rowsOf(long[i]); let j = 0, over = false;
+      while (j < rows.length && box(rows[j]).bottom <= limit + 0.5) j++;
+      if (j < rows.length && box(rows[j]).top <= top + 6) {       // this row already starts at the top of a page: moving it would not help
+        if (box(rows[j]).bottom >= next - 0.5) return { done: true, through: true };
+        j++; over = true;
+      }
+      if (j >= rows.length) return tb.bottom <= next ? { tail: tb.bottom, through: over } : { done: true, through: true };
+      if (j === 0) return { move: true };
+      const row = rows[j], gr = document.createElement('tr'), td = document.createElement('td'), was = box(row).top;
+      gr.className = 'wp-gaprow'; gr.contentEditable = 'false'; gr.setAttribute('aria-hidden', 'true');
+      td.colSpan = rows.reduce(function (most, r) { return Math.max(most, Array.prototype.reduce.call(r.cells, function (n, c) { return n + (c.colSpan || 1); }, 0)); }, 1);
+      td.style.height = Math.max(0, next - was) + 'px'; gr.appendChild(td); row.parentNode.insertBefore(gr, row);
+      const off = box(row).top - next; if (Math.abs(off) > 0.5) td.style.height = Math.max(0, next - was - off) + 'px';     // table borders can add a pixel
+      return { done: true, through: over };
+    }
+    return null;
+  }
+  function paginate() {
+    if (laying || !sheet.getBoundingClientRect().width) return;      // not on screen: it is laid out when it is shown
+    laying = true; const scrolled = desk.scrollTop;
+    try {
+      stripGapRows(); fitPictures(); fitTables();
+      const Y = measurer(), breaks = Array.prototype.filter.call(page.querySelectorAll('hr[data-pb]'), function (h) { return !h.closest('table'); });
+      const long = tablesNow().filter(function (t) { return heightOf(t, Y) > textHeight() - 1; });
+      let r;
+      if (long.length) { r = layTables(breaks, long, Y); kept = null; }
+      else { r = layText(breaks, Y); r.through = {}; kept = { paper: S.paper, zones: r.zones.slice(), keep: r.keep, marks: r.marks }; }
+      drawPages(r.zones, r.through);
+    } finally { laying = false; if (desk.scrollTop !== scrolled) desk.scrollTop = scrolled; }
+    showPage();
+  }
+  /* the white sheets behind the words; on top, covers over the margins (so no paragraph border or shading crosses a page end), the gaps
+     with "Page 2 of 3", and the page numbers as they will print */
+  function drawPages(zones, through) {
+    const n = zones.length + 1, H = PAPER[S.paper].h; pageCount = n;
+    const minH = (n * H + (n - 1) * GAP) + 'px'; if (page.style.minHeight !== minH) page.style.minHeight = minH;
+    const foot = zones.map(function (z, k) { return through[k] ? -1 : Math.max(limitOf(k), z ? z.start : 0); });   // where each bottom margin's cover starts (-1: none)
+    const key = n + '|' + S.paper + '|' + S.pageNums + '|' + foot.join(','); if (key === drawnKey) return; drawnKey = key;
+    papersEl.textContent = ''; gapsEl.textContent = '';
+    const band = function (cls, y, h) { const d = el('div', cls); d.style.top = y + 'px'; d.style.height = Math.max(0, h) + 'px'; gapsEl.appendChild(d); return d; };
+    for (let k = 0; k < n; k++) {
+      const paperEl = el('div', 'wp-paper'); paperEl.style.top = pageTop(k) + 'px'; paperEl.style.height = H + 'px'; papersEl.appendChild(paperEl);
+      if (k > 0 && foot[k - 1] >= 0) band('wp-mask', pageTop(k), MARGIN);
+      if (k < n - 1 && foot[k] >= 0) band('wp-mask', foot[k], pageTop(k) + H - foot[k]);
+      band('wp-gap' + (k ? (through[k - 1] ? ' through' : '') : ' first'), pageTop(k) - GAP, GAP).appendChild(el('span', 'wp-pagetag', 'Page ' + (k + 1) + ' of ' + n));
+      if (S.pageNums) { const num = el('span', 'wp-pnum', String(k + 1)); num.style.top = (pageTop(k) + H - 60) + 'px'; gapsEl.appendChild(num); }
+    }
+  }
+  function caretRect() {
+    const s = sel(); if (!s || !s.focusNode) return null; const r = document.createRange(); r.setStart(s.focusNode, Math.min(s.focusOffset, lenOf(s.focusNode))); r.collapse(true);
+    let box = r.getClientRects()[0];
+    if (!box || !box.height) { let n = s.focusNode; if (n.nodeType === 1) n = n.childNodes[Math.min(s.focusOffset, n.childNodes.length - 1)] || n; if (n.nodeType !== 1) n = n.parentElement; if (!n) return null; box = n.getBoundingClientRect(); }
+    return box;
+  }
+  function caretPage() { const box = caretRect(); return box ? Math.min(pageCount - 1, pageOf(measurer()((box.top + box.bottom) / 2))) : 0; }
+  function showPage() { statPages.textContent = sel() ? 'Page ' + (caretPage() + 1) + ' of ' + pageCount : pageCount + (pageCount === 1 ? ' page' : ' pages'); }
+  function showCaret() { const box = caretRect(); if (!box) return; const d = desk.getBoundingClientRect(); if (box.bottom > d.bottom - 12) desk.scrollTop += box.bottom - d.bottom + 48; else if (box.top < d.top + 12) desk.scrollTop -= d.top - box.top + 48; }
+
   /* ---------- paper, zoom, counts, saving ---------- */
-  function paper() { const p = PAPER[S.paper]; sheet.style.width = p.w + 'px'; page.style.minHeight = p.h + 'px'; sheet.style.setProperty('--ph', p.h + 'px'); sheet.style.setProperty('--pw', p.w + 'px'); counts(); }
-  function zoomTo(z) { S.zoom = Math.max(50, Math.min(200, z)); sheet.style.zoom = S.zoom / 100; zoomLab.textContent = S.zoom + '%'; }
+  function paper() { sheet.style.width = PAPER[S.paper].w + 'px'; paginate(); counts(); }
+  function zoomTo(z) { S.zoom = Math.max(50, Math.min(200, z)); sheet.style.zoom = S.zoom / 100; zoomLab.textContent = S.zoom + '%'; paginate(); }
   function zoom(d) { zoomTo(S.zoom + d); }
   function counts() {
     clearTimeout(statusRaf); statusRaf = setTimeout(function () {
-      const t = page.innerText || '', words = (t.match(/\S+/g) || []).length, chars = t.replace(/\n/g, '').length, pages = Math.max(1, Math.ceil(page.scrollHeight / PAPER[S.paper].h));
-      statWords.textContent = words + (words === 1 ? ' word' : ' words') + ' · ' + chars + ' characters'; statPages.textContent = pages + (pages === 1 ? ' page' : ' pages');
+      const t = page.innerText || '', words = (t.match(/\S+/g) || []).length, chars = t.replace(/\n/g, '').length;
+      statWords.textContent = words + (words === 1 ? ' word' : ' words') + ' · ' + chars + ' characters'; showPage();
     }, 80);
   }
-  function docHtml() { return DS.sanitize(page.innerHTML.replace(/ class="wp-sel"/g, '')); }
+  function docHtml() { return DS.sanitize(cleanPageHtml().replace(/ class="wp-sel"/g, '')); }
   function writeSave() {
     saveTimer = 0; let html; try { html = docHtml(); } catch (e) { return; }
     const data = { n: S.name, h: html, p: S.paper, pn: S.pageNums }, size = JSON.stringify(data).length;
@@ -371,7 +553,7 @@ function mount(host) {
   }
   function scheduleSave() { stateEl.textContent = 'Saving…'; stateEl.className = 'wp-state'; clearTimeout(saveTimer); saveTimer = setTimeout(writeSave, 700); }
   function flush() { if (saveTimer) { clearTimeout(saveTimer); writeSave(); } }
-  function changed() { counts(); scheduleSave(); refresh(); }
+  function changed() { paginate(); counts(); scheduleSave(); refresh(); }
   function load() {
     const d = CC.keep.load(KEY); let ok = false;
     if (d && typeof d === 'object' && typeof d.h === 'string') {
@@ -386,9 +568,16 @@ function mount(host) {
   }
 
   /* ---------- downloads and printing ---------- */
+  function matchColumns(copyRoot) {                            // the tables in the Word file get the column widths seen on screen
+    const live = tablesNow(), copy = copyRoot.querySelectorAll('table'), k = sheet.getBoundingClientRect().width / PAPER[S.paper].w; if (!k || live.length !== copy.length) return;
+    live.forEach(function (t, i) {
+      const a = rowsOf(t)[0], b = copy[i].rows[0]; if (!a || !b || a.cells.length !== b.cells.length) return;
+      Array.prototype.forEach.call(a.cells, function (c, j) { const w = Math.round(c.getBoundingClientRect().width / k); if (w >= 20 && w <= 1600) b.cells[j].style.width = w + 'px'; });   // a very narrow column: Word shares the width equally
+    });
+  }
   function baseName() { S.name = DF.safeName(nameIn.value, 'My document'); return S.name; }
   function download(kind) {
-    const name = baseName(), root0 = DS.fragment(docHtml());
+    const name = baseName(), root0 = DS.fragment(docHtml()); if (kind === 'docx') matchColumns(root0);
     try {
       if (kind === 'docx') CC.docx.saveDocx(root0, name, { page: S.paper, pageNumbers: S.pageNums }).then(function () { say('Saved ' + name + '.docx in your Downloads folder.'); }, function () { say('The Word file could not be made.', 'bad'); });
       else if (kind === 'html') { CC.docx.saveHtml(root0, name); say('Saved ' + name + '.html in your Downloads folder.'); }
@@ -399,7 +588,12 @@ function mount(host) {
   let printPage = null;
   function preparePrint() {
     cleanPrint(); const st = document.createElement('style'); st.id = 'wp-page-css'; st.textContent = '@media print{@page{size:' + (S.paper === 'a4' ? 'A4' : 'letter') + ';margin:2.54cm' + (S.pageNums ? ';@bottom-center{content:counter(page)}' : '') + '}}'; document.head.appendChild(st);
-    printPage = el('div', 'wp-printpage'); printPage.appendChild(DS.fragment(docHtml())); document.body.appendChild(printPage); document.body.classList.add('wp-printing');
+    printPage = el('div', 'wp-printpage'); printPage.appendChild(DS.fragment(docHtml())); matchPrintTables(printPage); document.body.appendChild(printPage); document.body.classList.add('wp-printing');
+  }
+  function matchPrintTables(copyRoot) {                         // on paper too, a wide table is narrowed to fit, and only a table longer than a page is split between pages
+    const live = tablesNow(), copy = copyRoot.querySelectorAll('table'); if (live.length !== copy.length) return;
+    const Y = measurer();
+    live.forEach(function (t, i) { if (t.classList.contains('wp-wide')) copy[i].classList.add('wp-wide'); if (heightOf(t, Y) > textHeight() - 1) copy[i].classList.add('wp-long'); });
   }
   function cleanPrint() { document.body.classList.remove('wp-printing'); const st = document.getElementById('wp-page-css'); if (st) st.remove(); if (printPage) { printPage.remove(); printPage = null; } }
   function printDoc() { preparePrint(); say('In the print window, choose “Save as PDF” to make a PDF file.'); try { if (!DF.noDownload) window.print(); } catch (e) { } setTimeout(cleanPrint, DF.noDownload ? 200 : 60000); }
@@ -425,14 +619,29 @@ function mount(host) {
     const html = dt.getData('text/html'), text = dt.getData('text/plain'); if (html) insertHTML(DS.sanitize(html)); else if (text) insertText(text.slice(0, 1000000));
   });
   page.addEventListener('beforeinput', function (e) {
+    stripGapRows();                                          // the browser edits the plain document
     if (e.inputType === 'historyUndo') { e.preventDefault(); doUndo(); return; } if (e.inputType === 'historyRedo') { e.preventDefault(); doRedo(); return; }
     if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop') { return; }
     if (!e.isComposing) typing();
   });
-  page.addEventListener('input', function () { tidy(); changed(); });
+  page.addEventListener('input', function () { tidy(); changed(); showCaret(); });
+  page.addEventListener('load', function (e) { if (e.target && e.target.tagName === 'IMG') paginate(); }, true);       // a picture that has just opened can move the page ends
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { paginate(); });
   page.addEventListener('click', function (e) { if (e.target.nodeName === 'IMG') { selectPicture(e.target); } else if (selImg) selectPicture(null); remember(); refresh(); });
   page.addEventListener('keyup', function () { remember(); });
   page.addEventListener('mouseup', function () { burst = false; remember(); });
+  let down = null;                                             // a click in a page's top or bottom margin keeps the cursor on that page (the browser alone can take it to the next one)
+  page.addEventListener('mousedown', function (e) { down = e.button === 0 && e.detail === 1 && !e.shiftKey ? { x: e.clientX, y: e.clientY } : null; });
+  page.addEventListener('mouseup', function (e) {
+    const at = down; down = null; if (!at || Math.abs(e.clientX - at.x) > 3 || Math.abs(e.clientY - at.y) > 3) return;
+    const H = PAPER[S.paper].h, y = measurer()(at.y), k = Math.floor(y / (H + GAP)), rel = y - pageTop(k);
+    if (k >= 0 && k < pageCount && rel <= H && (rel < MARGIN || rel > H - MARGIN)) setTimeout(function () { toPage(k); }, 0);
+  });
+  function toPage(k) {
+    const s = sel(); if (!s || !s.isCollapsed || !s.modify) return; const was = s.getRangeAt(0).cloneRange();
+    for (let i = 0; i < 4; i++) { const p = caretPage(); if (p === k) { remember(); refresh(); return; } s.modify('move', p > k ? 'backward' : 'forward', 'line'); }
+    s.removeAllRanges(); s.addRange(was);
+  }
   page.addEventListener('keydown', function (e) {
     const k = e.key, mod = e.ctrlKey || e.metaKey;
     if (mod && !e.altKey) {
@@ -451,7 +660,7 @@ function mount(host) {
     if (k === 'Escape') { const first = tabs.querySelector('.wp-tab.on'); if (first) first.focus(); return; }                          // leave the page with the keyboard
     if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].indexOf(k) >= 0) burst = false;
   });
-  page.addEventListener('copy', function () { remember(); }); page.addEventListener('cut', function () { begin(true); setTimeout(endChange, 0); });
+  page.addEventListener('copy', function () { remember(); if (page.querySelector('tr.wp-gaprow')) { stripGapRows(); setTimeout(paginate, 0); } }); page.addEventListener('cut', function () { begin(true); setTimeout(endChange, 0); });
   root.addEventListener('mousedown', function (e) { if (e.target.closest('.wp-b') && !e.target.closest('.wp-dlg') ) e.preventDefault(); if (openPop && !e.target.closest('.wp-pop') && !e.target.closest('.wp-b')) closePop(); });
   root.addEventListener('keydown', function (e) { if (e.key === 'Escape') closePop(); e.stopPropagation(); });
   document.addEventListener('selectionchange', onSelection);
@@ -470,9 +679,9 @@ function mount(host) {
   const restored = load(); counts(); refresh();
   if (restored) say('Your document from earlier is back. It is kept for ' + CC.keep.hours + ' hours after your last change.');
   return {
-    show: function () { try { document.execCommand('styleWithCSS', false, true); document.execCommand('defaultParagraphSeparator', false, 'div'); } catch (e) { } counts(); setTimeout(function () { page.focus(); }, 0); },
+    show: function () { try { document.execCommand('styleWithCSS', false, true); document.execCommand('defaultParagraphSeparator', false, 'div'); } catch (e) { } paginate(); counts(); setTimeout(function () { page.focus(); }, 0); },
     leave: function () { flush(); closePop(); },
-    api: { page: page, S: S, getHtml: docHtml, setHtml: function (h) { begin(true); page.innerHTML = DS.fragment(h).innerHTML || '<div><br></div>'; endChange(); }, undo: doUndo, redo: doRedo, insertTable: insertTable, addPicture: addPicture, download: download, flush: flush, cmd: exec, setStyle: setStyle, tableOp: tableOp, pictureOp: pictureOp, selectPicture: selectPicture, importFile: importFile, find: findAll, state: function () { return { undo: undo.length, redo: redo.length }; } }
+    api: { page: page, S: S, layout: paginate, pages: function () { return pageCount; }, caretPage: caretPage, getHtml: docHtml, setHtml: function (h) { begin(true); page.innerHTML = DS.fragment(h).innerHTML || '<div><br></div>'; endChange(); }, undo: doUndo, redo: doRedo, insertTable: insertTable, addPicture: addPicture, download: download, flush: flush, cmd: exec, setStyle: setStyle, tableOp: tableOp, pictureOp: pictureOp, selectPicture: selectPicture, importFile: importFile, find: findAll, state: function () { return { undo: undo.length, redo: redo.length }; } }
   };
 }
 CC.tools = CC.tools || {}; CC.tools.writerMount = mount;

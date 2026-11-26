@@ -19,13 +19,13 @@ function parseCellName(s) {
 
 function PErr(msg) { this.message = msg; }                          // a mistake in the formula, with a message a learner can read
 
-const RE_Q = /(?:'((?:[^']|'')+)'|([A-Za-z_ -￿][A-Za-z0-9_. -￿]*))!/y;
+const RE_Q = /(?:'((?:[^']|'')+)'|([A-Za-z_\u00A0-\uFFFF][A-Za-z0-9_.\u00A0-\uFFFF]*))!/y;
 const RE_CELLS = /(\$?)([A-Za-z]{1,3})(\$?)(\d{1,7})(?::(\$?)([A-Za-z]{1,3})(\$?)(\d{1,7}))?(?![A-Za-z0-9_(.])/y;
 const RE_COLS = /(\$?)([A-Za-z]{1,3}):(\$?)([A-Za-z]{1,3})(?![A-Za-z0-9_(.!])/y;
 const RE_ROWS = /(\$?)(\d{1,7}):(\$?)(\d{1,7})(?![0-9A-Za-z_.])/y;
 const RE_NUM = /(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
 const RE_ERR = /#(?:N\/A|REF!|DIV\/0!|VALUE!|NAME\?|NUM!|NULL!)/iy;
-const RE_ID = /[A-Za-z_ -￿][A-Za-z0-9_. -￿]*/y;
+const RE_ID = /[A-Za-z_\u00A0-\uFFFF][A-Za-z0-9_.\u00A0-\uFFFF]*/y;
 function at(re, s, i) { re.lastIndex = i; return re.exec(s); }
 function validCol(c) { return c >= 0 && c < XC; }
 function validRow(r) { return r >= 0 && r < XR; }
@@ -36,7 +36,7 @@ function tokenize(src) {
   function push(t) { t.s = sheetStart >= 0 ? sheetStart : t.s; sheetStart = -1; toks.push(t); if (toks.length > LIM.tokens) throw new PErr('This formula is too long.'); }
   while (i < n) {
     const ch = src.charAt(i);
-    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r' || ch === ' ') { i++; continue; }
+    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r' || ch === '\u00A0') { i++; continue; }
     if (ch === '"') {
       let j = i + 1, out = '';
       for (;;) {
@@ -254,7 +254,7 @@ function refsOf(text) {
 }
 /* is this a name a sheet may have? Returns the cleaned name or '' */
 function cleanSheetName(s) {
-  s = String(s == null ? '' : s).replace(/[\u0000-\u001F\u007F‎‏‪-‮⁦-⁩]/g, '').replace(/[\[\]:*?\/\\]/g, ' ').replace(/\s+/g, ' ').trim();
+  s = String(s == null ? '' : s).replace(/[\u0000-\u001F\u007F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '').replace(/[\[\]:*?\/\\]/g, ' ').replace(/\s+/g, ' ').trim();
   s = s.replace(/^'+|'+$/g, '').trim(); return s.slice(0, LIM.name).trim();
 }
 

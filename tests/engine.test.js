@@ -133,7 +133,7 @@ function fx(b, addr, si) { const p = P.parseCellName(addr); const c = b.getCell(
   b.renameSheet(1, 'My Data'); eq('rename rewrites formulas', b.getCell(0, 1, 0).f, "='My Data'!A1+1"); eq('rename keeps working', val(b, 'A2', 0), 11); eq('rename clash refused', b.renameSheet(1, 'sheet1').ok, false); eq('rename bad chars cleaned', b.renameSheet(1, 'a/b:c*d?').name, 'a b c d');
   eq('name too long cut', b.renameSheet(1, 'x'.repeat(50)).name.length, 31); b.renameSheet(1, 'Data');
   b.deleteSheet(1); eq('delete sheet gives #REF!', [b.getCell(0, 1, 0).f, val(b, 'A2', 0)], ['=#REF!+1', '#REF!']); eq('last sheet cannot go', b.deleteSheet(0).ok, false);
-  const c = mk({ A1: 1 }); c.addSheet(); c.addSheet(); eq('sheet names', c.sheets.map(function (s) { return s.name; }), ['Sheet1', 'Sheet2', 'Sheet3']); let k = 0; while (c.addSheet().ok) k++; eq('sheet limit', c.sheets.length, P.LIM.sheets);
+  const c = mk({ A1: 1 }); c.addSheet(); c.addSheet(); eq('sheet names', c.sheets.map(function (s) { return s.name; }), ['Sheet1', 'Sheet2', 'Sheet3']); while (c.addSheet().ok) { } eq('sheet limit', c.sheets.length, P.LIM.sheets);
   const d = mk({ A1: 3, B1: '=A1*2' }); d.duplicateSheet(0); eq('duplicate', [d.sheets[1].name, val(d, 'B1', 1), d.getCell(1, 0, 1).f], ['Sheet1 (copy)', 6, '=A1*2']); d.setEntry(1, 0, 0, '10'); eq('copy is independent', [val(d, 'B1', 1), val(d, 'B1', 0)], [20, 6]);
   const e = mk({}); e.addSheet('B'); e.addSheet('C'); e.moveSheet(2, 0); eq('move sheet', e.sheets.map(function (s) { return s.name; }), ['C', 'Sheet1', 'B']); eq('sheet name with quote', (function () { const x = mk({ A1: 1 }); x.addSheet("it's"); x.setEntry(0, 1, 0, "='it''s'!A1+0"); return val(x, 'A2'); })(), 0);
 })();
@@ -181,7 +181,6 @@ function fx(b, addr, si) { const p = P.parseCellName(addr); const c = b.getCell(
   const b = mk({ A1: 5, A2: 'hello', A3: '=A1*2', A4: true, B1: "'=lit" }); b.applyStyle(0, 0, 0, 0, 0, { b: 1, fmt: '0.00' }); b.addSheet('Two'); b.setEntry(1, 0, 0, '=Sheet1!A1'); b.sheets[0].cw = { 0: 120 }; b.sheets[0].merges.push({ r1: 5, c1: 0, r2: 5, c2: 2 }); b.sheets[0].freeze = { r: 1, c: 0 }; b.sheets[0].cf.push({ r1: 0, c1: 0, r2: 0, c2: 0, op: 'between', a: 1, b: 9, bg: '#abcdef' });
   const snap = b.snapshot(), b2 = Book.fromSnapshot(snap);
   eq('round trip: same snapshot', b2.snapshot(), snap); eq('round trip values', [val(b2, 'A1'), val(b2, 'A2'), val(b2, 'A3'), val(b2, 'A4'), val(b2, 'B1'), val(b2, 'A1', 1)], [5, 'hello', 10, true, '=lit', 5]); eq('round trip display', b2.display(0, 0, 0), '5.00');
-  const j = JSON.parse(snap);
   function load(mut) { const c = JSON.parse(snap); mut(c); return Book.fromJSON(c); }
   eq('not a workbook', [Book.fromJSON(null), Book.fromJSON({}), Book.fromJSON({ v: 2, sheets: [] }), Book.fromJSON({ v: 1, sheets: [] }), Book.fromJSON('x'), Book.fromJSON([])], [null, null, null, null, null, null]);
   eq('hostile cells are dropped', (function () { const x = load(function (c) { c.sheets[0].cells.push([-1, 0, 1], [0, 99, 1], ['a', 0, 1], [0.5, 0, 1], [1e9, 0, 1], null, 'x', [0], { r: 1 }); }); return x.sheets[0].cells.size; })(), b.sheets[0].cells.size);

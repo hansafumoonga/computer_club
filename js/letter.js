@@ -36,7 +36,7 @@ function build(body, api, year, lv) {
   const base = parseFloat(getComputedStyle(page).fontSize);   // this is "12 point" on the page
 
   /* ---------- reading the page (used by the steps) ---------- */
-  const text = function () { return page.innerText.replace(/ /g, ' '); };
+  const text = function () { return page.innerText.replace(/\u00A0/g, ' '); };
   const has = function (t) { return text().toLowerCase().replace(/\s+/g, ' ').indexOf(t.toLowerCase()) >= 0; };
   const count = function (t) { return text().toLowerCase().split(t.toLowerCase()).length - 1; };
   const lines = function () { return text().split('\n').map(function (x) { return x.trim(); }).filter(function (x) { return x; }); };
@@ -207,7 +207,8 @@ function build(body, api, year, lv) {
     ov.querySelector('.pg').innerHTML = clean();
     ov.querySelector('[data-a="print"]').addEventListener('click', function () {
       const pp = L.el('div', 'wl-printpage', clean()); document.body.appendChild(pp); document.body.classList.add('wl-print');
-      const end = function () { document.body.classList.remove('wl-print'); pp.remove(); window.removeEventListener('afterprint', end); }; window.addEventListener('afterprint', end);
+      const sheetCss = L.el('style'); sheetCss.textContent = '@media print{@page{size:A4 portrait;margin:0}}'; document.head.appendChild(sheetCss);
+      const end = function () { document.body.classList.remove('wl-print'); pp.remove(); sheetCss.remove(); window.removeEventListener('afterprint', end); }; window.addEventListener('afterprint', end);
       try { if (!api.noDownload) window.print(); } catch (e) { } setTimeout(end, 1500); api.check({ t: 'print' });
     });
     ov.querySelector('[data-a="x"]').addEventListener('click', function () { ov.remove(); page.focus(); api.check({ t: 'preview' }); });

@@ -26,7 +26,7 @@ function normStyle(o) {
   if (typeof o.bd === 'string') { const set = ['t', 'r', 'b', 'l'].filter(function (ch) { return o.bd.indexOf(ch) >= 0; }).join(''); if (set) n.bd = set; }
   return n;
 }
-function cleanText(s) { return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F￾￿]/g, ''); }
+function cleanText(s) { return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/g, ''); }
 function newSheet(name) { return { name: name, cells: new Map(), cw: {}, rh: {}, merges: [], freeze: { r: 0, c: 0 }, cf: [], charts: [] }; }
 function isEmpty(cell) { return cell.v === undefined && cell.f === undefined; }
 const DATE_FORMATS = { TODAY: 'dd/mm/yyyy', NOW: 'dd/mm/yyyy hh:mm', DATE: 'dd/mm/yyyy', EDATE: 'dd/mm/yyyy', EOMONTH: 'dd/mm/yyyy', DATEVALUE: 'dd/mm/yyyy', TIME: 'hh:mm' };

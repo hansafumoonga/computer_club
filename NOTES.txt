@@ -283,4 +283,20 @@ TOOLS, LESSON UPGRADE AND SECURITY REVIEW (version 9)
     _headers gained Cross-Origin-Opener-Policy, Strict-Transport-Security, X-Permitted-Cross-Domain-Policies, more switched-off browser features, and explicit font, worker, manifest and frame
     rules with upgrade-insecure-requests in the Content-Security-Policy. See README.md, Security.
   - TESTS: tests/ (run all with: node tests/run.js; needs only Node). 399 number-format checks, 468 formula and workbook checks, the file helpers, and the 40,000-formula fuzz run.
+  - FINAL CHECK: the live site was compared file by file with the repository (identical), all 77 game launches and both lesson games were run to the end in Chrome and Edge, and the files were run straight from a folder
+    with the network off. Colour contrast was brought up to WCAG AA on every screen (the year numbers and level numbers now use dark ink like the keys of the logo; the About link is gold; small labels are darker).
+    The invisible and direction-changing characters that had been typed into a few regular expressions are now written as \uXXXX escapes (they mean the same, and a reviewer can see them). Saved lesson progress is
+    checked for the right shape before it is used (CC.lab.load in js/lab.js), so damaged data can never stop a level map from drawing.
   - AFTER CHANGING A CSS OR JS FILE add 1 to the ?v= number in index.html (every line, the same number): browsers keep these files for a month (_headers) and the new number makes them fetch the new one.
+
+PAGES IN THE WORD PROCESSOR, AND PRINTING
+  - The document is one editable box that is never cut up. At each page end, js/writer.js places a full-width floating block BEFORE it (.wp-breaks); the browser then moves every
+    line to the next page by itself. White sheets are drawn behind, and gaps labelled "Page 2 of 3" in front (.wp-papers, .wp-gaps). Keep the 'text-indent: .5px each-line' on .wp-page
+    (css/tools.css): without it empty lines stay in the gap. The page-break line (hr[data-pb]) must stay 'overflow: visible', or the browser pushes the break itself onto the next page.
+  - A table longer than a page is split by a temporary spacer row (tr.wp-gaprow) that is removed before every edit, copy, undo, save and download. Pictures and tables too big for a
+    page are scaled or narrowed, because the browser would push them past every page end.
+  - The Word file (js/docx.js) copies the screen's spacing (LINE and SINGLE) and table column widths. If the editor's CSS changes (line height, headings, lists, tables), change the
+    matching Word values too.
+  - PRINT RULES MUST ONLY APPLY TO THEIR OWN SCREEN. Several certificate style sheets used to hide the whole site when printing, so the Word Processor, the Number Grid, the letter
+    lesson and the Computer Skills certificate and report printed blank. Each such rule is now limited with :where(body:has(<that screen>)). Never write an unlimited
+    'body *{visibility:hidden}'. To check printing, print every screen to PDF and look at it (a print button that runs is not proof that anything comes out).

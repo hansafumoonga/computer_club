@@ -192,7 +192,7 @@ function plainText(html) {
     }
   })(root);
   if (line) flush();
-  return parts.join('\n').replace(/\t\n/g, '\n').replace(/ /g, ' ');
+  return parts.join('\n').replace(/\t\n/g, '\n').replace(/\u00A0/g, ' ');
 }
 
 /* ---------- pictures chosen from the computer ---------- */

@@ -116,9 +116,9 @@
   .bd-kbwrap{display:none}
 }
 @media print{
-  body *{visibility:hidden}
+  :where(body:has(#mode-builder:not([hidden]) .bd-certwrap)) *{visibility:hidden}
   @page{size:A4 landscape;margin:0}
-  html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
+  html:has(#mode-builder:not([hidden]) .bd-certwrap),body:has(#mode-builder:not([hidden]) .bd-certwrap){height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
   .bd-certwrap,.bd-certwrap *{visibility:visible}
   #mode-builder{height:auto;padding:0;display:block}
   .bd-stage,.bd-root{position:static;overflow:visible;height:auto;max-height:none;box-shadow:none;background:#fff}

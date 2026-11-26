@@ -155,9 +155,9 @@
 .mc-certwrap>*{flex:none}
 .mc-root>.mc-certwrap{min-height:min-content}
 @media print{
-  body *{visibility:hidden}
+  :where(body:has(#mode-mouseclub:not([hidden]) .mc-certwrap)) *{visibility:hidden}
   @page{size:A4 landscape;margin:0}
-  html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
+  html:has(#mode-mouseclub:not([hidden]) .mc-certwrap),body:has(#mode-mouseclub:not([hidden]) .mc-certwrap){height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
   .mc-certwrap,.mc-certwrap *{visibility:visible}
   #mode-mouseclub{height:auto;padding:0;display:block}
   .mc-stage,.mc-root{position:static;overflow:visible;height:auto;max-height:none;box-shadow:none;background:#fff}

@@ -50,7 +50,7 @@ function zip(files) {
 /* ---------- file names and downloads ---------- */
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
 function safeName(name, fallback) {
-  let s = String(name == null ? '' : name).replace(/[\u0000-\u001F\u007F‎‏‪-‮⁦-⁩]/g, '')   // control and direction-changing characters can disguise a file type
+  let s = String(name == null ? '' : name).replace(/[\u0000-\u001F\u007F\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, '')   // control and direction-changing characters can disguise a file type
     .replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/^\.+/, '').replace(/[. ]+$/, '');
   if (s.length > 60) s = s.slice(0, 60).replace(/[. ]+$/, '');
   if (!s || RESERVED.test(s.split('.')[0])) s = fallback || 'My document';
@@ -75,7 +75,7 @@ function csvField(v) {
   if (/^[=+\-@\t\r]/.test(s) && !(shown && SAFENUM.test(s))) s = "'" + s;
   return /[",\r\n]|^\s|\s$/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
-DF.toCSV = function (rows) { return '﻿' + rows.map(function (r) { return r.map(csvField).join(','); }).join('\r\n') + '\r\n'; };
+DF.toCSV = function (rows) { return '\uFEFF' + rows.map(function (r) { return r.map(csvField).join(','); }).join('\r\n') + '\r\n'; };
 /* reading comma- or tab-separated text (the clipboard from a spreadsheet is tab separated). Limits keep a huge paste from freezing the page. */
 DF.parseDelimited = function (text, delim, lim) {
   lim = lim || {}; const maxRows = lim.rows || 2000, maxCols = lim.cols || 52, maxField = lim.field || 32767;

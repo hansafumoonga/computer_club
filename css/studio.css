@@ -90,8 +90,9 @@
   .st-side{gap:8px}
 }
 @media print{
-  body *{visibility:hidden}
+  :where(body:has(.mode:not([hidden]) .st-paper)) *{visibility:hidden}
   @page{size:A4 landscape;margin:8mm}
+  html:has(.mode:not([hidden]) .st-paper),body:has(.mode:not([hidden]) .st-paper){height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
   .st-paper,.st-paper *{visibility:visible}
   .st-say,.st-prog{display:none !important}
   .st-wrap,.st-body,.st-main{display:block;padding:0;overflow:visible;height:auto}

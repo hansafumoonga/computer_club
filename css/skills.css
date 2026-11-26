@@ -184,7 +184,8 @@
 
 @media (max-width:760px){.sk-map{grid-template-columns:repeat(2,1fr)}.sk-tile .nm{font-size:.9rem}.rep-row{grid-template-columns:2em 1fr auto}.rep-row .rc{display:none}}
 @media (prefers-reduced-motion:reduce){.sk-buddy,.sk-item.hl,.sk-kb .sk-key.hl,.enter-key{animation:none}}
-@media print{body{overflow:visible;background:#fff;color:#000}.topbar,.sk-report .row,.rep-note{display:none}.rep-row{background:#fff;border-color:#999;color:#000}#mode-skills{overflow:visible}}
+@media print{body{overflow:visible;background:#fff;color:#000}.topbar,.sk-report .row,.rep-note{display:none}.rep-row{background:#fff;border-color:#999;color:#000}#mode-skills{overflow:visible}
+  :where(body:has(#mode-skills:not([hidden]) .sk-report)) *{visibility:hidden}.sk-report,.sk-report *{visibility:visible}.sk-report{position:absolute;left:0;top:0;width:100%}.sk-report,.sk-report *{color:#000 !important}}
 @keyframes skkey{50%{transform:scale(1.15)}}
 
 .sk-tray{position:absolute;background:rgba(255,255,255,.3);border:calc(var(--u)*.3) dashed rgba(255,255,255,.75);border-radius:calc(var(--u)*2);pointer-events:none}
@@ -199,9 +200,11 @@
 .sk-cert svg{width:100%;height:auto;display:block}
 @media print{
   @page{size:A4 landscape;margin:0}
-  html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
+  :where(body:has(#mode-skills:not([hidden]) .sk-cert-wrap)) *{visibility:hidden}
+  html:has(#mode-skills:not([hidden]) .sk-cert-wrap),body:has(#mode-skills:not([hidden]) .sk-cert-wrap){height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
   #mode-skills{height:auto;padding:0;display:block}
-  .sk-cert-wrap{width:100vw;gap:0;padding:0}
+  .sk-cert-wrap,.sk-cert-wrap *{visibility:visible}
+  .sk-cert-wrap{position:absolute;left:0;top:0;width:100vw;gap:0;padding:0}
   .sk-cert{width:100vw;height:calc(100vh - 2px);box-shadow:none;border-radius:0}
   .sk-cert svg{width:100%;height:100%}
   .sk-cert-bar,.rep-note,.topbar{display:none !important}

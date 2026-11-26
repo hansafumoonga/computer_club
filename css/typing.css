@@ -185,8 +185,9 @@
   .ty-kbwrap .kr:first-child{display:none}
   .ty-line{padding:8px 12px}
 }
+/* print rules apply only while their own screen is showing, so that other pages (the document tools, the other certificates) print */
 @media print{
-  body *{visibility:hidden}
+  :where(body:has(#mode-typing:not([hidden]) .ty-report)) *{visibility:hidden}
   .ty-report,.ty-report *{visibility:visible}
   .ty-report{position:absolute;left:0;top:0;width:100%;color:#000;background:#fff}
   .ty-report .ty-opts{display:none}
@@ -207,7 +208,8 @@
 .ty-cert svg{width:100%;height:auto;display:block}
 @media print{
   @page{size:A4 landscape;margin:0}
-  html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
+  :where(body:has(#mode-typing:not([hidden]) .ty-certwrap)) *{visibility:hidden}
+  html:has(#mode-typing:not([hidden]) .ty-certwrap),body:has(#mode-typing:not([hidden]) .ty-certwrap){height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
   .ty-certwrap,.ty-certwrap *{visibility:visible}
   #mode-typing{height:auto;padding:0;display:block}
   .ty-stage,.ty-root{position:static;overflow:visible;height:auto;max-height:none;box-shadow:none;background:#fff}

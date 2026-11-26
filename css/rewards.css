@@ -24,7 +24,8 @@
   .rw-portrait{page:medal}
   @page{size:A4 landscape;margin:0}
   body.rw-open > *:not(.rw-screen){display:none !important}
-  html,body{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important;background:#fff !important}
+  html,body{background:#fff !important}
+  html:has(body.rw-open),body.rw-open{height:calc(100vh - 2px) !important;max-height:calc(100vh - 2px) !important;overflow:hidden !important;margin:0 !important}
   body.rw-open .rw-screen,body.rw-open .rw-screen *{visibility:visible !important}
   .rw-screen{position:static;display:block;padding:0;background:#fff;overflow:visible}
   .rw-bar,.rw-note{display:none !important}

@@ -50,7 +50,10 @@ L.afterSpeech = function (cb, minMs, maxMs) {
 };
 
 /* ---------- progress ---------- */
-L.load = function (id, year) { return CC.keep.load(id + '_y' + year) || { done: {}, stars: {} }; };
+L.load = function (id, year) {          // a damaged or hand-made saved copy is ignored, so a level map always draws
+  const p = CC.keep.load(id + '_y' + year), obj = function (o) { return !!o && typeof o === 'object' && !Array.isArray(o); };
+  return obj(p) && obj(p.done) && obj(p.stars) ? p : { done: {}, stars: {} };
+};
 L.save = function (id, year, p) { CC.keep.save(id + '_y' + year, p); };
 
 /* ---------- the level map ---------- */

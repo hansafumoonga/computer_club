@@ -14,6 +14,9 @@ const PAGES = { a4: { w: 11906, h: 16838 }, letter: { w: 12240, h: 15840 } };
 const ALIGN = { left: 'left', right: 'right', center: 'center', justify: 'both' };
 const MARGIN = 1440;                                         // one inch
 const DEFAULT = { font: 'Calibri', pt: 12 };                 // the editor starts with this look
+const LINE = 1.35, SINGLE = 1.2207;                          // the editor's line height, and the height of Word's single line in Calibri (both in em)
+const lineTw = function (h) { return Math.ceil(h / SINGLE * 240); };    // Word's line spacing for the same height, rounded up so Word never fits an extra line on a page
+const CELLPAD = '<w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tblCellMar>';   // 4px by 8px, as on screen
 
 function parseStyle(s) { const o = {}; String(s || '').split(';').forEach(function (p) { const i = p.indexOf(':'); if (i > 0) o[p.slice(0, i).trim()] = p.slice(i + 1).trim(); }); return o; }
 function attr(el, n) { return el.getAttribute ? el.getAttribute(n) : null; }
@@ -100,7 +103,7 @@ function pPr(c) {                                             // pStyle, numPr, 
   let x = '';
   if (c.style) x += '<w:pStyle w:val="' + c.style + '"/>';
   if (c.num) x += '<w:numPr><w:ilvl w:val="' + c.num.lvl + '"/><w:numId w:val="' + c.num.id + '"/></w:numPr>';
-  if (c.line) x += '<w:spacing w:line="' + Math.round(c.line * 240) + '" w:lineRule="auto"/>';
+  if (c.picture) x += '<w:spacing w:line="240" w:lineRule="auto"/>'; else if (c.line) x += '<w:spacing w:line="' + lineTw(c.line) + '" w:lineRule="auto"/>';     // single spacing keeps a picture its own height
   if (c.left && !c.num) x += '<w:ind w:left="' + Math.round(c.left * TW) + '"/>';
   if (c.align) x += '<w:jc w:val="' + ALIGN[c.align] + '"/>';
   return x ? '<w:pPr>' + x + '</w:pPr>' : '';
@@ -109,7 +112,7 @@ function paragraph(nodes, c, st, S) {
   const list = nodes.slice(), last = list[list.length - 1];
   if (last && last.nodeType === 1 && last.localName === 'br') list.pop();                          // the line break the browser keeps at the end of a line
   let inner = ''; list.forEach(function (n) { inner += inlineNode(n, st, S); });
-  return '<w:p>' + pPr(c) + inner + '</w:p>';
+  return '<w:p>' + pPr(inner.indexOf('<w:drawing>') >= 0 ? Object.assign({}, c, { picture: true }) : c) + inner + '</w:p>';
 }
 const BLOCKTAG = { div: 1, h1: 1, h2: 1, h3: 1, blockquote: 1, ul: 1, ol: 1, li: 1, table: 1, hr: 1 };
 function blockProps(el, c) {
@@ -174,7 +177,7 @@ function table(el, st, S, depth) {
   }
   const bd = attr(el, 'data-bd') || 'grid', ln = function (n, on) { return on ? '<w:' + n + ' w:val="single" w:sz="4" w:space="0" w:color="808080"/>' : '<w:' + n + ' w:val="nil"/>'; };
   const box = bd === 'grid' || bd === 'box', inner = bd === 'grid';
-  let x = '<w:tbl><w:tblPr><w:tblW w:w="' + widths.reduce(function (a, b) { return a + b; }, 0) + '" w:type="dxa"/><w:tblBorders>' + ln('top', box) + ln('left', box) + ln('bottom', box) + ln('right', box) + ln('insideH', inner) + ln('insideV', inner) + '</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr>';
+  let x = '<w:tbl><w:tblPr><w:tblW w:w="' + widths.reduce(function (a, b) { return a + b; }, 0) + '" w:type="dxa"/><w:tblBorders>' + ln('top', box) + ln('left', box) + ln('bottom', box) + ln('right', box) + ln('insideH', inner) + ln('insideV', inner) + '</w:tblBorders><w:tblLayout w:type="fixed"/>' + CELLPAD + '<w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/></w:tblPr>';
   x += '<w:tblGrid>' + widths.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join('') + '</w:tblGrid>';
   grid.forEach(function (cells) {
     x += '<w:tr>'; let col = 0;
@@ -191,7 +194,7 @@ function table(el, st, S, depth) {
     for (; col < ncol; col++) x += '<w:tc><w:tcPr><w:tcW w:w="' + widths[col] + '" w:type="dxa"/></w:tcPr><w:p/></w:tc>';          // a short row is filled up with empty cells
     x += '</w:tr>';
   });
-  return x + '</w:tbl><w:p/>';                                                  // a paragraph after a table keeps two tables from joining
+  return x + '</w:tbl>';
 }
 
 /* ---------- fixed parts ---------- */
@@ -200,7 +203,7 @@ function numberingXml(S) {
     let x = '';
     for (let i = 0; i < 9; i++) {
       const fmt = bullet ? 'bullet' : ['decimal', 'lowerLetter', 'lowerRoman'][i % 3], txt = bullet ? ['•', 'o', '▪'][i % 3] : '%' + (i + 1) + '.';
-      x += '<w:lvl w:ilvl="' + i + '"><w:start w:val="1"/><w:numFmt w:val="' + fmt + '"/><w:lvlText w:val="' + txt + '"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="' + (720 * (i + 1)) + '" w:hanging="360"/></w:pPr>' + (bullet ? '<w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri" w:hint="default"/></w:rPr>' : '') + '</w:lvl>';
+      x += '<w:lvl w:ilvl="' + i + '"><w:start w:val="1"/><w:numFmt w:val="' + fmt + '"/><w:lvlText w:val="' + txt + '"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="' + (480 * (i + 1)) + '" w:hanging="360"/></w:pPr>' + (bullet ? '<w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri" w:hint="default"/></w:rPr>' : '') + '</w:lvl>';
     }
     return x;
   };
@@ -210,18 +213,18 @@ function numberingXml(S) {
 }
 function stylesXml() {
   const head = function (id, name, size, color, bold, italic, before, after, outline, extra) {
-    return '<w:style w:type="paragraph" w:styleId="' + id + '"><w:name w:val="' + name + '"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="9"/><w:qFormat/><w:pPr>' + (outline !== null ? '<w:keepNext/><w:keepLines/>' : '') +
-      '<w:spacing w:before="' + before + '" w:after="' + after + '"/>' + (outline !== null ? '<w:outlineLvl w:val="' + outline + '"/>' : '') + '</w:pPr><w:rPr>' + (bold ? '<w:b/><w:bCs/>' : '') + (italic ? '<w:i/><w:iCs/>' : '') + '<w:color w:val="' + color + '"/><w:sz w:val="' + size + '"/><w:szCs w:val="' + size + '"/></w:rPr></w:style>';
+    return '<w:style w:type="paragraph" w:styleId="' + id + '"><w:name w:val="' + name + '"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="9"/><w:qFormat/><w:pPr>' + (outline !== null ? '<w:keepLines/>' : '') +
+      '<w:spacing w:before="' + before + '" w:after="' + after + '"' + (id === 'Subtitle' ? '' : ' w:line="' + lineTw(1.2) + '" w:lineRule="auto"') + '/>' + (outline !== null ? '<w:outlineLvl w:val="' + outline + '"/>' : '') + '</w:pPr><w:rPr>' + (bold ? '<w:b/><w:bCs/>' : '') + (italic ? '<w:i/><w:iCs/>' : '') + '<w:color w:val="' + color + '"/><w:sz w:val="' + size + '"/><w:szCs w:val="' + size + '"/></w:rPr></w:style>';
   };
   return X + '<w:styles xmlns:w="' + NSW + '"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="' + DEFAULT.font + '" w:hAnsi="' + DEFAULT.font + '" w:eastAsia="' + DEFAULT.font + '" w:cs="' + DEFAULT.font + '"/><w:sz w:val="' + DEFAULT.pt * 2 + '"/><w:szCs w:val="' + DEFAULT.pt * 2 + '"/><w:lang w:val="en-GB" w:eastAsia="en-US" w:bidi="ar-SA"/></w:rPr></w:rPrDefault>' +
-    '<w:pPrDefault><w:pPr><w:spacing w:after="160" w:line="259" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
+    '<w:pPrDefault><w:pPr><w:widowControl w:val="0"/><w:spacing w:after="0" w:line="' + lineTw(LINE) + '" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>' +
     '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>' +
     '<w:style w:type="character" w:default="1" w:styleId="DefaultParagraphFont"><w:name w:val="Default Paragraph Font"/><w:uiPriority w:val="1"/><w:semiHidden/><w:unhideWhenUsed/></w:style>' +
-    '<w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:name w:val="Normal Table"/><w:uiPriority w:val="99"/><w:semiHidden/><w:unhideWhenUsed/><w:tblPr><w:tblInd w:w="0" w:type="dxa"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="108" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="108" w:type="dxa"/></w:tblCellMar></w:tblPr></w:style>' +
+    '<w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:name w:val="Normal Table"/><w:uiPriority w:val="99"/><w:semiHidden/><w:unhideWhenUsed/><w:tblPr><w:tblInd w:w="0" w:type="dxa"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tblCellMar></w:tblPr></w:style>' +
     '<w:style w:type="numbering" w:default="1" w:styleId="NoList"><w:name w:val="No List"/><w:uiPriority w:val="99"/><w:semiHidden/><w:unhideWhenUsed/></w:style>' +
-    head('Title', 'Title', 52, '1E1B4B', true, false, 0, 120, null) + head('Subtitle', 'Subtitle', 28, '4B5563', false, true, 0, 200, null) +
-    head('Heading1', 'heading 1', 40, '312E81', true, false, 360, 120, 0) + head('Heading2', 'heading 2', 32, '3730A3', true, false, 280, 100, 1) + head('Heading3', 'heading 3', 26, '4338CA', true, false, 240, 80, 2) +
-    '<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="29"/><w:qFormat/><w:pPr><w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="A5B4FC"/></w:pBdr><w:ind w:left="720"/></w:pPr><w:rPr><w:i/><w:iCs/><w:color w:val="4B5563"/></w:rPr></w:style>' +
+    head('Title', 'Title', 52, '1E1B4B', true, false, 0, 104, null) + head('Subtitle', 'Subtitle', 28, '4B5563', false, true, 0, 0, null) +
+    head('Heading1', 'heading 1', 40, '312E81', true, false, 240, 80, 0) + head('Heading2', 'heading 2', 32, '3730A3', true, false, 160, 64, 1) + head('Heading3', 'heading 3', 26, '4338CA', true, false, 104, 52, 2) +
+    '<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="29"/><w:qFormat/><w:pPr><w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="A5B4FC"/></w:pBdr><w:spacing w:before="96" w:after="96"/><w:ind w:left="612"/></w:pPr><w:rPr><w:i/><w:iCs/><w:color w:val="4B5563"/></w:rPr></w:style>' +
     '<w:style w:type="character" w:styleId="Hyperlink"><w:name w:val="Hyperlink"/><w:basedOn w:val="DefaultParagraphFont"/><w:uiPriority w:val="99"/><w:unhideWhenUsed/><w:rPr><w:color w:val="0563C1"/><w:u w:val="single"/></w:rPr></w:style></w:styles>';
 }
 const FOOTER = X + '<w:ftr xmlns:w="' + NSW + '"><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>';
@@ -229,7 +232,7 @@ const FOOTER = X + '<w:ftr xmlns:w="' + NSW + '"><w:p><w:pPr><w:jc w:val="center
 /* root: a cleaned element (from DS.fragment). opt: { title, author, page: 'a4'|'letter', pageNumbers } -> the bytes of the .docx */
 function toDocx(root, opt) {
   opt = opt || {}; const page = PAGES[opt.page] || PAGES.a4, S = new Parts({ page: page });
-  let body = blocks(root, {}, {}, S, 0);
+  let body = blocks(root, {}, {}, S, 0).replace(/<\/w:tbl><w:tbl>/g, '</w:tbl><w:p/><w:tbl>');    // an empty paragraph keeps two tables from joining
   if (!body) body = '<w:p/>';
   if (/<\/w:tbl>$/.test(body)) body += '<w:p/>';
   const foot = !!opt.pageNumbers, now = new Date().toISOString().replace(/\.\d+Z$/, 'Z'), who = DF.safeName(opt.author || 'Tech Explorers', 'Tech Explorers');
@@ -284,7 +287,7 @@ function toHtml(root, title) {
     '<title>' + t + '</title><style>' + PAGE_CSS + '</style></head><body>' + root.innerHTML + '</body></html>';
 }
 function saveHtml(root, name) { return DF.download(toHtml(root, name), DF.safeName(name, 'My document') + '.html', 'text/html;charset=utf-8'); }
-function saveText(root, name) { return DF.download('﻿' + DS.plainText(root).replace(/\n/g, '\r\n'), DF.safeName(name, 'My document') + '.txt', 'text/plain;charset=utf-8'); }
+function saveText(root, name) { return DF.download('\uFEFF' + DS.plainText(root).replace(/\n/g, '\r\n'), DF.safeName(name, 'My document') + '.txt', 'text/plain;charset=utf-8'); }
 
 CC.docx = { toDocx: toDocx, prepare: prepare, saveDocx: saveDocx, toHtml: toHtml, saveHtml: saveHtml, saveText: saveText, MIME: DOCX_MIME, PAGES: PAGES, DEFAULT: DEFAULT };
 })();

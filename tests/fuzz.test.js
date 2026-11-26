@@ -2,7 +2,7 @@
 global.window = {};
 const J = require('path').join(__dirname, '..', 'js') + '/';
 require(J + 'docfile.js'); require(J + 'sheetfmt.js'); require(J + 'sheetparse.js'); require(J + 'sheetcalc.js'); require(J + 'sheetbook.js');
-const CC = window.CC, P = CC.sheetparse, K = CC.sheetcalc, Book = CC.sheetbook.Book;
+const CC = window.CC, K = CC.sheetcalc, Book = CC.sheetbook.Book;
 let seed = 12345; function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; } function pick(a) { return a[Math.floor(rnd() * a.length)]; }
 const names = K.functionNames();
 const atoms = ['1', '0', '-1', '2.5', '1e308', '1E-308', '"a"', '""', '"x""y"', 'TRUE', 'FALSE', 'A1', 'B2', '$C$3', 'A1:B3', 'A:A', '1:2', 'Sheet2!A1', "'S 1'!A1:B2", 'ZZ99999', '#N/A', '#REF!', 'foo', '1%', '(', ')', ',', '+', '-', '*', '/', '^', '&', '=', '<>', '<=', '>', ' ', '!', ':', '"', "'", '$', '#', '@', '\u0000', '\u202e', '\ud83d\ude00', '\ud83d'];
